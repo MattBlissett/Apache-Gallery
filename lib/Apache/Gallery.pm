@@ -68,9 +68,9 @@ sub handler {
 	$r->headers_out->{"X-Powered-By"} = "apachegallery.dk $VERSION - Hest design!";
 	$r->headers_out->{"X-Gallery-Version"} = '$Rev$ $Date$';
 
-  my $filename = $r->filename;
-  $filename =~ s/\/$//;
-  my $topdir = $filename;
+	my $filename = $r->filename;
+	$filename =~ s/\/$//;
+	my $topdir = $filename;
 
 	# Just return the http headers if the client requested that
 	if ($r->header_only) {
@@ -187,7 +187,7 @@ sub handler {
 				file      => "$tpl_dir/file.tpl",
 				comment   => "$tpl_dir/dircomment.tpl",
 				nocomment => "$tpl_dir/nodircomment.tpl",
-			       );
+		);
 
 		$tpl_vars{TITLE} = "Index of: $uri";
 		$tpl_vars{META} = " ";
@@ -401,11 +401,12 @@ sub handler {
 		}
 
 		$tpl_vars{MAIN} = fill_in_file($tpl_vars{index},
-					       HASH => \%tpl_vars,
-					      );
+					HASH => \%tpl_vars,
+		);
+		
 		$tpl_vars{MAIN} = fill_in_file($tpl_vars{layout},
-					       HASH => \%tpl_vars,
-					      );
+					HASH => \%tpl_vars,
+		);
 
 
 		$r->content_type('text/html');
@@ -514,7 +515,7 @@ sub handler {
 			       );
 
 		my $resolution = (($image_width > $orig_width) && ($height > $orig_height)) ? 
-		    "$orig_width x $orig_height" : "$image_width x $height";
+			"$orig_width x $orig_height" : "$image_width x $height";
 
 		$tpl_vars{TITLE} = "Viewing ".$r->uri()." at $image_width x $height";
 		$tpl_vars{META} = " ";
@@ -590,8 +591,8 @@ sub handler {
 					$nav_vars{DIRECTION} = "next &raquo;";
 
 					$tpl_vars{NEXT} = fill_in_file($tpl_vars{navpicture},
-								       HASH => \%nav_vars
-								      );
+							HASH => \%nav_vars
+					);
 				}
 				else {
 					$tpl_vars{NEXT} = "&nbsp;";
@@ -671,8 +672,8 @@ sub handler {
 		}
 		else {
 			$tpl_vars{PICTUREINFO} = fill_in_file($tpl_vars{nopictureinfo},
-							      HASH => \%tpl_vars,
-							     );
+					HASH => \%tpl_vars,
+			);
 		}
 
 		my $scaleable = 0;
@@ -883,11 +884,9 @@ sub scale_picture {
 	my $newfilename = get_scaled_picture_name($fullpath, $width, $height);
 
 	if (($width > $orig_width) && ($height > $orig_height)) {
-	    require File::Copy;
-
-	    File::Copy::copy($fullpath,$cache."/".$newfilename);
-
-	    return $newfilename;
+		require File::Copy;
+		File::Copy::copy($fullpath,$cache."/".$newfilename);
+		return $newfilename;
 	}
 
 	my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $orig_width, $orig_height);
@@ -931,17 +930,17 @@ sub scale_picture {
 
 		if ($width == $thumbnailwidth or $width == $thumbnailheight) {
 
-		    resizepicture($fullpath, $newpath, $width, $height, $rotate, '', '', '', '', '');
+			resizepicture($fullpath, $newpath, $width, $height, $rotate, '', '', '', '', '');
 
 		} else {
 
-				resizepicture($fullpath, $newpath, $width, $height, $rotate, 
-					($r->dir_config('GalleryCopyrightImage') ? $r->dir_config('GalleryCopyrightImage') : ''), 
-					($r->dir_config('GalleryTTFDir') ? $r->dir_config('GalleryTTFDir') : ''), 
-					($r->dir_config('GalleryCopyrightText') ? $r->dir_config('GalleryCopyrightText') : ''), 
-					($r->dir_config('GalleryCopyrightColor') ? $r->dir_config('GalleryCopyrightColor') : ''), 
-					($r->dir_config('GalleryTTFFile') ? $r->dir_config('GalleryTTFFile') : ''), 
-					($r->dir_config('GalleryTTFSize') ?  $r->dir_config('GalleryTTFSize') : ''));
+			resizepicture($fullpath, $newpath, $width, $height, $rotate, 
+				($r->dir_config('GalleryCopyrightImage') ? $r->dir_config('GalleryCopyrightImage') : ''), 
+				($r->dir_config('GalleryTTFDir') ? $r->dir_config('GalleryTTFDir') : ''), 
+				($r->dir_config('GalleryCopyrightText') ? $r->dir_config('GalleryCopyrightText') : ''), 
+				($r->dir_config('GalleryCopyrightColor') ? $r->dir_config('GalleryCopyrightColor') : ''), 
+				($r->dir_config('GalleryTTFFile') ? $r->dir_config('GalleryTTFFile') : ''), 
+				($r->dir_config('GalleryTTFSize') ?  $r->dir_config('GalleryTTFSize') : ''));
 
 		}
 	}
@@ -965,10 +964,11 @@ sub get_thumbnailsize {
 	my $width = $thumbnailwidth;
 	my $height = $thumbnailheight;
 
-        # If the image is rotated, flip everything around.
-        if (defined $r->dir_config('GalleryThumbnailSizeLS')
-	    and $r->dir_config('GalleryThumbnailSizeLS') eq '1'
-	    and $orig_width < $orig_height) {
+	# If the image is rotated, flip everything around.
+	if (defined $r->dir_config('GalleryThumbnailSizeLS')
+	and $r->dir_config('GalleryThumbnailSizeLS') eq '1'
+	and $orig_width < $orig_height) {
+		
 		$width = $thumbnailheight;
 		$height = $thumbnailwidth;
 	}
@@ -1226,8 +1226,8 @@ sub get_filecontent {
 	open(FH, $file) or return undef;
 	my $content = '';
 	{
-	local $/;
-	$content = <FH>;
+		local $/;
+		$content = <FH>;
 	}
 	close(FH);
 	return $content;
@@ -1265,7 +1265,7 @@ sub show_error {
 
 	my %tpl_vars = (layout => "$tpl/layout.tpl",
 			error  => "$tpl/error.tpl",
-		       );
+	);
 
 	$tpl_vars{TITLE}      = "Error! $errortitle";
 	$tpl_vars{META}       = "";
