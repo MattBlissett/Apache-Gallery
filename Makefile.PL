@@ -11,7 +11,7 @@ WriteMakefile(
 				CGI::FastTemplate => 0, 
 				Inline => 0, 
 				mod_perl => 0,
-				URI::Escape => 0,
+				URI => 1.23,
 				Apache::Request => 0,
 				Test::More => 0,
 				File::Spec => 0
