@@ -1,6 +1,17 @@
 use Apache::Gallery;
-eval { require Test::MockObject };
-use Test::More qw(no_plan);
+my $tests;
+BEGIN {
+	$tests=8;
+	eval { require Test::MockObject };
+	if ($@) {
+		print("1..$tests\n");
+		for (1..$tests) {
+			print ("ok $_ # skip Test::MockObject not found\n");
+		}
+		exit 0;
+	}
+}
+use Test::More tests => $tests;
 
 # Test these cases:
 # +--------------------------------------------------+
