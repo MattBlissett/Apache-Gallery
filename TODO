@@ -1,4 +1,4 @@
-$Id: TODO,v 1.24 2002/06/15 17:15:38 mil Exp $
+$Author$ $Rev$
 
 - Write a gallery-cleancache.pl script for removing entries in
   the cache where the original picture has been removed.
