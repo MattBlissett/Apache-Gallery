@@ -11,7 +11,6 @@ $VERSION = "0.6.1";
 
 use POSIX;
 use Apache2 ();
-use Apache::compat;
 use Apache::Server;
 use Apache::RequestRec;
 use Apache::Log;
@@ -26,7 +25,6 @@ use File::stat;
 use File::Spec;
 use POSIX qw(floor);
 use URI::Escape;
-use FileHandle;
 use CGI;
 
 use Data::Dumper;
