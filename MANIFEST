@@ -5,7 +5,6 @@ TODO
 LICENSE
 README
 Changes
-lib/Apache
 lib/Apache/Gallery.pm
 UPGRADE
 htdocs/application-ogg.png
