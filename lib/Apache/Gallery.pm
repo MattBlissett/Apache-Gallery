@@ -1206,18 +1206,18 @@ sub show_error {
 	$tpl_vars{ERRORTITLE} = "Error! $errortitle";
 	$tpl_vars{ERROR}      = $error;
 
-	$tpl_vars{MAIN} = fill_in_file($tpl_vars{layout},
-		HASH => \%tpl_vars,
- 	);
-
 	$tpl_vars{MAIN} = fill_in_file($tpl_vars{error},
 		HASH => \%tpl_vars,
 	);
 
+	$tpl_vars{PAGE} = fill_in_file($tpl_vars{layout},
+		HASH => \%tpl_vars,
+ 	);
+
 	$r->status($statuscode);
 	$r->content_type('text/html');
 
-	$r->print($tpl_vars{MAIN});
+	$r->print($tpl_vars{PAGE});
 
 }
 
