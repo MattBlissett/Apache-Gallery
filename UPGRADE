@@ -1,6 +1,14 @@
 # $Author$ $Rev$
 # $Date$
 
+For users upgrading from 0.7 to snapshot
+
+In the default templates, the path to the folder icon was 
+wrong so you need to update your templates/default/directory.tpl
+(only if using the default templates). Also make sure that
+you have the htdocs/agfolder.png file in your Apache icons
+directory.
+
 For users upgrading from 0.6 to 0.7
 
 Apache::Gallery now uses the module Image::Imlib2 instead
