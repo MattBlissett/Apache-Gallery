@@ -932,11 +932,11 @@ sub scale_picture {
 
 		if ($width == $thumbnailwidth or $width == $thumbnailheight) {
 
-			resizepicture($fullpath, $newpath, $width, $height, $rotate, '', '', '', '', '');
+			resizepicture($r, $fullpath, $newpath, $width, $height, $rotate, '', '', '', '', '');
 
 		} else {
 
-			resizepicture($fullpath, $newpath, $width, $height, $rotate, 
+			resizepicture($r, $fullpath, $newpath, $width, $height, $rotate, 
 				($r->dir_config('GalleryCopyrightImage') ? $r->dir_config('GalleryCopyrightImage') : ''), 
 				($r->dir_config('GalleryTTFDir') ? $r->dir_config('GalleryTTFDir') : ''), 
 				($r->dir_config('GalleryCopyrightText') ? $r->dir_config('GalleryCopyrightText') : ''), 
@@ -1355,7 +1355,7 @@ sub generate_menu {
 }
 
 sub resizepicture {
-	my ($infile, $outfile, $x, $y, $rotate, $copyrightfile, $GalleryTTFDir, $GalleryCopyrightText, $text_color, $GalleryTTFFile, $GalleryTTFSize) = @_;
+	my ($r, $infile, $outfile, $x, $y, $rotate, $copyrightfile, $GalleryTTFDir, $GalleryCopyrightText, $text_color, $GalleryTTFFile, $GalleryTTFSize) = @_;
 
 	# Load image
 	my $image = Image::Imlib2->load($infile) or warn("Unable to open file $infile, $!");
@@ -1419,7 +1419,7 @@ sub resizepicture {
 		}
 	}
 
-	my $quality=Apache->request->dir_config('GalleryQuality');
+	my $quality = $r->dir_config('GalleryQuality');
 	if (defined($quality) and ($quality =~ /^\d+$/)) {
 		$image->set_quality($quality);
 	}
