@@ -17,6 +17,7 @@ use Image::Info qw(image_info);
 use Image::Size qw(imgsize);
 use CGI::FastTemplate;
 use File::stat;
+use File::Spec;
 use POSIX qw(floor);
 use URI::Escape;
 
@@ -489,8 +490,12 @@ sub cache_dir {
 
 	unless ($r->dir_config('GalleryCacheDir')) {
 
-		$cache_root = "/var/tmp/Apache-Gallery";
-		$cache_root .= ($r->server->is_virtual ? '/' . $r->server->server_hostname : $r->location);
+		$cache_root = File::Spec->catdir(File::Spec->tmpdir, 'Apache-Gallery');
+		if ($r->server->is_virtual) {
+			$cache_root = File::Spec->catdir($cache_root, $r->server->server_hostname);
+		} else {
+			$cache_root = File::Spec->catdir($cache_root, $r->location);
+		}
 
 	} else {
 
@@ -498,12 +503,14 @@ sub cache_dir {
 
 	}
 
-	my @uri = split("/", $r->uri);
+	my (undef, $dirs, $filename) = File::Spec->splitpath($r->uri);
+	# We don't need a volume as this is a relative path
 
-	pop(@uri) if ($strip_filename);
-
-	return($cache_root . join("/", @uri));
-
+	if ($strip_filename) {
+		return(File::Spec->canonpath(File::Spec->catdir($cache_root, $dirs)));
+	} else {
+		return(File::Spec->canonpath(File::Spec->catfile($cache_root, $dirs, $filename)));
+	}
 }
 
 sub create_cache {

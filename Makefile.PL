@@ -14,6 +14,7 @@ WriteMakefile(
 				URI::Escape => 0,
 				Apache::Request => 0,
 				Test::More => 0,
+				File::Spec => 0
 										 }, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM => 'lib/Apache/Gallery.pm', # retrieve abstract from module
