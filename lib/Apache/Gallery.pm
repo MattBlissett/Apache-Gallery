@@ -1211,7 +1211,7 @@ sub resizepicture {
 	}
 
 	# blend copyright image onto image
-	if (-f $copyrightfile and (my $logo=Image::Imlib2->load($copyrightfile))) {
+	if (($copyrightfile ne '') and (-f $copyrightfile) and (my $logo=Image::Imlib2->load($copyrightfile))) {
 		my $x = $image->get_width();
 		my $y = $image->get_height();
 		my $logox = $logo->get_width();
