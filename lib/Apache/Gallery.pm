@@ -318,9 +318,12 @@ sub handler {
 						$dirtitle = get_filecontent($thumbfilename . ".folder");
 					}
 
+					$dirtitle = $dirtitle ? $dirtitle : $file;
+					$dirtitle =~ s/_/ /g if $r->dir_config('GalleryUnderscoresToSpaces');
+
 					$tpl_vars{FILES} .= fill_in_file($tpl_vars{directory},
 						HASH=> {FILEURL => uri_escape($fileurl, $escape_rule),
-						FILE    => ($dirtitle ? $dirtitle : $file),
+						FILE    => $dirtitle,
 					});
 
 				}
@@ -1700,6 +1703,11 @@ Examples:
 
 Quality at 50:
         PerlSetVar      GalleryQuality '50'
+
+=item B<GalleryUnderscoresToSpaces>
+
+Set this option to 1 to convert underscores to spaces in the listing
+of directory names.
 
 =head1 FEATURES
 

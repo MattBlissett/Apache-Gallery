@@ -224,6 +224,10 @@ CONFIGURATION
 
     Quality at 50: PerlSetVar GalleryQuality '50'
 
+    GalleryUnderscoresToSpaces
+    Set this option to 1 to convert underscores to spaces in the listing of
+    directory names.
+
 FEATURES
     Rotate images
         Some cameras, like the Canon G3, detects the orientation of a
