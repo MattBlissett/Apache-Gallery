@@ -200,7 +200,7 @@ sub handler {
 					my @filetypes = qw(JPG TIF PNG PPM);
 
 					next unless (grep $type eq $_, @filetypes);
-					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $thumbfilename, $width, $height);	
+					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $width, $height);	
 					my $cached = scale_picture($r, $thumbfilename, $thumbnailwidth, $thumbnailheight);
 
 					my $imageinfo = get_imageinfo($r, $thumbfilename, $type, $width, $height);
@@ -349,7 +349,7 @@ sub handler {
 				}	
 				if ($prevpicture and $displayprev) {
 					my ($orig_width, $orig_height, $type) = imgsize($path.$prevpicture);
-					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $path.$prevpicture, $orig_width, $orig_height);	
+					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $orig_width, $orig_height);	
 					my $cached = scale_picture($r, $path.$prevpicture, $thumbnailwidth, $thumbnailheight);
 					$tpl->assign(URL       => uri_escape($prevpicture, $escape_rule));
 					$tpl->assign(FILENAME  => $prevpicture);
@@ -369,7 +369,7 @@ sub handler {
 
 				if ($nextpicture) {
 					my ($orig_width, $orig_height, $type) = imgsize($path.$nextpicture);
-					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $path.$nextpicture, $orig_width, $orig_height);	
+					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $orig_width, $orig_height);	
 					my $cached = scale_picture($r, $path.$nextpicture, $thumbnailwidth, $thumbnailheight);
 					$tpl->assign(URL       => uri_escape($nextpicture, $escape_rule));
 					$tpl->assign(FILENAME  => $nextpicture);
@@ -620,7 +620,7 @@ sub scale_picture {
 }
 
 sub get_thumbnailsize {
-	my ($r, $filename, $orig_width, $orig_height) = @_;
+	my ($r, $orig_width, $orig_height) = @_;
 
 	my ($thumbnailwidth, $thumbnailheight) = split(/x/, ($r->dir_config('GalleryThumbnailSize') ?  $r->dir_config('GalleryThumbnailSize') : "100x75"));
 
