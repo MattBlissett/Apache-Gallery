@@ -23,6 +23,7 @@ use URI::Escape;
 
 # Regexp for escaping URI's
 my $escape_rule = "^A-Za-z0-9\-_.!~*'()\/";
+my $memoized;
 
 use Inline (C => Config => 
 				LIBS => '-L/usr/X11R6/lib -lImlib2 -lm -ldl -lXext -lXext',
@@ -37,6 +38,12 @@ Inline->init;
 sub handler {
 
 	my $r = shift or Apache->request();
+
+	if ((not $memoized) and ($r->dir_config('GalleryMemoize'))) {
+		require Memoize;
+		memoize('get_imageinfo');
+		$memoized=1;
+	}
 
 	$r->header_out("X-Powered-By","apachegallery.dk $VERSION - Hest design!");
 	$r->header_out("X-Gallery-Version", '$Rev$ $Date$');
@@ -1166,6 +1173,12 @@ a slideshow. The default is '3 5 10 15 30'
 
 Instead of the default filename ordering you can sort by any
 stat attribute. For example size, atime, mtime, ctime.
+
+=item B<GalleryMemoize>
+
+Cache EXIF data using Memoize - this will make Apache::Gallery faster
+when many people access the same images, but it will also cache EXIF
+data until the current Apache child dies.
 
 =back
 
