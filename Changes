@@ -6,6 +6,7 @@ Revision history for Perl extension Apache::Gallery.
 	- Added slideshow feature (Me)	
 	- Code cleanup (Me)
 	- Moved the cache to one single directory outside the webscope (Rene Joergensen)
+	- Allow user to customize the "No info found" message (Me)
 
 0.4.1 Sun Aug 11 17:48:09 CEST 2002
 
