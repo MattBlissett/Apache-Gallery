@@ -38,8 +38,17 @@ table {
 a {
 	color: #5555aa;
 }
+a img {
+	border: 2px solid #5555aa;
+}
 a:hover {
 	color: #ff9400;
+}
+a:hover img {
+	border: 2px solid #ff9400;
+}
+#folder img {
+	border: 0px;
 }
 .info {
 	background-color: #eeeeee;

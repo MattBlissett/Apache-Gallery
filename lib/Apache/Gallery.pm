@@ -1,10 +1,8 @@
 package Apache::Gallery;
 
-# $Id: Gallery.pm,v 1.81 2002/06/05 15:13:38 mil Exp $
+# $Id: Gallery.pm,v 1.99 2002/07/26 11:51:34 thomas Exp $
 
-use 5.006;
 use strict;
-use warnings;
 
 use vars qw($VERSION);
 
@@ -37,6 +35,7 @@ sub handler {
 	my $r = shift or Apache->request();
 
 	$r->header_out("X-Powered-By","apachegallery.dk $VERSION - Hest design!");
+	$r->header_out("X-Gallery-Version", '$Id: Gallery.pm,v 1.99 2002/07/26 11:51:34 thomas Exp $');
 
 	if ($r->header_only) {
 		$r->send_http_header;
@@ -45,21 +44,27 @@ sub handler {
 
 	my $apr = Apache::Request->instance($r, DISABLE_UPLOADS => 1, POST_MAX => 1024);
 
-	if ($r->uri =~ m/(^\/icons|\.cache|\.(css|txt|avi|mpe?g|mov|asf)$)/i) {
+	# dirs we do not serve content from directly
+	if ($r->uri =~ m/(^\/icons|\.cache)/i) {
 		return DECLINED;
 	}
 
 	my $uri = $r->uri;
 	$uri =~ s/\/$//;
 
-	my $subr     = $r->lookup_uri($r->uri);
-	my $filename = $subr->filename;
+	my $filename = $r->filename;
+	$filename =~ s/\/$//;
 	my $topdir   = $filename;
 
 	unless (-f $filename or -d $filename) {
 	
 		show_error($r, "404!", "No such file or directory: ".$r->uri);
 		return OK;
+	}
+
+	# unless it is one of the filetypes we server with Apache::Gallery
+	if (-f $filename && $filename !~ m/\.(?:jpe?g|png|tiff?|ppm)$/i) {
+		return DECLINED;
 	}
 
 	if (-d $filename) {
@@ -90,16 +95,16 @@ sub handler {
 		
 		$tpl->assign(MENU => generate_menu($r));
 	
-		# Read, sort and filter files
+		# Read, sort, and filter files
 		my @files = grep { !/^\./ && -f "$filename/$_" } readdir (DIR);
 		@files = sort @files;
 
 		my @movies;
 
 		if (@files) {
-
-			# Remov unwanted files and from list
+			# Remove unwanted files and movies from list
 			my $counter = 0;
+			my @new_files = ();
 			foreach my $picture (@files) {
 
 				my $file = $topdir."/".$picture;
@@ -108,13 +113,14 @@ sub handler {
 					push (@movies, $picture);
 				}
 
-				if (-f $file && !($file =~ m/\.(jpe?g|png|tiff?|ppm)$/i)) {
-					splice(@files, $counter, 1);
+				if ($file =~ m/\.(?:jpe?g|png|tiff?|ppm)$/i) {
+					push (@new_files, $picture);
 				}
 
 				$counter++;
 
 			}
+			@files = @new_files;
 		}
 
 		# Read and sort directories
@@ -128,7 +134,7 @@ sub handler {
 		push (@listing, @directories);
 		push (@listing, @files);
 		push (@listing, @movies);
-
+		
 		if (@listing) {
 
 			my $filelist;
@@ -140,8 +146,12 @@ sub handler {
 				my $fileurl = $uri."/".$file;
 
 				if (-d $thumbfilename) {
+					my $dirtitle = '';
+					if (-e $thumbfilename . ".folder") {
+						$dirtitle = get_filecontent($thumbfilename . ".folder");
+					}
 
-					$tpl->assign(FILEURL => uri_escape($fileurl, $escape_rule), FILE => $file);
+					$tpl->assign(FILEURL => uri_escape($fileurl, $escape_rule), FILE => ($dirtitle ? $dirtitle : $file));
 					$tpl->parse(FILES => '.directory');
 
 				}
@@ -197,6 +207,7 @@ sub handler {
 	}
 	else {
 # original size
+
 		if (defined($ENV{QUERY_STRING}) && $ENV{QUERY_STRING} eq 'orig') {
 			if ($r->dir_config('GalleryAllowOriginal') ? 1 : 0) {
 				$r->filename($filename);
@@ -205,16 +216,33 @@ sub handler {
 				return FORBIDDEN;
 			}
 		}
+	
+		# Create cache dir if not existing
+		my @tmp = split (/\//, $filename);
+		my $picfilename = pop @tmp;
+		my $path = (join "/", @tmp)."/";
+
+		unless (-d $path."/.cache") {
+			unless (mkdir ($path."/.cache", 0777)) {
+				show_error($r, $!, "Unable to create .cache dir in $path: $!");
+				return OK;
+			}
+		}
 
 		my ($orig_width, $orig_height, $type) = imgsize($filename);
 		my $width = $orig_width;
 
 		my $imageinfo = get_imageinfo($filename, $type, $orig_width, $orig_height);
 
+		my $original_size=$orig_height;
+ 		if ($orig_width>$orig_height) {
+			$original_size=$orig_width;
+ 		}
+
 		# Check if the selected width is allowed
 		my @sizes = split (/ /, $r->dir_config('GallerySizes') ? $r->dir_config('GallerySizes') : '640 800 1024 1600');
 		if ($apr->param('width')) {
-			unless (grep $apr->param('width') == $_, @sizes) {
+			unless ((grep $apr->param('width') == $_, @sizes) or ($apr->param('width') == $original_size)) {
 				show_error($r, "Invalid width", $apr->param('width')." is an invalid width.");
 				return OK;
 			}
@@ -224,13 +252,24 @@ sub handler {
 			$width = $sizes[0];
 		}	
 
-		my $scale = ($orig_width ? $width/$orig_width : 1);
+		my $scale;
+		my $image_width;
+		if ($orig_width<$orig_height) {
+			$scale = ($orig_height ? $width/$orig_height: 1);
+			$image_width=$width*$orig_width/$orig_height;
+		}
+		else {
+			$scale = ($orig_width ? $width/$orig_width : 1);
+			$image_width = $width;
+		}
+
 		my $height = $orig_height * $scale;
 
-		$width  = floor($width);
-		$height = floor($height);
+		$image_width = floor($image_width);
+		$width       = floor($width);
+		$height      = floor($height);
 
-		my $cached = scale_picture($r, $filename, $width, $height);
+		my $cached = scale_picture($r, $filename, $image_width, $height);
 		
 		my $tpl = new CGI::FastTemplate($r->dir_config('GalleryTemplateDir'));
 
@@ -243,15 +282,11 @@ sub handler {
 			orig        => 'orig.tpl'
 		);
 
-		$tpl->assign(TITLE => "Viewing ".$r->uri()." at $width x $height");
-		$tpl->assign(RESOLUTION => "$width x $height");
+		$tpl->assign(TITLE => "Viewing ".$r->uri()." at $image_width x $height");
+		$tpl->assign(RESOLUTION => "$image_width x $height");
 		$tpl->assign(MENU => generate_menu($r));
 		$tpl->assign(SRC => ".cache/".$cached);
 		$tpl->assign(URI => $r->uri());
-
-		my @tmp = split (/\//, $filename);
-		$filename = pop @tmp;
-		my $path = (join "/", @tmp)."/";
 
 		unless (opendir(DATADIR, $path)) {
 			show_error($r, "Unable to open dir", "Unable to access $path");
@@ -264,7 +299,7 @@ sub handler {
 		$tpl->assign(TOTAL => scalar @pictures);
 		
 		for (my $i=0; $i <= $#pictures; $i++) {
-			if ($pictures[$i] eq $filename) {
+			if ($pictures[$i] eq $picfilename) {
 
 				$tpl->assign(NUMBER => $i+1);
 
@@ -296,7 +331,7 @@ sub handler {
 				}	
 
 				if ($nextpicture) {
-					my ($orig_width, $orig_height, $type) = imgsize($path.$prevpicture);
+					my ($orig_width, $orig_height, $type) = imgsize($path.$nextpicture);
 					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $path.$nextpicture, $orig_width, $orig_height);	
 					my $cached = scale_picture($r, $path.$nextpicture, $thumbnailwidth, $thumbnailheight);
 					$tpl->assign(URL       => uri_escape($nextpicture, $escape_rule));
@@ -312,8 +347,8 @@ sub handler {
 			}
 		}
 
-		if (-e $path . '/' . $filename . '.comment' && -f $path . '/' . $filename . '.comment') {
-		    my $comment_ref = get_comment($path . '/' . $filename . '.comment');
+		if (-e $path . '/' . $picfilename . '.comment' && -f $path . '/' . $picfilename . '.comment') {
+		    my $comment_ref = get_comment($path . '/' . $picfilename . '.comment');
 		    $tpl->assign(COMMENT => $comment_ref->{COMMENT} . '<br>') if $comment_ref->{COMMENT};
 		    $tpl->assign(TITLE => $comment_ref->{TITLE}) if $comment_ref->{TITLE};
 		} else {
@@ -325,7 +360,7 @@ sub handler {
 		foreach (@infos) {
 		
 			my ($key, $value) = (split " => ")[0,1];
-			if ($imageinfo->{$value}) {
+			if (defined($imageinfo->{$value})) {
 				my $content = "";
 				if (ref($imageinfo->{$value}) eq 'Image::TIFF::Rational') { 
 					$content = $imageinfo->{$value}->as_string;
@@ -351,7 +386,21 @@ sub handler {
 					}
 				} 
 				else {
-					$content = $imageinfo->{$value};
+					my $keyvalue = $imageinfo->{$value};
+					if ($key eq 'Flash' && $keyvalue =~ m/\d/) {
+						my %flashmodes = (
+							"0"  => "No",
+							"1"  => "Yes",
+							"9"  => "Yes",
+							"16" => "No (Compulsory)",
+							"24" => "No",
+							"25" => "Yes (Auto)",
+							"73" => "Yes (Compulsory, Red Eye Reducing)",
+							"89" => "Yes (Auto, Red Eye Reducing)"
+						);
+						$keyvalue = $flashmodes{$keyvalue};
+					}
+					$content = $keyvalue;
 				}
 				$tpl->assign(KEY => $key);
 				$tpl->assign(VALUE => $content);
@@ -368,13 +417,16 @@ sub handler {
 		}	
 
 		foreach my $size (@sizes) {
-			$tpl->assign(IMAGEURI => $r->uri());
-			$tpl->assign(SIZE     => $size);
-			$tpl->assign(WIDTH    => $size);
-			$tpl->parse(SIZES => '.scale');
-		}	
+			if ($size<=$original_size) {
+				$tpl->assign(IMAGEURI => uri_escape($r->uri(), $escape_rule));
+				$tpl->assign(SIZE     => $size);
+				$tpl->assign(WIDTH    => $size);
+				$tpl->parse(SIZES => '.scale');
+			}
+		}
+
 		if ($r->dir_config('GalleryAllowOriginal')) {
-			$tpl->assign(IMAGEURI => $r->uri());
+			$tpl->assign(IMAGEURI => uri_escape($r->uri(), $escape_rule));
 			$tpl->parse(SIZES => '.orig');
 		}
 
@@ -497,7 +549,7 @@ sub get_imageinfo {
 		my $tmpfilename = $file;
 		# We have a problem with Windows based file extensions here as they are often .THM
 		$tmpfilename =~ s/\.(\w+)$/.thm/;
-		if (-e $tmpfilename && -f $tmpfilename) {
+		if (-e $tmpfilename && -f $tmpfilename && -r $tmpfilename) {
 			$imageinfo = image_info($tmpfilename);
 		} else {
 			$imageinfo = {};
@@ -534,6 +586,18 @@ sub readfile_getnum {
 		return 0;
 	}
 	return $temp;
+}
+
+sub get_filecontent {
+	my $file = shift;
+	open(FH, $file) or return undef;
+	my $content = '';
+	{
+	local $/;
+	$content = <FH>;
+	}
+	close(FH);
+	return $content;
 }
 
 sub get_comment {
@@ -754,7 +818,7 @@ and B<Camera>
 
 You can view all the keys from the EXIF header using this perl-oneliner:
 
-perl -e 'use Data::Dumper; use Image::Info qw(image_info); print Dumper(image_info(shift));' filename.jpg
+perl C<-e> 'use Data::Dumper; use Image::Info qw(image_info); print Dumper(image_info(shift));' filename.jpg
 
 Default is: 'Picture Taken => DateTimeOriginal, Flash => Flash'
 
@@ -824,7 +888,8 @@ following lines.
 
 Example:
 TITLE: This is the new title of the page
-And this is the comment.
+And this is the comment.<br>
+And this is line two of the comment.
 
 =back
 

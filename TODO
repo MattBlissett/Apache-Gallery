@@ -1,0 +1,24 @@
+$Id: TODO,v 1.24 2002/06/15 17:15:38 mil Exp $
+
+- Write a gallery-cleancache.pl script for removing entries in
+  the cache where the original picture has been removed.
+
+- /admin page to edit comments and .rotate file. (Cleanup in
+  .cache when changing rotation)
+
+- Write perlscript to make static html galleries.
+
+- Sort by the DateTimeOriginal part of the EXIF header
+  if possible
+
+- Make the template and imagesystem pluggable
+
+- an option to make comments to the directories. This might require
+  additional grouping to separate subfolders from images;
+
+- Configurable Title via a PerlSetVar directive
+
+- Make scaling quality configurable
+
+- Thumbnails are to be generated in tmp files first,
+  then moved to the correct location.
