@@ -10,6 +10,9 @@ Revision history for Perl extension Apache::Gallery.
 	- Bugfix for directories named "0" (Andreas Plesner Jacobsen)
 	- Added "selection mode". Select images with checkboxes and
 	  get a list of filenames. (Peter Andreasen)
+	- Fix to let the module work with perl 5.005 (Aaron)
+	- Do not allow scaling pictures to sizes above their
+	  original size (Aaron)
 
 0.6 Tue Apr 22 10:24:40 CEST 2003
 

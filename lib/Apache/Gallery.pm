@@ -142,7 +142,7 @@ sub handler {
 
 		my $sortby = $r->dir_config('GallerySortBy');
 		if ($sortby && $sortby =~ m/^(size|atime|mtime|ctime)$/) {
-			@files = map(/^\d+ (.*)/, sort map(stat("$filename/$_")->$sortby." $_", @files));
+			@files = map(/^\d+ (.*)/, sort map(stat("$filename/$_")->$sortby()." $_", @files));
 		} else {
 			@files = sort @files;
 		}
@@ -358,9 +358,12 @@ sub handler {
 			nopictureinfo  => 'nopictureinfo.tpl'
 		);
 
+		my $resolution = (($image_width > $orig_width) && ($height > $orig_height)) ? 
+		    "$orig_width x $orig_height" : "$image_width x $height";
+
 		$tpl->assign(TITLE => "Viewing ".$r->uri()." at $image_width x $height");
 		$tpl->assign(META => " ");
-		$tpl->assign(RESOLUTION => "$image_width x $height");
+		$tpl->assign(RESOLUTION => $resolution);
 		$tpl->assign(MENU => generate_menu($r));
 		$tpl->assign(SRC => uri_escape(".cache/$cached", $escape_rule));
 		$tpl->assign(URI => $r->uri());
@@ -601,6 +604,17 @@ sub scale_picture {
 	pop(@cachedir) unless (-d join("/", @cachedir));
 
 	my $cache = join("/", @cachedir);
+
+	if (($width > $orig_width) && ($height > $orig_height)) {
+	    require File::Copy;
+	    require File::Basename;
+
+	    my $fname     = File::Basename::basename($fullpath);
+	    my $cachefile = join("/",$cache,$fname);
+	    File::Copy::copy($fullpath,$cachefile);
+
+	    return $fname;
+	}
 
 	my ($thumbnailwidth, $thumbnailheight) = split(/x/, ($r->dir_config('GalleryThumbnailSize') ?  $r->dir_config('GalleryThumbnailSize') : "100x75"));
 
