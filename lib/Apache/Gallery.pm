@@ -205,12 +205,7 @@ sub handler {
 		# Read, sort, and filter files
 		my @files = grep { !/^\./ && -f "$filename/$_" } readdir (DIR);
 
-		my $sortby = $r->dir_config('GallerySortBy');
-		if ($sortby && $sortby =~ m/^(size|atime|mtime|ctime)$/) {
-			@files = map(/^\d+ (.*)/, sort map(stat("$filename/$_")->$sortby()." $_", @files));
-		} else {
-			@files = sort @files;
-		}
+		@files=gallerysort($r, @files);
 
 		my @downloadable_files;
 
@@ -241,7 +236,7 @@ sub handler {
 		if (defined($r->dir_config('GalleryDirSortBy'))) {
 			$dirsortby=$r->dir_config('GalleryDirSortBy');
 		} else {
-			$dirsortby=$sortby;
+			$dirsortby=$r->dir_config('GallerySortBy');
 		}
 		if ($dirsortby && $dirsortby =~ m/^(size|atime|mtime|ctime)$/) {
 			@directories = map(/^\d+ (.*)/, sort map(stat("$filename/$_")->$dirsortby()." $_", @directories));
@@ -535,7 +530,7 @@ sub handler {
 		}
 		my @pictures = grep { /$img_pattern/i } readdir (DATADIR);
 		closedir(DATADIR);
-		@pictures = sort @pictures;
+		@pictures = gallerysort($r, @pictures);
 
 		$tpl_vars{TOTAL} = scalar @pictures;
 
@@ -1419,6 +1414,20 @@ sub resizepicture {
 
 	$image->save($outfile);
 
+}
+
+sub gallerysort {
+	my $r=shift;
+	my @files=@_;
+	my $sortby = $r->dir_config('GallerySortBy');
+	my $filename=$r->lookup_uri($r->uri)->filename;
+	$filename=(File::Spec->splitpath($filename))[1] if (-f $filename);
+	if ($sortby && $sortby =~ m/^(size|atime|mtime|ctime)$/) {
+		@files = map(/^\d+ (.*)/, sort map(stat("$filename/$_")->$sortby()." $_", @files));
+	} else {
+		@files = sort @files;
+	}
+	return @files;
 }
 
 1;

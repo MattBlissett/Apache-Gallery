@@ -14,6 +14,8 @@ Snapshot
 	  (Michael Legart)
 	- Scale images when they are requested from the cache instead of
 	  before the index is displayed. (Michael Legart)
+	- Sort pictures the same way when viewing images as when viewing
+	  directories (Andreas Plesner)
 
 0.8 Sun Mar  7 11:22:00 CET 2004
 
