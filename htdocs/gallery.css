@@ -1,8 +1,21 @@
 body {
-	background-color: #cccccc;
-	font-family: helvetica, arial, sans-serif;
+	background-color: #ffffff;
+//	font-family: helvetica, arial, sans-serif;
+	font-family: Tahoma, lucida, helvetica, arial, sans-serif;
 	font-size: 10px;
-	color: #333333;
+	color: #666666;
+}
+a {
+//	color: #888888;
+	color: #5555aa;
+	text-decoration: none;
+}
+a:hover {
+//	color: #5555aa;
+	color: #ff9400;
+	text-decoration: underline;
+}
+img {
 }
 #page {
 	position: absolute;
@@ -10,46 +23,37 @@ body {
 	width: auto;
 	height: auto;
 	visibility: visible;
-	background-color: #cccccc;
+	background-color: #ffffff;
 	border: 0px;
 	padding: 20px;
 }
 #menu {
 	border: 0px;
-	padding: 10px;
-
+	height: 40px;
+	font-size: 11px;
+	font-weight: bold;
+	color: #666666;
 }
 #dir {
 	background-color: #FFFFFF;
-	border: 1px solid #000000;
+	border: 0px;
+	border: 1px dashed #999999;
 	padding: 10px;
 }
-#picture {
-	padding: 10px;
+#picture img {
+	border: 1px solid #000000;
 }
 #gallery {
 	padding: 10px;
 	text-align: center;
 }
 td {
-	font-family: helvetica, arial, sans-serif;
+	font-family: Tahoma, lucida, helvetica, arial, sans-serif;
 	font-size: 10px;
 }
 h1, h2, h3, h4, h5 {
 	text-transform: capitalize;
 	font-weight: bold;
-}
-a {
-	color: #555555;
-	text-decoration: none;
-}
-a:hover {
-	color: #5555aa;
-}
-#dir img {
-	border: 1px solid #000000;
-	width: 100px;
-	height: 75px;
 }
 #folder img {
 	border-width: 0px;
@@ -79,5 +83,5 @@ a:hover {
 	font-weight: bold;
 }
 .nav img {
-	border: 1px solid #000000;
+//	border: 1px solid #000000;
 }

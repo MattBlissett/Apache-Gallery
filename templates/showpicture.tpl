@@ -9,11 +9,7 @@ $MENU
 						<center class="nav">
 						Viewing picture $NUMBER of $TOTAL at $RESOLUTION pixels<br>
             <img src="$SRC"><br>
-            Size [ <a href="$URI?width=640">640</a> |
-            <a href="$URI?width=800">800</a> |
-            <a href="$URI?width=1024">1024</a> |
-            <a href="$URI?width=1600">1600</a> |
-            <a href="$URI?width=2048">2048</a> ]
+            Size [ $SIZES ]
           </center>
         </td>
       </tr>
@@ -25,8 +21,7 @@ $MENU
               <tr>
                 <td>
                   $COMMENT
-                  Picture taken: $DATETIME<br>
-                  Flash: $FLASH<br>
+		  $INFO
                 </td>
               </tr>
             </table>
@@ -37,6 +32,6 @@ $MENU
     </table>
   </div>
   <div id="gallery">
-    Indexed by <a href="http://legart.dk">Apache::Gallery</a> - Copyright &copy; 2001 Michael Legart
+    Indexed by <a href="http://legart.dk">Apache::Gallery</a> - Copyright &copy; 2001 Michael Legart - Hest design!
   </div>
 </div>

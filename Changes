@@ -1,6 +1,22 @@
-$Id: Changes,v 1.7 2001/10/14 17:57:53 mil Exp $
+$Id: Changes,v 1.16 2002/01/01 23:27:00 mil Exp $
 
 Revision history for Perl extension Apache::Gallery.
+
+0.3 Wed Jan  2 00:25:21 CET 2002
+
+	- Made Inline dir configurable. (Tim Coleman)
+	- Made it configurable which information about the image
+	  should be viewed. (Thomas Eibner)
+	- Added GallerySizes option. You can now choose which
+	  resolutions the user can scale between. The Gallery
+	  will not allow scaling to 641x480 if you only configured
+	  640x480. (To prevent evil people filling up your disk) (Me)
+	- Handle spaces in files and directories correct. 
+	- Now possible to rotate pictures on the fly. (Thomas Eibner)
+	- Copyright picture can be included on each picture (Thomas Eibner)
+	- Comments for each picture changed to be in 
+	  picture.jpg.comments (Thomas Eibner)
+  - Scale thumbnails correct when images are rotated 90-degrees. (Me)
 
 0.2 Sun Oct 14 19:57:06 2001
 	- addcomments.pl renamed to gallery-editcomments.pl

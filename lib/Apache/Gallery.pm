@@ -1,6 +1,6 @@
 package Apache::Gallery;
 
-# $Id: Gallery.pm,v 1.18 2001/10/14 16:26:28 mil Exp $
+# $Id: Gallery.pm,v 1.39 2002/01/02 10:50:23 mil Exp $
 
 use 5.006;
 use strict;
@@ -8,7 +8,7 @@ use warnings;
 
 use vars qw($VERSION);
 
-$VERSION = "0.2";
+$VERSION = "0.3";
 
 use Apache();
 use Apache::Constants qw(:common);
@@ -17,10 +17,14 @@ use Apache::Request();
 use Image::Info qw(image_info);
 use DB_File;
 use CGI::FastTemplate;
+use URI::Escape;
+
+my $escape_rule = '^a-zA-Z0-9/_\\.';
 
 use Inline C => Config => 
 				LIBS => '-L/usr/X11R6/lib -lImlib2 -lttf -lm -ldl -lXext -lXext',
-				DIRECTORY => '/usr/local/apache/Inline',
+				DIRECTORY => Apache->request()->dir_config('InlineDir') ?  Apache->request()->dir_config('InlineDir') : "/tmp/",
+				INC => '-I/usr/X11R6/include',
 				ENABLE    => 'UNTAINT';
 
 use Inline 'C';
@@ -114,7 +118,7 @@ sub handler {
 
 				if (-d $thumbfilename) {
 
-					$tpl->assign(FILEURL => $fileurl, FILE => $file);
+					$tpl->assign(FILEURL => uri_escape($fileurl, $escape_rule), FILE => $file);
 					$tpl->parse(FILES => '.directory');
 
 				}
@@ -123,14 +127,14 @@ sub handler {
 					my $imageinfo = image_info($thumbfilename);
 
 					next unless ($imageinfo->{file_media_type} && $imageinfo->{file_media_type} eq 'image/jpeg');
-					
-					my $cached = scale_picture($r, $thumbfilename, 100, 75);
+					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($thumbfilename);	
+					my $cached = scale_picture($r, $thumbfilename, $thumbnailwidth, $thumbnailheight);
 
 
 					$tpl->assign(FILEURL => $fileurl);
 					$tpl->assign(FILE    => $file);
 					$tpl->assign(DATE    => $imageinfo->{DateTimeOriginal});
-					$tpl->assign(SRC     => $uri."/.cache/$cached");
+					$tpl->assign(SRC     => uri_escape($uri."/.cache/$cached", $escape_rule));
 
 					$tpl->parse(FILES => '.picture');
 
@@ -159,7 +163,13 @@ sub handler {
 			$width = 640;
 		}
 
-		if ($apr->param('width') && $apr->param('width') <= 2048) {
+		# Check if the selected width is allowed
+		if ($apr->param('width')) {
+			my @sizes = split (/ /, $r->dir_config('GallerySizes') ? $r->dir_config('GallerySizes') : '640 800 1024 1600');
+			unless (grep $apr->param('width') == $_, @sizes) {
+				show_error($r, "Invalid width", $apr->param('width')." is an invalid width.");
+				return OK;
+			}
 			$width = $apr->param('width');
 		}
 
@@ -174,7 +184,9 @@ sub handler {
 		$tpl->define(
 			layout      => 'layout.tpl',
 			picture     => 'showpicture.tpl',
-			navpicture  => 'navpicture.tpl'
+			navpicture  => 'navpicture.tpl',
+			info        => 'info.tpl',
+			scale       => 'scale.tpl'
 		);
 
 		$tpl->assign(TITLE => "Viewing ".$r->uri()." at $width x $height");
@@ -204,10 +216,11 @@ sub handler {
 				
 				my $prevpicture = $pictures[$i-1];
 				if ($prevpicture and $i > 0) {
-					my $cached = scale_picture($r, $path.$prevpicture, 100, 75);
-					$tpl->assign(URL       => $prevpicture);
+					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($path.$prevpicture);	
+					my $cached = scale_picture($r, $path.$prevpicture, $thumbnailwidth, $thumbnailheight);
+					$tpl->assign(URL       => uri_escape($prevpicture, $escape_rule));
 					$tpl->assign(WIDTH     => $width);
-					$tpl->assign(PICTURE   => ".cache/$cached");
+					$tpl->assign(PICTURE   => uri_escape(".cache/$cached", $escape_rule));
 					$tpl->assign(DIRECTION => "Prev");
 					$tpl->parse(BACK => "navpicture");
 				}
@@ -217,10 +230,11 @@ sub handler {
 
 				my $nextpicture = $pictures[$i+1];
 				if ($nextpicture) {
-					my $cached = scale_picture($r, $path.$nextpicture, 100, 75);
-					$tpl->assign(URL       => $nextpicture);
+					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($path.$nextpicture);	
+					my $cached = scale_picture($r, $path.$nextpicture, $thumbnailwidth, $thumbnailheight);
+					$tpl->assign(URL       => uri_escape($nextpicture, $escape_rule));
 					$tpl->assign(WIDTH     => $width);
-					$tpl->assign(PICTURE   => ".cache/$cached");
+					$tpl->assign(PICTURE   => uri_escape(".cache/$cached", $escape_rule));
 					$tpl->assign(DIRECTION => "Next");
 					$tpl->parse(NEXT => "navpicture");
 				}
@@ -230,32 +244,63 @@ sub handler {
 			}
 		}
 
-		if (-f $path."/comments.db") {
-			dbmopen my %comments, $path."/comments.db", 0664;
-			if ($comments{$filename}) {
-				$tpl->assign(COMMENT => "Comment: ".$comments{$filename}."<br>");
-			}
+		if (-e $path . '/' . $filename . '.comment' && -f $path . '/' . $filename . '.comment') {
+		    my $comment_ref = get_comment($path . '/' . $filename . '.comment');
+		    $tpl->assign(COMMENT => $comment_ref->{COMMENT} . '<br>') if $comment_ref->{COMMENT};
+		    $tpl->assign(TITLE => $comment_ref->{TITLE}) if $comment_ref->{TITLE};
+		} else {
+		    $tpl->assign(COMMENT => '');
+		}
+
+		my @infos = split /, /, $r->dir_config('GalleryInfo') ? $r->dir_config('GalleryInfo') : 'Picture Taken => DateTimeOriginal, Flash => Flash';
+
+		foreach (@infos) {
+		
+			my ($key, $value) = (split " => ")[0,1];
+			if ($imageinfo->{$value}) {
+				my $content = "";
+				if (ref($imageinfo->{$value}) eq 'Image::TIFF::Rational') { 
+					$content = $imageinfo->{$value}->as_string;
+				} 
+				elsif (ref($imageinfo->{$value}) eq 'ARRAY') {
+					foreach my $array_el (@{$imageinfo->{$value}}) {
+						if (ref($array_el) eq 'ARRAY') {
+							foreach (@{$array_el}) {
+								$content .= $_ . ' ';
+							}
+						} 
+						elsif (ref($array_el) eq 'HASH') {
+							$content .= "<br>{ ";
+				    	foreach (sort keys %{$array_el}) {
+								$content .= "$_ = " . $array_el->{$_} . ' ';
+							}
+				    	$content .= "} ";
+						} 
+						else {
+							$content .= $array_el;
+						}
+						$content .= ' ';
+					}
+				} 
+				else {
+					$content = $imageinfo->{$value};
+				}
+				$tpl->assign(KEY => $key);
+				$tpl->assign(VALUE => $content);
+				$tpl->parse(INFO => '.info');
+			} 
 			else {
-				$tpl->assign(COMMENT => "");
+				print STDERR $value, " not found in picture info\n";
 			}
 		}
-		else {
-			$tpl->assign(COMMENT => "");
-		}
 
-		if ($imageinfo->{DateTimeOriginal}) {
-			$tpl->assign(DATETIME => $imageinfo->{DateTimeOriginal});
-		}
-		else {
-			$tpl->assign(DATETIME => "Unknown");
-		}
-
-		if ($imageinfo->{Flash}) {
-			$tpl->assign(FLASH => $imageinfo->{Flash});
-		}
-		else {
-			$tpl->assign(FLASH => "Unknown");
-		}
+		my @sizes = split (/ /, $r->dir_config('GallerySizes') ? $r->dir_config('GallerySizes') : '640x480 800x600 1024x768 1600x1200');
+		foreach my $size (@sizes) {
+			$tpl->assign(IMAGEURI => $r->uri());
+			$tpl->assign(SIZE     => $size);
+			$tpl->assign(WIDTH    => $size);
+			$tpl->parse(SIZES => '.scale');
+		}	
 
 		$tpl->parse("MAIN", ["picture", "layout"]);
 		my $content = $tpl->fetch("MAIN");
@@ -282,12 +327,76 @@ sub scale_picture {
 
 		my $newpath = $cache."/".$newfilename;
 
-		resizepicture($fullpath, $newpath, $width, $height);
+		my $rotate = 0;
 
+		if (-f $fullpath . ".rotate") {
+		    $rotate = readfile_getnum($fullpath . ".rotate");
+		}
+
+		if ($width == 100 or $width == 75) {
+		    resizepicture($fullpath, $newpath, $width, $height, $rotate, '');
+		} else {
+		    resizepicture($fullpath, $newpath, $width, $height, $rotate, ($r->dir_config('GalleryCopyrightImage') ? $r->dir_config('GalleryCopyrightImage') : ''));
+		}
 	}
 
 	return $newfilename;
 
+}
+
+sub get_thumbnailsize {
+	my $filename = shift;
+
+	my $imageinfo = image_info($filename);
+
+	my $width = 100;
+	if ($imageinfo->{width} < $imageinfo->{height}) {
+		$width = 75;
+	}
+	my $scale = ($imageinfo->{width} ? $width/$imageinfo->{width} : 1);
+	my $height = $imageinfo->{height} * $scale;
+
+	return ($width, $height);
+}
+
+
+sub readfile_getnum {
+	my $filename = shift;
+	open(FH, "<$filename") or return 0;
+	my $temp = <FH>;
+	chomp($temp);
+	close(FH);
+	unless ($temp =~ /^\d$/) {
+		return 0;
+	}
+	unless ($temp == 1 || $temp == 2 || $temp == 3) {
+		return 0;
+	}
+	return $temp;
+}
+
+sub get_comment {
+	my $filename = shift;
+	my $comment_ref = {};
+ 	$comment_ref->{TITLE} = undef;
+	$comment_ref->{COMMENT} = '';
+
+	my $content = '';
+	open(FH, $filename) or return $comment_ref;
+	my $title = <FH>;
+	if ($title =~ /^TITLE: (.*)$/) {
+		$comment_ref->{TITLE} = $1;
+	} 
+	else {
+		$comment_ref->{COMMENT} = $title;
+	}
+	{
+		local $/;
+		$comment_ref->{COMMENT} .= <FH>;
+	}
+	close(FH);
+
+	return $comment_ref;
 }
 
 sub show_error {
@@ -342,7 +451,7 @@ sub generate_menu {
 			$linktext = "root: ";
 		}
 
-		$menu .= qq{ <a href="$menuurl">$linktext</a> / };
+		$menu .= "<a href=\"".uri_escape($menuurl, $escape_rule)."\">$linktext</a> / ";
 
 	}
 
@@ -362,10 +471,12 @@ __C__
 #include <stdio.h>
 #include <string.h>
 
-int resizepicture(char* infile, char* outfile, int x, int y) {
+int resizepicture(char* infile, char* outfile, int x, int y, int rotate, char* copyrightfile) {
 
 	Imlib_Image image;
 	Imlib_Image buffer;
+	Imlib_Image logo;
+	int logo_x, logo_y;
 	int old_x;
 	int old_y;
 
@@ -375,7 +486,7 @@ int resizepicture(char* infile, char* outfile, int x, int y) {
 	imlib_context_set_blend(1);
 	imlib_context_set_anti_alias(1);
 	
-	old_x  = imlib_image_get_width();
+	old_x = imlib_image_get_width();
 	old_y = imlib_image_get_height();
 
 	buffer = imlib_create_image(x,y);
@@ -384,6 +495,31 @@ int resizepicture(char* infile, char* outfile, int x, int y) {
 	imlib_blend_image_onto_image(image, 0, 0, 0, old_x, old_y, 0, 0, x, y);
 
 	imlib_context_set_image(buffer);
+	
+	if (rotate != 0) {
+	    imlib_image_orientate(rotate);
+	}
+	if (strcmp(copyrightfile, "") != 0) {
+	    logo = imlib_load_image(copyrightfile);
+
+	    imlib_context_set_image(buffer);
+
+	    x = imlib_image_get_width();
+	    y = imlib_image_get_height();
+	    
+	    imlib_context_set_image(logo);
+	    
+	    logo_x = imlib_image_get_width();
+	    logo_y = imlib_image_get_height();
+
+	    imlib_context_set_image(buffer);
+	    imlib_blend_image_onto_image(logo, 0, 0, 0, logo_x, logo_y, x-logo_x, y-logo_y, logo_x, logo_y);
+
+	    imlib_context_set_image(logo);
+	    imlib_free_image();
+	    imlib_context_set_image(buffer);
+	}
+
 	imlib_save_image(outfile);
 
 	imlib_context_set_image(image);
@@ -403,11 +539,14 @@ Apache::Gallery - mod_perl handler to create an image gallery
 In httpd.conf:
 
 <VirtualHost 213.237.118.52>
-   ServerName  gallery.foo.org
+   ServerName   gallery.foo.org
    DocumentRoot /path/to/pictures
-   ErrorLog    logs/gallery-error_log
-   TransferLog logs/gallery-access_log
-	PerlSetVar   GalleryTemplateDir '/usr/local/apache/gallery/templates'
+   ErrorLog     logs/gallery-error_log
+   TransferLog  logs/gallery-access_log
+   PerlSetVar   InlineDir '/tmp/'
+   PerlSetVar   GalleryTemplateDir '/usr/local/apache/gallery/templates'
+   PerlSetVar   GalleryInfo 'Picture Taken => DateTimeOriginal, Flash => Flash' 
+   PerlSetVar   GallerySizes '640 1024 1600 2272'
    <Location />
       SetHandler        perl-script
       PerlHandler       Apache::Gallery

@@ -1,7 +1,7 @@
-Apache/Gallery version 0.01
+Apache/Gallery version 0.3
 ===========================
 
-$Id: README,v 1.7 2001/10/14 17:53:53 mil Exp $
+$Id: README,v 1.16 2002/01/01 18:06:17 thomas Exp $
 
 INSTALLATION
 
@@ -19,11 +19,23 @@ Setup a virtualhostblock in httpd.conf, like this:
 	ErrorLog     logs/gallery-error_log
 	TransferLog  logs/gallery-access_log
 	PerlSetVar   GalleryTemplateDir '/usr/local/apache/gallery/templates'
+	PerlSetVar   InlineDir '/usr/local/apache/Inline'
+	PerlSetVar   GalleryInfo 'Picture Taken => DateTimeOriginal, Flash => Flash' 
+	PerlSetVar   GallerySizes '640 1024 1600 2272'
+	PerlSetVar   GalleryCopyrightImage 'htdocs/c.png'
 	<Location />
 		SetHandler        perl-script
 		PerlHandler       Apache::Gallery
 	</Location>
 </VirtualHost>
+
+Example of other stuff you can put on the GalleryInfo line:
+'Camera => Model'
+
+You can also put ie:
+PerlSetVar   GallerySizes '640 800'
+
+in a .htaccess file if you want other settings for that directory.
 
 Copy the files from templates/ to where you pointed GalleryTemplateDir to,
 copy htdocs/folder.png to your Apache icons directory and copy htdocs/gallery.css
@@ -32,6 +44,26 @@ to the DocumentRoot of your gallery.
 Create /usr/local/apache/Inline and make sure your httpd can write to this
 directory. This will be used by the Inline module to compile the c-code used
 to access functions in Imlib2
+
+It is possible to include a graphical copyright notice on each picture now.
+By setting the GalleryCopyrightImage PerlSetVar you can define the path
+to a picture that you want include in the left top of each picture.
+
+Apache::Gallery now has support for rotating pictures on the fly. To use
+this functionality you have to create file with the name of the picture
+you want rotated appened with ".rotate". The file should include a number
+where these numbers are supported:
+"1", rotates clockwise by 90 degree
+"2", rotates clockwise by 180 degrees
+"3", rotates clockwise by 270 degrees
+So if we want to rotate "Picture1234.jpg" 90 degrees clockwise we would
+create a file in the same directory called "Picture1234.jpg.rotate" with
+the number 1 inside of it.
+
+To include comments for each picture you create a picture.jpg.comment
+file that can include a first line of:
+TITLE: This is the new title of the page
+And this is the comment.
 
 DEPENDENCIES
 
