@@ -115,7 +115,7 @@ sub handler {
 	# image does not exist
 	if ($r->uri =~ m/\.cache\//i) {
 
-		my $filename = $r->document_root().$r->uri();
+		my $filename = $r->filename().$r->path_info();
 		$filename =~ s/\.cache//;
 
 		$filename =~ m/\/(\d+)x(\d+)\-/;
