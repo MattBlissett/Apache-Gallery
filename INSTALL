@@ -6,16 +6,20 @@ INSTALLATION
 Before you start installing Apache::Gallery you need to check
 that you have the following installed:
 
-- Perl 5
-- Apache with mod_perl
-- URI::Escape
-- Image::Info version 1.11. (NB NB NB: Version 1.12 is known to give problems)
-- Image::Size
-- CGI::FastTemplate
-- CGI
-- Image::Imlib2
+- Perl 5 (http://www.cpan.org/src/README.html)
+- Apache (http://httpd.apache.org/) - 1.3.x or 2.x
+- mod_perl (http://perl.apache.org/) - 1.x or 2.x (1.99)
 - X11 libraries (ie, XFree86)
 - Imlib2 (http://prdownloads.sourceforge.net/enlightenment/imlib2-1.0.3.tar.gz)
+
+Perl Modules: (Use http://search.cpan.org/ to find them)
+
+- URI::Escape
+- Image::Info version 1.11. (NB NB NB: Version 1.12 is known to give problems)
+- Image::Size 
+- CGI::FastTemplate
+- CGI
+- Image::Imlib2 
 
 When installing Imlib2 from rpm, deb or other packages formats, remember
 that you need the imlib2-dev package too. On Debian this can be installed
@@ -97,8 +101,11 @@ Apache::Gallery. You can write to michael@legart.dk
 Make sure you try the latest version of the gallery from 
 <http://apachegallery.dk/> before reporting bugs. 
 
-If you have problems installing Apache::Gallery, please make sure to run "make
-test" to see, what may be the problem.
+If you are brave you can also download the latest snapshot
+from http://svn.apachegallery.dk/snapshots/
+
+If you have problems installing Apache::Gallery, please make 
+sure to run "make test" to see, what may be the problem.
 
 When reporting bugs please use this page and include the output from make test
 in your bugreport:
