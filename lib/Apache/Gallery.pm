@@ -731,7 +731,7 @@ sub scale_picture {
 	    return $fname;
 	}
 
-	my ($thumbnailwidth, $thumbnailheight) = split(/x/, ($r->dir_config('GalleryThumbnailSize') ?  $r->dir_config('GalleryThumbnailSize') : "100x75"));
+	my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $orig_width, $orig_height);
 
 	# Do we want to generate a new file in the cache?
 	my $scale = 1;
@@ -796,12 +796,18 @@ sub get_thumbnailsize {
 	my ($thumbnailwidth, $thumbnailheight) = split(/x/, ($r->dir_config('GalleryThumbnailSize') ?  $r->dir_config('GalleryThumbnailSize') : "100x75"));
 
 	my $width = $thumbnailwidth;
-	if ($orig_width < $orig_height) {
-		# rotated image
-		$width = $thumbnailheight;
-	}
+	my $height = $thumbnailheight;
+
 	my $scale = ($orig_width ? $width/$orig_width : 1);
-	my $height = $orig_height * $scale;
+
+	if ($orig_height) {
+		if ($orig_height * $scale > $thumbnailheight) {
+			$scale = $height/$orig_height;
+			$width = $orig_width * $scale;
+		}
+	}
+
+	$height = $orig_height * $scale;
 
 	$height = floor($height);
 	$width  = floor($width);

@@ -27,6 +27,8 @@ Revision history for Perl extension Apache::Gallery.
 	- New option GalleryMaxThumbnailsPerPage to limit the number
 	  of thumbnails displayed per page. Disabled by default
 	  and requires templates update. (Michael Legart)
+	- Bugfix for the GalleryThumbnailSize option. Both height and
+	  width max sizes are now obeyed. (David Gee)
 
 0.6 Tue Apr 22 10:24:40 CEST 2003
 
