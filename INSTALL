@@ -1,4 +1,4 @@
-Apache/Gallery version 0.5
+Apache/Gallery version 0.6
 ===========================
 
 $Id: INSTALL,v 1.4 2002/06/06 19:41:30 mil Exp $
@@ -63,7 +63,6 @@ If this line is not commented, Apache::Gallery will only work when
 user access an image, whenever a directory listing will be requested, 
 Apache will answer a classic (and ugly) directory listing performed by 
 mod_autoindex.
-
 
 Copy the files from templates/ to where you pointed GalleryTemplateDir to,
 copy htdocs/folder.png and htdocs/video-*.png to your Apache icons 
