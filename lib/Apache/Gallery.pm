@@ -41,7 +41,7 @@ sub handler {
 
 	if ((not $memoized) and ($r->dir_config('GalleryMemoize'))) {
 		require Memoize;
-		memoize('get_imageinfo');
+		Memoize::memoize('get_imageinfo');
 		$memoized=1;
 	}
 
