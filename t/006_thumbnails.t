@@ -18,7 +18,7 @@ else {
 	is ($height, 75, 'Height');
 
 	($width, $height) = Apache::Gallery::get_thumbnailsize($r, 480, 640);
-	is ($width, 75, 'Height rotated');
-	is ($height, 100, 'Width rotated');
+	is ($width, 56, 'Height rotated');
+	is ($height, 75, 'Width rotated');
 
 }
