@@ -489,8 +489,8 @@ sub cache_dir {
 
 	unless ($r->dir_config('GalleryCacheDir')) {
 
-		$cache_root = "/var/tmp/Apache-Gallery/";
-		$cache_root .= ($r->server->is_virtual ? $r->server->server_hostname : $r->location);
+		$cache_root = "/var/tmp/Apache-Gallery";
+		$cache_root .= ($r->server->is_virtual ? '/' . $r->server->server_hostname : $r->location);
 
 	} else {
 
