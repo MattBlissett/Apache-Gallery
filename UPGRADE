@@ -3,6 +3,9 @@
 
 For users upgrading from 0.6 to 0.7
 
+Apache::Gallery now uses the module Image::Imlib2 instead
+of Inline::C. This enables us to ship binary distributions.
+
 Copy htdocs/agfolder.png to your Apache
 icons directory.
 

@@ -99,7 +99,7 @@ sub handler {
 	}
 	if ($r->uri =~ m/\.cache\//i) {
 		my $file = cache_dir($r, 0);
-		$file =~ s/\/\.cache//;
+		$file =~ s/\.cache//;
 		my $subr = $r->lookup_file($file);
 		$r->content_type($subr->content_type());
 
@@ -1358,7 +1358,7 @@ with the visible name of the folder.
 
 =item B<CGI::FastTemplate>
 
-=item B<Inline::C>
+=item B<Image::Imlib2>
 
 =item B<X11 libraries>
 (ie, XFree86)
@@ -1390,7 +1390,7 @@ Thanks to Thomas Eibner and other for patches. (See the Changes file)
 
 =head1 SEE ALSO
 
-L<perl>, L<mod_perl>, L<Inline::C>, L<CGI::FastTemplate>,
+L<perl>, L<mod_perl>, L<Image::Imlib2>, L<CGI::FastTemplate>,
 L<Image::Info>, and L<Image::Size>.
 
 =cut
