@@ -964,7 +964,7 @@ sub generate_menu {
 
 		$menuurl .= $link."/";
 		my $linktext = $link;
-		unless ($link) {
+		unless (length($link)) {
 			$linktext = "root: ";
 		}
 		else {
