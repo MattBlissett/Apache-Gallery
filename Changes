@@ -3,6 +3,14 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
+0.6.1
+	
+	- Send status code 500 on errors, 404 on file not found and
+	  make IE show our own errorpage. (Thomas L. Kjeldsen)
+	- Bugfix for directories named "0" (Andreas Plesner Jacobsen)
+	- Added "selection mode". Select images with checkboxes and
+	  get a list of filenames. (Peter Andreasen)
+
 0.6 Tue Apr 22 10:24:40 CEST 2003
 
 	- Apache now internally handles image dispatch which enables
