@@ -48,6 +48,7 @@ use POSIX qw(floor);
 use URI::Escape;
 use POSIX;
 use CGI;
+use CGI::Cookie;
 
 use Data::Dumper;
 
@@ -391,14 +392,24 @@ sub handler {
 
 		# Check if the selected width is allowed
 		my @sizes = split (/ /, $r->dir_config('GallerySizes') ? $r->dir_config('GallerySizes') : '640 800 1024 1600');
+
+		my %cookies = fetch CGI::Cookie;
+
 		if ($cgi->param('width')) {
 			unless ((grep $cgi->param('width') == $_, @sizes) or ($cgi->param('width') == $original_size)) {
 				show_error($r, 200, "Invalid width", "The specified width is invalid");
 				return MP2 ? Apache::OK : Apache::Constants::OK;
 			}
+
 			$width = $cgi->param('width');
-		}
-		else {
+			my $cookie = new CGI::Cookie(-name => 'GallerySize', -value => $width, -expires => '+6M');
+			$r->headers_out->{'Set-Cookie'} = $cookie;
+
+		} elsif ($cookies{'GallerySize'}) {
+
+			$width = $cookies{'GallerySize'}->value;
+
+		} else {
 			$width = $sizes[0];
 		}	
 

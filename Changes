@@ -3,6 +3,10 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
+snapshot
+
+	- Remember choosen width by setting a cookie (Rene Joergensen)
+
 0.7 Mon Sep  8 22:30:35 CEST 2003
 
 	- Support mod_perl version 1 and 2 (1.99) (Michael Legart)	
