@@ -206,6 +206,7 @@ sub handler {
 		my $content = $tpl->fetch("MAIN");
 
 		$r->content_type('text/html');
+		$r->headers_out('Content-Length', length(${$content}));
 		$r->send_http_header;
 
 		$r->print(${$content});
@@ -454,6 +455,7 @@ sub handler {
 		my $content = $tpl->fetch("MAIN");
 
 		$r->content_type('text/html');
+		$r->headers_out('Content-Length', length(${$content}));
 		$r->send_http_header;
 
 		$r->print(${$content});
