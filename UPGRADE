@@ -16,7 +16,10 @@ to your DocumentRoot.
 
 To update to the new layout, copy templates/new/gallery.css 
 to your DocumentRoot and copy templates/new/*.tpl to your
-GalleryTemplateDir. 
+GalleryTemplateDir and set the following option in your virtual
+host:
+
+PerlSetVar GalleryEXIFMode 'values'
 
 For users upgrading from 0.5.1 to 0.6
 
