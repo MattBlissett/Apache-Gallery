@@ -93,6 +93,10 @@ CONFIGURATION
         With this option you can configure which intervals can be selected
         for a slideshow. The default is '3 5 10 15 30'
 
+    GallerySortBy
+        Instead of the default filename ordering you can sort by any stat
+        attribute. For example size, atime, mtime, ctime.
+
 FEATURES
     Rotate images
         Some cameras, like the Canon G3, detects the orientation of a
@@ -147,7 +151,6 @@ DEPENDENCIES
     X11 libraries (ie, XFree86)
     Imlib2 Remember the -dev package when using rpm, deb or other package
     formats!
-
 BUGS
     Fatal errors are showed on a page with a HTTP OK return code. This is
     because Internet Explorer will show it's own error page otherwise. Is it
@@ -174,6 +177,7 @@ THANKS
     (See the Changes file)
 
 SEE ALSO
-    perl, mod_perl, Apache::Request, Inline::C, CGI::FastTemplate,
-    Image::Info, and Image::Size.
+    the perl manpage, the mod_perl manpage, the Apache::Request manpage, the
+    Inline::C manpage, the CGI::FastTemplate manpage, the Image::Info
+    manpage, and the Image::Size manpage.
 

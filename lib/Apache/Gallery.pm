@@ -125,6 +125,13 @@ sub handler {
 		my @files = grep { !/^\./ && -f "$filename/$_" } readdir (DIR);
 		@files = sort @files;
 
+		my $sortby = $r->dir_config('GallerySortBy');
+		if ($sortby && $sortby =~ m/^(size|atime|mtime|ctime)$/) {
+			@files = map(/^\d+ (.*)/, sort map(stat("$filename/$_")->$sortby." $_", @files));
+		} else {
+			@files = sort @files;
+		}
+
 		my @downloadable_files;
 
 		if (@files) {
@@ -1159,6 +1166,11 @@ Set to 1 or 0, default is 0
 
 With this option you can configure which intervals can be selected for
 a slideshow. The default is '3 5 10 15 30'
+
+=item B<GallerySortBy>
+
+Instead of the default filename ordering you can sort by any
+stat attribute. For example size, atime, mtime, ctime.
 
 =back
 
