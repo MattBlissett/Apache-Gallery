@@ -18,6 +18,7 @@ t/002_injpg.jpg
 t/002_inpng.png
 t/003_comment.t
 t/003_commenttest
+t/004_cache_dir.t
 templates/layout.tpl
 templates/showpicture.tpl
 templates/picture.tpl
