@@ -1026,7 +1026,7 @@ sub get_imageinfo {
 	foreach (@infos) {
 		
 		my ($human_key, $exif_key) = (split " => ")[0,1];
-		if (defined($imageinfo->{$exif_key})) {
+		if (defined($exif_key) && defined($imageinfo->{$exif_key})) {
 			my $value = "";
 			if (ref($imageinfo->{$exif_key}) eq 'Image::TIFF::Rational') { 
 				$value = $imageinfo->{$exif_key}->as_string;
@@ -1420,7 +1420,7 @@ sub resizepicture {
 	}
 
 	my $quality = $r->dir_config('GalleryQuality');
-	if (defined($quality) and ($quality =~ /^\d+$/)) {
+	if ($quality && $quality =~ m/^\d+$/) {
 		$image->set_quality($quality);
 	}
 
