@@ -3,6 +3,10 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
+0.9.1 Sat Sep 11 23:52:16 CEST 2004
+
+	- Fix mod_perl 1 support that was broken with 0.9 (Michael Legart)
+
 0.9 Sat Sep 11 22:03:20 CEST 2004
 
 	- Handle .thm for all filetypes and not just tiff, gif and png

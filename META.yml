@@ -1,13 +1,13 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Apache-Gallery
-version:      0.8
+version:      0.9
 version_from: lib/Apache/Gallery.pm
 installdirs:  site
 requires:
     CGI:                           2.93
     File::Spec:                    0
-    Image::Imlib2:                 1
+    Image::Imlib2:                 1.02
     Image::Info:                   0
     Image::Size:                   0
     mod_perl:                      0
