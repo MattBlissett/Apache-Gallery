@@ -74,10 +74,7 @@ sub handler {
 	if (-d $filename) {
 
 		unless (-d $filename."/.cache") {
-			unless (mkdir ($filename."/.cache", 0777)) {
-				show_error($r, $!, "Unable to create .cache dir in $filename: $!");
-				return OK;
-			}
+			create_cache($filename);
 		}
 
 		my $tpl = new CGI::FastTemplate($r->dir_config('GalleryTemplateDir'));
@@ -93,7 +90,7 @@ sub handler {
 		$tpl->assign(TITLE => "Index of: ".$uri);
 
 		unless (opendir (DIR, $filename)) {
-			show_error ($r, $!, "Unable to access $filename: $!");
+			show_error ($r, $!, "Unable to access directory $filename: $!");
 			return OK;
 		}
 		
@@ -107,7 +104,6 @@ sub handler {
 
 		if (@files) {
 			# Remove unwanted files and movies from list
-			my $counter = 0;
 			my @new_files = ();
 			foreach my $picture (@files) {
 
@@ -120,8 +116,6 @@ sub handler {
 				if ($file =~ m/\.(?:jpe?g|png|tiff?|ppm)$/i) {
 					push (@new_files, $picture);
 				}
-
-				$counter++;
 
 			}
 			@files = @new_files;
@@ -182,7 +176,7 @@ sub handler {
 					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $thumbfilename, $width, $height);	
 					my $cached = scale_picture($r, $thumbfilename, $thumbnailwidth, $thumbnailheight);
 
-					my $imageinfo = get_imageinfo($thumbfilename, $type, $width, $height);
+					my $imageinfo = get_imageinfo($r, $thumbfilename, $type, $width, $height);
 
 					$tpl->assign(FILEURL => uri_escape($fileurl, $escape_rule));
 					$tpl->assign(FILE    => $file);
@@ -196,7 +190,7 @@ sub handler {
 		
 		}
 		else {
-			$tpl->assign(FILES => "Empty dir");
+			$tpl->assign(FILES => "No files found");
 		}
 
 		$tpl->parse("MAIN", ["index", "layout"]);
@@ -210,8 +204,8 @@ sub handler {
 
 	}
 	else {
-# original size
 
+		# original size
 		if (defined($ENV{QUERY_STRING}) && $ENV{QUERY_STRING} eq 'orig') {
 			if ($r->dir_config('GalleryAllowOriginal') ? 1 : 0) {
 				$r->filename($filename);
@@ -223,20 +217,17 @@ sub handler {
 	
 		# Create cache dir if not existing
 		my @tmp = split (/\//, $filename);
-		my $picfilename = pop @tmp;
+		pop @tmp;
 		my $path = (join "/", @tmp)."/";
 
 		unless (-d $path."/.cache") {
-			unless (mkdir ($path."/.cache", 0777)) {
-				show_error($r, $!, "Unable to create .cache dir in $path: $!");
-				return OK;
-			}
+			create_cache($path);
 		}
 
 		my ($orig_width, $orig_height, $type) = imgsize($filename);
 		my $width = $orig_width;
 
-		my $imageinfo = get_imageinfo($filename, $type, $orig_width, $orig_height);
+		my $imageinfo = get_imageinfo($r, $filename, $type, $orig_width, $orig_height);
 
 		my $original_size=$orig_height;
  		if ($orig_width>$orig_height) {
@@ -247,7 +238,7 @@ sub handler {
 		my @sizes = split (/ /, $r->dir_config('GallerySizes') ? $r->dir_config('GallerySizes') : '640 800 1024 1600');
 		if ($apr->param('width')) {
 			unless ((grep $apr->param('width') == $_, @sizes) or ($apr->param('width') == $original_size)) {
-				show_error($r, "Invalid width", $apr->param('width')." is an invalid width.");
+				show_error($r, "Invalid width", $apr->param('width')." is not an allowed with.");
 				return OK;
 			}
 			$width = $apr->param('width');
@@ -293,7 +284,7 @@ sub handler {
 		$tpl->assign(URI => $r->uri());
 
 		unless (opendir(DATADIR, $path)) {
-			show_error($r, "Unable to open dir", "Unable to access $path");
+			show_error($r, "Unable to access directory", "Unable to access directory $path");
 			return OK;
 		}
 		my @pictures = grep { /^[^.].*\.(jpe?g|png|ppm|tiff?)$/i } readdir (DATADIR);
@@ -363,57 +354,14 @@ sub handler {
 		my $foundinfo = 0;
 		foreach (@infos) {
 		
-			my ($key, $value) = (split " => ")[0,1];
-			if (defined($imageinfo->{$value})) {
-				my $content = "";
-				if (ref($imageinfo->{$value}) eq 'Image::TIFF::Rational') { 
-					$content = $imageinfo->{$value}->as_string;
-				} 
-				elsif (ref($imageinfo->{$value}) eq 'ARRAY') {
-					foreach my $array_el (@{$imageinfo->{$value}}) {
-						if (ref($array_el) eq 'ARRAY') {
-							foreach (@{$array_el}) {
-								$content .= $_ . ' ';
-							}
-						} 
-						elsif (ref($array_el) eq 'HASH') {
-							$content .= "<br>{ ";
-				    	foreach (sort keys %{$array_el}) {
-								$content .= "$_ = " . $array_el->{$_} . ' ';
-							}
-				    	$content .= "} ";
-						} 
-						else {
-							$content .= $array_el;
-						}
-						$content .= ' ';
-					}
-				} 
-				else {
-					my $keyvalue = $imageinfo->{$value};
-					if ($key eq 'Flash' && $keyvalue =~ m/\d/) {
-						my %flashmodes = (
-							"0"  => "No",
-							"1"  => "Yes",
-							"9"  => "Yes",
-							"16" => "No (Compulsory)",
-							"24" => "No",
-							"25" => "Yes (Auto)",
-							"73" => "Yes (Compulsory, Red Eye Reducing)",
-							"89" => "Yes (Auto, Red Eye Reducing)"
-						);
-						$keyvalue = $flashmodes{$keyvalue};
-					}
-					$content = $keyvalue;
-				}
-				$tpl->assign(KEY => $key);
-				$tpl->assign(VALUE => $content);
+			my ($human_key, $exif_key) = (split " => ")[0,1];
+			my $value = $imageinfo->{human_key};
+			if (defined($value)) {
+				$tpl->assign(KEY => $human_key);
+				$tpl->assign(VALUE => $value);
 				$tpl->parse(INFO => '.info');
 				$foundinfo = 1;
 			} 
-			else {
-				print STDERR $value, " not found in picture info\n";
-			}
 		}
 
 		unless ($foundinfo) {
@@ -446,6 +394,15 @@ sub handler {
 	}
 
 	return OK;
+}
+
+sub create_cache {
+
+	my $path = shift;
+	unless (mkdir ($path."/.cache", 0777)) {
+		show_error($r, $!, "Unable to create cache directory in $path: $!");
+		return OK;
+	}
 }
 
 sub scale_picture {
@@ -483,7 +440,7 @@ sub scale_picture {
 			$scale = 1;
 		}	
 
-		# Check to see if the .rotate file has been added og changed
+		# Check to see if the .rotate file has been added or changed
 		if (-f $fullpath . ".rotate") {
 			my $rotatestat = stat($fullpath . ".rotate");
 			if ($rotatestat->mtime > $cachestat->mtime) {
@@ -505,7 +462,6 @@ sub scale_picture {
 	if ($scale) {
 
 		my $newpath = $cache."/".$newfilename;
-
 		my $rotate = 0;
 
 		if (-f $fullpath . ".rotate") {
@@ -543,8 +499,8 @@ sub get_thumbnailsize {
 }
 
 sub get_imageinfo {
-	my ($file, $type, $width, $height) = @_;
-	my $imageinfo;
+	my ($r, $file, $type, $width, $height) = @_;
+	my $imageinfo = {};
 	if ($type eq 'Data stream is not a known image file format') {
 		# should never be reached, this is supposed to be handled outside of here
 		Apache->request->log_error("Something was fishy with the type of the file $file\n");
@@ -555,25 +511,67 @@ sub get_imageinfo {
 		$tmpfilename =~ s/\.(\w+)$/.thm/;
 		if (-e $tmpfilename && -f $tmpfilename && -r $tmpfilename) {
 			$imageinfo = image_info($tmpfilename);
-		} else {
-			$imageinfo = {};
 		}
-		$imageinfo->{width} = $width;
-		$imageinfo->{height} = $height;
 	} elsif (grep $type eq $_, qw(JPG)) {
 		# Only for files that natively keep the EXIF info in the same file
 		$imageinfo = image_info($file);
-		# What if this picture doesn't have EXIF info in it?
-		if (defined($imageinfo->{error}) && $imageinfo->{error} eq 'Unrecognized file format') {
-		    $imageinfo = {};
-		    $imageinfo->{width} = $width;
-		    $imageinfo->{height} = $height;
-		}
-	} else {
-		$imageinfo = {};
+	}
+
+	unless (defined($imageinfo->{width}) and defined($imageinfo->{height}) {
 		$imageinfo->{width} = $width;
 		$imageinfo->{height} = $height;
 	}
+
+	my @infos = split /, /, $r->dir_config('GalleryInfo') ? $r->dir_config('GalleryInfo') : 'Picture Taken => DateTimeOriginal, Flash => Flash';
+	foreach (@infos) {
+		
+		my ($human_key, $exif_key) = (split " => ")[0,1];
+		if (defined($imageinfo->{$exif_key})) {
+			my $value = "";
+			if (ref($imageinfo->{$exif_key}) eq 'Image::TIFF::Rational') { 
+				$value = $imageinfo->{$exif_key}->as_string;
+			} 
+			elsif (ref($imageinfo->{$exif_key}) eq 'ARRAY') {
+				foreach my $element (@{$imageinfo->{$exif_key}}) {
+					if (ref($element) eq 'ARRAY') {
+						foreach (@{$element}) {
+							$value .= $_ . ' ';
+						}
+					} 
+					elsif (ref($element) eq 'HASH') {
+						$value .= "<br>{ ";
+			    		foreach (sort keys %{$element}) {
+							$value .= "$_ = " . $element->{$_} . ' ';
+						}
+			    		$value .= "} ";
+					} 
+					else {
+						$value .= $array_el;
+					}
+					$value .= ' ';
+				}
+			} 
+			else {
+				my $exif_value = $imageinfo->{$exif_key};
+				if ($human_key eq 'Flash' && $exif_value =~ m/\d/) {
+					my %flashmodes = (
+						"0"  => "No",
+						"1"  => "Yes",
+						"9"  => "Yes",
+						"16" => "No (Compulsory)",
+						"24" => "No",
+						"25" => "Yes (Auto)",
+						"73" => "Yes (Compulsory, Red Eye Reducing)",
+						"89" => "Yes (Auto, Red Eye Reducing)"
+					);
+					$exif_value = $flashmodes{$exif_value};
+				}
+				$value = $exif_value;
+			}
+			$imageinfo->{human_key} = $value;
+		} 
+	}
+
 	return $imageinfo;
 }
 
@@ -831,7 +829,7 @@ Default is: 'Picture Taken => DateTimeOriginal, Flash => Flash'
 Defines which widths images can be scaled to. Images cannot be
 scaled to other widths than the ones you define with this option.
 
-The default is '640 1024 1600 2272'
+The default is '640 800 1024 1600'
 
 =item B<GalleryThumbnailSize>
 
@@ -911,6 +909,8 @@ And this is line two of the comment.
 
 =item B<Image::Info>
 
+=item B<Image::Size>
+
 =item B<CGI::FastTemplate>
 
 =item B<Inline::C>
@@ -922,6 +922,13 @@ And this is line two of the comment.
 Remember the -dev package when using rpm, deb or other package formats!
 
 =back
+
+=head1 BUGS
+
+Fatal errors are showed on a page with a HTTP OK return code. This is because
+Internet Explorer will show it's own error page otherwise. Is it possible to
+force IE to show our custom errormessage even when returning HTTP status code
+500?
 
 =head1 AUTHOR
 
@@ -941,11 +948,11 @@ The video icons are from the GNOME project. B<http:://www.gnome.org/>
 =head1 THANKS
 
 Thanks to Thomas Kjaer for templates and design of B<http://apachegallery.dk>
-and thanks to Thomas Eibner for patches.
+Thanks to Thomas Eibner and other for patches. (See the Changes file)
 
 =head1 SEE ALSO
 
 L<perl>, L<mod_perl>, L<Apache::Request>, L<Inline::C>, L<CGI::FastTemplate>,
-and L<Image::Info>.
+L<Image::Info>, and L<Image::Size>.
 
 =cut
