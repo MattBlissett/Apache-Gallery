@@ -11,7 +11,10 @@ $VERSION = "0.8";
 
 BEGIN {
 
-	use mod_perl;
+	eval('require mod_perl;');
+	if ( $@ ) {
+		use Apache2::mod_perl;
+	}
 	use constant MP2 => ($mod_perl::VERSION >= 1.99);
 	
 	if (MP2) {

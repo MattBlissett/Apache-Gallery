@@ -21,6 +21,7 @@ Snapshot
 	- New option GalleryUnderscoresToSpaces to convert underscores to
 	  spaces in the listing of directories. (Ondra Kudlik)
 	- Bugfix for when running outside a virtual host (Jeffrey Hartmann)
+	- Support Apache2 on FreeBSD (Jesper Dalberg)
 
 0.8 Sun Mar  7 11:22:00 CET 2004
 
