@@ -254,7 +254,7 @@ sub handler {
 		my @sizes = split (/ /, $r->dir_config('GallerySizes') ? $r->dir_config('GallerySizes') : '640 800 1024 1600');
 		if ($apr->param('width')) {
 			unless ((grep $apr->param('width') == $_, @sizes) or ($apr->param('width') == $original_size)) {
-				show_error($r, "Invalid width", $apr->param('width')." is not an allowed width.");
+				show_error($r, "Invalid width", "The specified width is invalid");
 				return OK;
 			}
 			$width = $apr->param('width');
@@ -442,7 +442,7 @@ sub handler {
 			$tpl->parse(SLIDESHOW => '.slideshowoff');
 
 			unless ((grep $apr->param('slideshow') == $_, @slideshow_intervals)) {
-				show_error($r, "Invalid interval", $apr->param('slideshow')." is not an allowed interval.");
+				show_error($r, "Invalid interval", "Invalid slideshow interval choosen");
 				return OK;
 			}
 
