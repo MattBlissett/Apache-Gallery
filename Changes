@@ -5,6 +5,8 @@ Revision history for Perl extension Apache::Gallery.
 
 	- InlineDir is no longer configurable using PerlSetVar, which
 	  fixes make test.
+	- Added test-suite
+	- Write to the error log if unable to open files in the cache
 
 0.5 Sun Sep 15 11:55:56 CEST 2002
 

@@ -7,7 +7,7 @@ use strict;
 
 use vars qw($VERSION);
 
-$VERSION = "0.5";
+$VERSION = "0.5.1";
 
 use Apache ();
 use Apache::Constants qw(:common);
@@ -54,16 +54,16 @@ sub handler {
 		my $cached = cache_dir($r, 0);
 
 		$cached =~ s/\/\.cache//;
-
+		unless (open(FILE, "$cached")) {
+			$r->log_error("Error opening $cached: $!\n");
+			return SERVER_ERROR;
+		}
+	
 		if ($r->uri =~ m/\.(jpe?g|png|tiff?|ppm)$/i) {
-
 			$r->content_type("image/$1");
-
 		}
 
 		$r->send_http_header;
-
-		open(FILE, "$cached");
 		$r->send_fd("FILE");
 		close(FILE);
 
@@ -506,11 +506,16 @@ sub cache_dir {
 	my (undef, $dirs, $filename) = File::Spec->splitpath($r->uri);
 	# We don't need a volume as this is a relative path
 
+	my $cache_dir;
+
 	if ($strip_filename) {
-		return(File::Spec->canonpath(File::Spec->catdir($cache_root, $dirs)));
+		$cache_dir = File::Spec->canonpath(File::Spec->catdir($cache_root, $dirs));
 	} else {
-		return(File::Spec->canonpath(File::Spec->catfile($cache_root, $dirs, $filename)));
+		$cache_dir = File::Spec->canonpath(File::Spec->catfile($cache_root, $dirs, $filename));
 	}
+
+	return $cache_dir;
+
 }
 
 sub create_cache {
