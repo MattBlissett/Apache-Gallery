@@ -324,8 +324,8 @@ sub handler {
 					$tpl->assign(FILE    => $file);
 					$tpl->assign(DATE    => $imageinfo->{DateTimeOriginal} ? $imageinfo->{DateTimeOriginal} : ''); # should this really be a stat of the file instead of ''?
 					$tpl->assign(SRC     => uri_escape($uri."/.cache/$cached", $escape_rule));
-					$tpl->assign(HEIGHT => ($rotate ? $thumbnailwidth : $thumbnailheight));
-					$tpl->assign(WIDTH => ($rotate ? $thumbnailheight : $thumbnailwidth));
+					$tpl->assign(HEIGHT => (grep($rotate==$_, (1, 3)) ? $thumbnailwidth : $thumbnailheight));
+					$tpl->assign(WIDTH => (grep($rotate==$_, (1, 3)) ? $thumbnailheight : $thumbnailwidth));
 					$tpl->assign(SELECT  => $select_mode?'<input type="checkbox" name="selection" value="'.$file.'">&nbsp;&nbsp;':'');
 
 					$tpl->parse(FILES => '.picture');
