@@ -817,13 +817,13 @@ sub generate_menu {
 		unless ($link) {
 			$linktext = "root: ";
 		}
-
-		if ($link) {
+		else {
+			
 			$dirname = File::Spec->catdir($dirname, $link);
-		}
 
-		if (-e $dirname . ".folder") {
-			$linktext = get_filecontent($dirname . ".folder");
+			if (-e $dirname . ".folder") {
+				$linktext = get_filecontent($dirname . ".folder");
+			}
 		}
 
 		$menu .= "<a href=\"".uri_escape($menuurl, $escape_rule)."\">$linktext</a> / ";
