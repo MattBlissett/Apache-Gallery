@@ -41,7 +41,7 @@ BEGIN {
 use Image::Info qw(image_info);
 use Image::Size qw(imgsize);
 use Image::Imlib2;
-use Text::Template qw(fill_in_file);
+use Apache::Gallery::Templates;
 use File::stat;
 use File::Spec;
 use POSIX qw(floor);
@@ -165,7 +165,7 @@ sub handler {
 				file      => "$tpl_dir/file.tpl",
 				comment   => "$tpl_dir/dircomment.tpl",
 				nocomment => "$tpl_dir/nodircomment.tpl",
-			       );
+	   );
 
 		$tpl_vars{TITLE} = "Index of: $uri";
 		$tpl_vars{META} = " ";
