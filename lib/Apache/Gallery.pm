@@ -930,6 +930,7 @@ sub scale_picture {
 
 		my $newpath = $cache."/".$newfilename;
 		my $rotate = readfile_getnum($r, $imageinfo, $fullpath . ".rotate");
+		my $quality = dir_config('GalleryQuality');
 
 		if ($width == $thumbnailwidth or $width == $thumbnailheight) {
 
@@ -943,7 +944,8 @@ sub scale_picture {
 				($r->dir_config('GalleryCopyrightText') ? $r->dir_config('GalleryCopyrightText') : ''), 
 				($r->dir_config('GalleryCopyrightColor') ? $r->dir_config('GalleryCopyrightColor') : ''), 
 				($r->dir_config('GalleryTTFFile') ? $r->dir_config('GalleryTTFFile') : ''), 
-				($r->dir_config('GalleryTTFSize') ?  $r->dir_config('GalleryTTFSize') : ''));
+				($r->dir_config('GalleryTTFSize') ?  $r->dir_config('GalleryTTFSize') : ''),
+				$quality);
 
 		}
 	}
@@ -1356,7 +1358,7 @@ sub generate_menu {
 }
 
 sub resizepicture {
-	my ($r, $infile, $outfile, $x, $y, $rotate, $copyrightfile, $GalleryTTFDir, $GalleryCopyrightText, $text_color, $GalleryTTFFile, $GalleryTTFSize) = @_;
+	my ($r, $infile, $outfile, $x, $y, $rotate, $copyrightfile, $GalleryTTFDir, $GalleryCopyrightText, $text_color, $GalleryTTFFile, $GalleryTTFSize, $quality) = @_;
 
 	# Load image
 	my $image = Image::Imlib2->load($infile) or warn("Unable to open file $infile, $!");
@@ -1420,7 +1422,6 @@ sub resizepicture {
 		}
 	}
 
-	my $quality = $r->dir_config('GalleryQuality');
 	if ($quality && $quality =~ m/^\d+$/) {
 		$image->set_quality($quality);
 	}
