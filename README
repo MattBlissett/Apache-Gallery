@@ -86,8 +86,13 @@ CONFIGURATION
 
 FEATURES
     Rotate images
-        Pictures can be rotated on the fly without modifying the original
-        image.
+        Some cameras, like the Canon G3, detects the orientation of a
+        picture and adds this info to the EXIF header. Apache::Gallery
+        detects this and automaticly rotates images with this info.
+
+        If your camera does not support this, you can rotate the images
+        manually, This can also be used to override the rotate information
+        from a camera that supports that.
 
         To use this functionality you have to create file with the name of
         the picture you want rotated appened with ".rotate". The file should
