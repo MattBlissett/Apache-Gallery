@@ -1383,7 +1383,7 @@ sub resizepicture {
 		}
 	}
 
-	if ($GalleryTTFDir && $GalleryCopyrightText && $GalleryTTFFile, $text_color) {
+	if ($GalleryTTFDir && $GalleryCopyrightText && $GalleryTTFFile && $text_color) {
 		if (!-d $GalleryTTFDir) {
 
 			Apache->request->log_error("GalleryTTFDir $GalleryTTFDir is not a dir\n");
