@@ -17,11 +17,11 @@ my $r = Test::MockObject->new();
 
 $r->set_always('dir_config', '100x75');
 
-my ($width, $height) = Apache::Gallery::get_thumbnailsize($r, undef, 640, 480);
+my ($width, $height) = Apache::Gallery::get_thumbnailsize($r, 640, 480);
 is ($width, 100, 'Width');
 is ($height, 75, 'Height');
 
-($width, $height) = Apache::Gallery::get_thumbnailsize($r, undef, 480, 640);
+($width, $height) = Apache::Gallery::get_thumbnailsize($r, 480, 640);
 is ($width, 75, 'Height rotated');
 is ($height, 100, 'Width rotated');
 
