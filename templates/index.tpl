@@ -1,5 +1,5 @@
 <div>
-  <div id="menu">
+  <div id="title">
 $MENU
   </div>
   $FORM_BEGIN

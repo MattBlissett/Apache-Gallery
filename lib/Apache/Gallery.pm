@@ -387,7 +387,8 @@ sub handler {
 		$tpl->define(
 			layout         => 'layout.tpl',
 			picture        => 'showpicture.tpl',
-			navpicture     => 'navpicture.tpl',
+			navprev        => 'navprev.tpl',
+			navnext        => 'navnext.tpl',
 			info           => 'info.tpl',
 			scale          => 'scale.tpl',
 			scaleactive    => 'scaleactive.tpl',
@@ -410,6 +411,11 @@ sub handler {
 		$tpl->assign(MENU => generate_menu($r));
 		$tpl->assign(SRC => uri_escape(".cache/$cached", $escape_rule));
 		$tpl->assign(URI => $r->uri());
+	
+		my $exif_mode = $r->dir_config('GalleryEXIFMode');
+		unless ($exif_mode) {
+			$exif_mode = 'values';
+		}
 
 		unless (opendir(DATADIR, $path)) {
 			show_error($r, 500, "Unable to access directory", "Unable to access directory $path");
@@ -445,8 +451,7 @@ sub handler {
 					$tpl->assign(FILENAME  => $prevpicture);
 					$tpl->assign(WIDTH     => $width);
 					$tpl->assign(PICTURE   => uri_escape(".cache/$cached", $escape_rule));
-					$tpl->assign(DIRECTION => "Prev");
-					$tpl->parse(BACK => "navpicture");
+					$tpl->parse(BACK => "navprev");
 				}
 				else {
 					$tpl->assign(BACK => "&nbsp");
@@ -466,8 +471,7 @@ sub handler {
 					$tpl->assign(FILENAME  => $nextpicture);
 					$tpl->assign(WIDTH     => $width);
 					$tpl->assign(PICTURE   => uri_escape(".cache/$cached", $escape_rule));
-					$tpl->assign(DIRECTION => "Next");
-					$tpl->parse(NEXT => "navpicture");
+					$tpl->parse(NEXT => "navnext");
 				}
 				else {
 					$tpl->assign(NEXT => "&nbsp;");
@@ -487,23 +491,46 @@ sub handler {
 
 		my @infos = split /, /, $r->dir_config('GalleryInfo') ? $r->dir_config('GalleryInfo') : 'Picture Taken => DateTimeOriginal, Flash => Flash';
 		my $foundinfo = 0;
+		my $exifvalues;	
 		foreach (@infos) {
-		
+	
 			my ($human_key, $exif_key) = (split " => ")[0,1];
 			my $value = $imageinfo->{$human_key};
 			if (defined($value)) {
-				$tpl->assign(KEY => $human_key);
-				$tpl->assign(VALUE => $value);
-				$tpl->parse(INFO => '.info');
+
 				$foundinfo = 1;
+
+				if ($exif_mode eq 'namevalue') {
+					$tpl->assign(KEY => $human_key);
+					$tpl->assign(VALUE => $value);
+					$tpl->parse(NAMEVALUEINFO => '.info');
+				}
+
+				if ($exif_mode eq 'variables') {
+					$tpl->assign("EXIF_".uc($exif_key) => $value);
+				}
+
+				if ($exif_mode eq 'values') {
+					$exifvalues .= "| ".$value;
+				}
+
 			} 
+
+		}
+
+		if ($exif_mode eq 'values') {
+			$tpl->assign(EXIFVALUES => $exifvalues);
 		}
 
 		if ($foundcomment and !$foundinfo) {
-			$tpl->assign(INFO => "");
+			$tpl->assign(NAMEVALUEINFO => "");
 		}
 
-		if ($foundinfo or $foundcomment) {
+		if ($exif_mode ne 'namevalue') {
+			$tpl->assign(NAMEVALUEINFO => "");
+		}
+
+		if (($exif_mode eq 'namevalue' && $foundinfo) or $foundcomment) {
 			$tpl->parse(PICTUREINFO => 'pictureinfo');
 		}
 		else {
@@ -973,7 +1000,7 @@ sub get_comment {
 	my $content = '';
 	open(FH, $filename) or return $comment_ref;
 	my $title = <FH>;
-	if ($title =~ /^TITLE: (.*)$/) {
+	if ($title =~ m/^TITLE: (.*)$/) {
 		chomp($comment_ref->{TITLE} = $1);
 	} 
 	else {
@@ -1281,6 +1308,26 @@ instead of the EXIF value for "Picture taken".
 
 Enable the selection mode. Select images with checkboxes and
 get a list of filenames. 
+
+=item B<GalleryEXIFMode>
+
+You can choose how Apache::Gallery should display EXIF info
+from your images. 
+
+The default setting is 'values' which will make A::G parse
+the configured values into the var $EXIFVALUES as 'value | value | value'
+
+You can also set the setting to 'namevalue'. This setting will make 
+Apache::Gallery print out the names and values of the EXIF values 
+you configure with GalleryInfo. The information will be parsed into 
+$NAMEVALUEINFO in pictureinfo.tpl.  
+
+If you set this option to 'variables' the items you configure in GalleryInfo 
+will be available to your templates as $EXIF_<KEYNAME> (in all uppercase). 
+That means that with the default setting "Picture Taken => DateTimeOriginal, 
+Flash => Flash" you will have the variables $EXIF_DATETIMEORIGINAL and 
+$EXIF_FLASH avilable to your templates. You can place them
+anywhere you want.
 
 =back
 

@@ -1,5 +1,6 @@
 body {
-	background-color: #cccccc;
+	background-color: #ffffff;
+    color: #aaaaaa;
 	font-family: Verdana, Lucida, Arial;
 	font-size: 10px;
 	margin-left: 10px;
@@ -13,48 +14,65 @@ table {
 	margin-left: auto;
 	margin-right: auto;
 }
+#title {
+    font-size: 13px;
+    text-align: left;
+    font-weight: bold;
+}
 #menu {
-	font-size: 11px;
-	text-align: left;
+	font-size: 13px;
+	text-align: right;
 	height: 30px;
+	margin-right: 20px;
 }
 #directory {
-	background-color: #ffffff;
-	border: 1px solid #666666;
+	background-color: #fafafa;
+	border: 6px solid #dddddd;
 	padding: 20px;
 	text-align: left;
 	top: 0px;
 }
-#folder {
+.folder {
 	float: left;
 	height: 100px;
 	padding: 2px;
 	text-align: center;
 	width: 120px;
 }
+#picture {
+	text-align: center;
+}
 #picture img {
-	border: 1px solid #000000;
+	border: 6px solid #dddddd;
 }
 a {
-	color: #5555aa;
+	color: #cccc00;
 }
 a img {
-	border: 2px solid #5555aa;
+	border: 3px solid #cccc00;
 }
 a:hover {
-	color: #ff9400;
+	color: #cc9900;
 }
 a:hover img {
-	border: 2px solid #ff9400;
+	border: 3px solid #cc9900;
 }
-#folder img {
+.folder img {
 	border: 0px;
 }
-.info {
-	background-color: #eeeeee;
-	border: 1px dashed #888888;
-	color: #666666;
-	font-size: 10px;
-	margin: 10px;
-	padding: 5px;
+.folder a:hover img {
+	border: 0px;
+}
+#gallery {
+	margin-top: 50px;
+}
+#comment {
+    color: #666666;
+    border: 3px solid #aaaaaa;
+    background-color: #fafafa;
+    width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+    padding: 5px;
 }

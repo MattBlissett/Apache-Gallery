@@ -17,6 +17,9 @@ Revision history for Perl extension Apache::Gallery.
 	- Added GalleryUseFileDate option to make A::G show
 	  the files timestamps instead of using the EXIF value (Dennis Haney)
 	- Remember display size when turning Slideshow off (Hans Joergensen)
+	- Nice new layout (Thomas Kjaer)
+	- New option GalleryEXIFMode to control the way EXIF
+	  info is displayed. See docs for details (Michael Legart)
 
 0.6 Tue Apr 22 10:24:40 CEST 2003
 

@@ -107,6 +107,30 @@ CONFIGURATION
         Set this option to 1 to make A::G show the files timestamp instead
         of the EXIF value for "Picture taken".
 
+    GallerySelectionMode
+        Enable the selection mode. Select images with checkboxes and get a
+        list of filenames.
+
+    GalleryEXIFMode
+        You can choose how Apache::Gallery should display EXIF info from
+        your images.
+
+        The default setting is 'values' which will make A::G parse the
+        configured values into the var $EXIFVALUES as 'value | value |
+        value'
+
+        You can also set the setting to 'namevalue'. This setting will make
+        Apache::Gallery print out the names and values of the EXIF values
+        you configure with GalleryInfo. The information will be parsed into
+        $NAMEVALUEINFO in pictureinfo.tpl.
+
+        If you set this option to 'variables' the items you configure in
+        GalleryInfo will be available to your templates as $EXIF_<KEYNAME>
+        (in all uppercase). That means that with the default setting
+        "Picture Taken => DateTimeOriginal, Flash => Flash" you will have
+        the variables $EXIF_DATETIMEORIGINAL and $EXIF_FLASH avilable to
+        your templates. You can place them anywhere you want.
+
 FEATURES
     Rotate images
         Some cameras, like the Canon G3, detects the orientation of a
