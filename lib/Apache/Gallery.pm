@@ -9,6 +9,7 @@ use vars qw($VERSION);
 
 $VERSION = "0.6.1";
 
+use POSIX;
 use Apache2 ();
 use Apache::compat;
 use Apache::Server;
@@ -77,6 +78,10 @@ sub handler {
 
 		my $fh = new FileHandle;
 		if ($fh->open("< $file")) {		
+		
+			my $st = stat($file);
+			$r->headers_out->{'Last-Modified'} = POSIX::strftime ("%a %b %e %H:%M:%S %Y", localtime($st->mtime));
+			$r->headers_out->{'Content-Length'} = -s $file;
 			$r->send_fd($fh);
 			$fh->close();
 			return OK;
