@@ -9,15 +9,31 @@ use vars qw($VERSION);
 
 $VERSION = "0.6.1";
 
-use POSIX;
-use Apache2 ();
-use Apache::Server;
-use Apache::RequestRec;
-use Apache::Log;
-use APR::Table;
-use Apache::RequestIO ();
-use Apache::SubRequest ();
-use Apache::Const qw(:common);
+use mod_perl;
+use constant MP2 => ($mod_perl::VERSION >= 1.99);
+
+if (MP2) {
+	require Apache2;
+	require Apache::Server;
+	require Apache::RequestRec;
+	require Apache::Log;
+	require APR::Table;
+	require Apache::RequestIO;
+	require Apache::SubRequest;
+	require Apache::Const;
+
+	Apache::Const->import(-compile => 'OK','DECLINED','FORBIDDEN');
+
+}
+else {
+	require Apache;
+	require Apache::Constants;
+	require Apache::Request;
+
+	Apache::Constants->import('OK','DECLINED','FORBIDDEN');
+
+}
+
 use Image::Info qw(image_info);
 use Image::Size qw(imgsize);
 use CGI::FastTemplate;
@@ -25,6 +41,7 @@ use File::stat;
 use File::Spec;
 use POSIX qw(floor);
 use URI::Escape;
+use POSIX;
 use CGI;
 
 use Data::Dumper;
@@ -58,7 +75,7 @@ sub handler {
 
 	# Just return the http headers if the client requested that
 	if ($r->header_only) {
-		return OK;
+		return MP2 ? Apache::OK : Apache::Constants::OK;
 	}
 
 	my $cgi = new CGI;
@@ -71,7 +88,7 @@ sub handler {
 		$r->header_out('Content-Length', length($content));
 		$r->send_http_header;
 		$r->print($content);
-		return OK;
+		return MP2 ? Apache::OK : Apache::Constants::OK;
 	}
 	
 	# Selectmode providing checkboxes beside all thumbnails
@@ -80,16 +97,23 @@ sub handler {
 	# Let Apache serve icons and files from the cache without us
 	# modifying the request
 	if ($r->uri =~ m/^\/icons/i) {
-		return DECLINED;
+		return MP2 ? Apache::DECLINED : Apache::Constants::DECLINED;
 	}
 	if ($r->uri =~ m/\.cache\//i) {
 		my $file = cache_dir($r, 0);
 		$file =~ s/\/\.cache//;
 		my $subr = $r->lookup_file($file);
 		$r->content_type($subr->content_type());
-		$r->sendfile($file);
+
+		if (MP2) {
+			$r->sendfile($file);
+		}
+		else {
+			$r->path_info('');
+			$r->filename($file);
+		}
 		
-		return OK;
+		return MP2 ? Apache::DECLINED : Apache::Constants::DECLINED;
 
 	}
 
@@ -103,19 +127,19 @@ sub handler {
 	unless (-f $filename or -d $filename) {
 	
 		show_error($r, 404, "404!", "No such file or directory: ".uri_escape($r->uri, $escape_rule));
-		return OK;
+		return MP2 ? Apache::OK : Apache::Constants::OK;
 	}
 
 	# Let Apache serve files we don't know how to handle anyway
 	if (-f $filename && $filename !~ m/\.(?:jpe?g|png|tiff?|ppm)$/i) {
-		return DECLINED;
+		return MP2 ? Apache::DECLINED : Apache::Constants::DECLINED;
 	}
 
 	if (-d $filename) {
 
 		unless (-d cache_dir($r, 0)) {
 			unless (create_cache($r, cache_dir($r, 0))) {
-				return OK;
+				return MP2 ? Apache::OK : Apache::Constants::OK;
 			}
 		}
 
@@ -136,7 +160,7 @@ sub handler {
 
 		unless (opendir (DIR, $filename)) {
 			show_error ($r, 500, $!, "Unable to access directory $filename: $!");
-			return OK;
+			return MP2 ? Apache::OK : Apache::Constants::OK;
 		}
 		
 		$tpl->assign(MENU => generate_menu($r));
@@ -276,8 +300,12 @@ sub handler {
 		$r->content_type('text/html');
 		$r->headers_out->{'Content-Length'} = length(${$content});
 
+		if (!MP2) {
+			$r->send_http_header;
+		}
+
 		$r->print(${$content});
-		return OK;
+		return MP2 ? Apache::OK : Apache::Constants::OK;
 
 	}
 	else {
@@ -286,9 +314,9 @@ sub handler {
 		if (defined($ENV{QUERY_STRING}) && $ENV{QUERY_STRING} eq 'orig') {
 			if ($r->dir_config('GalleryAllowOriginal') ? 1 : 0) {
 				$r->filename($filename);
-				return DECLINED;
+				return MP2 ? Apache::DECLINED : Apache::Constants::DECLINED;
 			} else {
-				return FORBIDDEN;
+				return MP2 ? Apache::FORBIDDEN : Apache::Constants::FORBIDDEN;
 			}
 		}
 	
@@ -300,7 +328,7 @@ sub handler {
 
 		unless (-d $cache_path) {
 			unless (create_cache($r, $cache_path)) {
-				return OK;
+				return MP2 ? Apache::OK : Apache::Constants::OK;
 			}
 		}
 
@@ -319,7 +347,7 @@ sub handler {
 		if ($cgi->param('width')) {
 			unless ((grep $cgi->param('width') == $_, @sizes) or ($cgi->param('width') == $original_size)) {
 				show_error($r, 200, "Invalid width", "The specified width is invalid");
-				return OK;
+				return MP2 ? Apache::OK : Apache::Constants::OK;
 			}
 			$width = $cgi->param('width');
 		}
@@ -377,7 +405,7 @@ sub handler {
 
 		unless (opendir(DATADIR, $path)) {
 			show_error($r, 500, "Unable to access directory", "Unable to access directory $path");
-			return OK;
+			return MP2 ? Apache::OK : Apache::Constants::OK;
 		}
 		my @pictures = grep { /^[^.].*\.(jpe?g|png|ppm|tiff?)$/i } readdir (DATADIR);
 		closedir(DATADIR);
@@ -512,7 +540,7 @@ sub handler {
 
 			unless ((grep $cgi->param('slideshow') == $_, @slideshow_intervals)) {
 				show_error($r, 200, "Invalid interval", "Invalid slideshow interval choosen");
-				return OK;
+				return MP2 ? Apache::OK : Apache::Constants::OK;
 			}
 
 			$tpl->assign(INTERVAL => $cgi->param('slideshow'));
@@ -529,8 +557,12 @@ sub handler {
 		$r->content_type('text/html');
 		$r->headers_out->{'Content-Length'} = length(${$content});
 
+		if (!MP2) {
+			$r->send_http_header;
+		}
+
 		$r->print(${$content});
-		return OK;
+		return MP2 ? Apache::OK : Apache::Constants::OK;
 
 	}
 
