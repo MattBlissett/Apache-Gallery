@@ -58,6 +58,7 @@ BEGIN {
 
 use Image::Info qw(image_info);
 use Image::Size qw(imgsize);
+use Image::Imlib2;
 use CGI::FastTemplate;
 use File::stat;
 use POSIX qw(floor);
@@ -70,17 +71,6 @@ use Data::Dumper;
 # Regexp for escaping URI's
 my $escape_rule = "^A-Za-z0-9\-_.!~*'()\/";
 my $memoized;
-
-use Inline (C => Config => 
-				LIBS => '-L/usr/X11R6/lib -lImlib2',
-				INC => '-I/usr/X11R6/include',
-				GLOBAL_LOAD => 1,
-				UNTAINT => 1,
-				DIRECTORY => File::Spec->tmpdir()
-			);
-
-use Inline 'C';
-Inline->init;
 
 sub handler {
 
@@ -127,7 +117,7 @@ sub handler {
 	}
 	if ($r->uri =~ m/\.cache\//i) {
 		my $file = cache_dir($r, 0);
-		$file =~ s/\/\.cache//;
+		$file =~ s/\.cache//;
 		my $subr = $r->lookup_file($file);
 		$r->content_type($subr->content_type());
 
@@ -1134,77 +1124,33 @@ sub generate_menu {
 	return $menu;
 }
 
+sub resizepicture {
+	my ($infile, $outfile, $x, $y, $rotate, $copyrightfile) = @_;
 
-1;
-__DATA__
-__C__
+	# Load image
+	my $image = Image::Imlib2->load($infile);
 
-#include <X11/Xlib.h>
-#include <Imlib2.h>
-#include <stdio.h>
-#include <string.h>
+	# Scale image
+	$image=$image->create_scaled_image($x, $y);
 
-int resizepicture(char* infile, char* outfile, int x, int y, int rotate, char* copyrightfile) {
-
-	Imlib_Image image;
-	Imlib_Image buffer;
-	Imlib_Image logo;
-	int logo_x, logo_y;
-	int old_x;
-	int old_y;
-
-	image = imlib_load_image(infile);
-
-	imlib_context_set_image(image);
-	imlib_context_set_blend(1);
-	imlib_context_set_anti_alias(1);
-	
-	old_x = imlib_image_get_width();
-	old_y = imlib_image_get_height();
-
-	buffer = imlib_create_image(x,y);
-	imlib_context_set_image(buffer);
-	
-	imlib_blend_image_onto_image(image, 0, 0, 0, old_x, old_y, 0, 0, x, y);
-
-	imlib_context_set_image(buffer);
-	
-	if (rotate != 0) {
-	    imlib_image_orientate(rotate);
-	}
-	if (strcmp(copyrightfile, "") != 0) {
-	    logo = imlib_load_image(copyrightfile);
-
-	    imlib_context_set_image(buffer);
-
-	    x = imlib_image_get_width();
-	    y = imlib_image_get_height();
-	    
-	    imlib_context_set_image(logo);
-	    
-	    logo_x = imlib_image_get_width();
-	    logo_y = imlib_image_get_height();
-
-	    imlib_context_set_image(buffer);
-	    imlib_blend_image_onto_image(logo, 0, 0, 0, logo_x, logo_y, x-logo_x, y-logo_y, logo_x, logo_y);
-
-	    imlib_context_set_image(logo);
-	    imlib_free_image();
-	    imlib_context_set_image(buffer);
+	# Rotate image
+	if ($rotate != 0) {
+		$image->image_orientate($rotate);
 	}
 
-	imlib_save_image(outfile);
+	# blend copyright image onto image
+	if ($copyrightfile and (my $logo=Image::Imlib2->load($copyrightfile))) {
+		my $x = $image->get_width();
+		my $y = $image->get_height();
+		my $logox = $logo->get_width();
+		my $logoy = $logo->get_height();
+		$image->blend($logo, 0, 0, 0, $logox, $logoy, $x-$logox, $y-$logoy, $logox, $logoy);
+	}
 
-	imlib_context_set_image(image);
-	imlib_free_image();
-
-	imlib_context_set_image(buffer);
-	imlib_free_image();
-
-	return 1;
+	$image->save($outfile);
 }
 
-__END__
+1;
 
 =head1 NAME
 
@@ -1430,7 +1376,7 @@ with the visible name of the folder.
 
 =item B<CGI::FastTemplate>
 
-=item B<Inline::C>
+=item B<Image::Imlib2>
 
 =item B<X11 libraries>
 (ie, XFree86)
@@ -1462,7 +1408,7 @@ Thanks to Thomas Eibner and other for patches. (See the Changes file)
 
 =head1 SEE ALSO
 
-L<perl>, L<mod_perl>, L<Inline::C>, L<CGI::FastTemplate>,
+L<perl>, L<mod_perl>, L<Image::Imlib2>, L<CGI::FastTemplate>,
 L<Image::Info>, and L<Image::Size>.
 
 =cut

@@ -184,7 +184,7 @@ DEPENDENCIES
     Image::Info
     Image::Size
     CGI::FastTemplate
-    Inline::C
+    Image::Imlib2
     X11 libraries (ie, XFree86)
     Imlib2 Remember the -dev package when using rpm, deb or other package
     formats!
@@ -209,6 +209,6 @@ THANKS
     (See the Changes file)
 
 SEE ALSO
-    perl, mod_perl, Inline::C, CGI::FastTemplate, Image::Info, and
+    perl, mod_perl, Image::Imlib2, CGI::FastTemplate, Image::Info, and
     Image::Size.
 
