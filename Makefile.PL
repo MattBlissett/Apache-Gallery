@@ -9,7 +9,7 @@ WriteMakefile(
  				Image::Info  => 0,
 				Image::Size => 0,
 				Image::Imlib2 => 1.00,
-				Text::Template => 1.43, 
+				Text::Template => 0, 
 				mod_perl => 0,
 				URI => 1.23,
 				CGI => 2.93,
