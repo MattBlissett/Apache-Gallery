@@ -510,7 +510,12 @@ sub handler {
 		}
 
 		if ($exif_mode eq 'values') {
-			$tpl->assign(EXIFVALUES => $exifvalues);
+			if ($exifvalues) {
+				$tpl->assign(EXIFVALUES => $exifvalues);
+			}
+			else {
+				$tpl->assign(EXIFVALUES => "");
+			}
 		}
 
 		if ($foundcomment and !$foundinfo) {
