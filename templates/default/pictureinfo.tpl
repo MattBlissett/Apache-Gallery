@@ -4,7 +4,7 @@
               <tr>
                 <td>
 									$COMMENT
-									$PICTUREINFO
+									$INFO
                 </td>
               </tr>
             </table>
