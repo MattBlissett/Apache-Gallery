@@ -45,4 +45,6 @@ templates/slideshowoff.tpl
 templates/intervalactive.tpl
 templates/slideshowisoff.tpl
 templates/pictureinfo.tpl
+templates/dircomment.tpl
+templates/nodircomment.tpl
 UPGRADE
