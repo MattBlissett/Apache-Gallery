@@ -1412,7 +1412,7 @@ sub resizepicture {
 		}
 	}
 
-	my $quality=$r->dir_config('GalleryQuality');
+	my $quality=Apache->request->dir_config('GalleryQuality');
 	if (defined($quality) and ($quality =~ /^\d+$/)) {
 		$image->set_quality($quality);
 	}
