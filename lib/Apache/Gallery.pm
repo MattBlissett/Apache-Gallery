@@ -1741,7 +1741,7 @@ the number 1 inside of it.
 
 =item B<Comments>
 
-To include comments for a directory you create a directory.comment
+To include comments for a directory you create a <directory>.comment
 file where the first line can contain "TITLE: New title" which
 will be the title of the page, and a comment on the following 
 lines.

@@ -252,7 +252,7 @@ FEATURES
         "Picture1234.jpg.rotate" with the number 1 inside of it.
 
     Comments
-        To include comments for a directory you create a directory.comment
+        To include comments for a directory you create a <directory>.comment
         file where the first line can contain "TITLE: New title" which will
         be the title of the page, and a comment on the following lines. To
         include comments for each picture you create files called
