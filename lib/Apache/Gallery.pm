@@ -517,7 +517,7 @@ sub create_cache {
 
 	my ($r, $path) = @_;
 
-		unless (mkdirhier ($path, 0777)) {
+		unless (mkdirhier ($path)) {
 			show_error($r, $!, "Unable to create cache directory in $path: $!");
 			return 0;
 		}
