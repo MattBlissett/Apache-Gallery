@@ -1,8 +1,8 @@
 <td width="60%">
           <center>
             <table align="center" class="info">
-									{ $COMMENT }
-									{ $INFO }
+              <tr>
+                <td>
 									{ $COMMENT }
 									{ $INFO }
                 </td>

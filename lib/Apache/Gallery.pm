@@ -637,8 +637,10 @@ sub handler {
 
 		}
 		else {
-			$tpl_vars{PICTUREINFO} = 'nopictureinfo';
-		}	
+			$tpl_vars{PICTUREINFO} = fill_in_file($tpl_vars{nopictureinfo},
+							      HASH => \%tpl_vars,
+							     );
+		}
 
 		my $scaleable = 0;
 		foreach my $size (@sizes) {
@@ -703,7 +705,7 @@ sub handler {
 
 		if ($cgi->param('slideshow') and $nextpicture) {
 
-			$tpl_vars{SLIDESHOW} = fill_in_file($tpl_vars{slideshowoff},
+			$tpl_vars{SLIDESHOW} .= fill_in_file($tpl_vars{slideshowoff},
 				HASH => \%tpl_vars,
 			);
 
@@ -712,6 +714,8 @@ sub handler {
 				return MP2 ? Apache::OK : Apache::Constants::OK;
 			}
 
+			$tpl_vars{URL} = uri_escape($nextpicture, $escape_rule);
+			$tpl_vars{WIDTH} = ($width > $height ? $width : $height);
 			$tpl_vars{INTERVAL} = $cgi->param('slideshow');
 			$tpl_vars{META} .=  fill_in_file($tpl_vars{refresh},
 				HASH => \%tpl_vars,
@@ -719,7 +723,7 @@ sub handler {
 
 		}
 		else {
-			$tpl_vars{META} .=  fill_in_file($tpl_vars{slideshowisoff},
+			$tpl_vars{SLIDESHOW} .=  fill_in_file($tpl_vars{slideshowisoff},
 				HASH => \%tpl_vars,
 			);
 		}
@@ -1203,11 +1207,13 @@ sub show_error {
 	$tpl_vars{ERROR}      = $error;
 
 	$tpl_vars{MAIN} = fill_in_file($tpl_vars{layout},
-				       HASH => \%tpl_vars,
-				      );
+		HASH => \%tpl_vars,
+ 	);
+
 	$tpl_vars{MAIN} = fill_in_file($tpl_vars{error},
-				       HASH => \%tpl_vars,
-				      );
+		HASH => \%tpl_vars,
+	);
+
 	$r->status($statuscode);
 	$r->content_type('text/html');
 
