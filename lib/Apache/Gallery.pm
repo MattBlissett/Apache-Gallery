@@ -178,7 +178,6 @@ sub handler {
 	
 		# Read, sort, and filter files
 		my @files = grep { !/^\./ && -f "$filename/$_" } readdir (DIR);
-		@files = sort @files;
 
 		my $sortby = $r->dir_config('GallerySortBy');
 		if ($sortby && $sortby =~ m/^(size|atime|mtime|ctime)$/) {
