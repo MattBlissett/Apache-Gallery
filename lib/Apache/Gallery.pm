@@ -941,6 +941,7 @@ sub show_error {
 
 	my $content = $tpl->fetch("MAIN");
 
+	$r->status(500);
 	$r->content_type('text/html');
 	$r->send_http_header;
 
@@ -1280,13 +1281,6 @@ with the visible name of the folder.
 Remember the -dev package when using rpm, deb or other package formats!
 
 =back
-
-=head1 BUGS
-
-Fatal errors are showed on a page with a HTTP OK return code. This is because
-Internet Explorer will show it's own error page otherwise. Is it possible to
-force IE to show our custom errormessage even when returning HTTP status code
-500?
 
 =head1 AUTHOR
 
