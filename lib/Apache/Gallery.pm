@@ -1,6 +1,6 @@
 package Apache::Gallery;
 
-# $Id: Gallery.pm,v 1.39 2002/01/02 10:50:23 mil Exp $
+# $Id: Gallery.pm,v 1.42 2002/01/10 14:50:37 mil Exp $
 
 use 5.006;
 use strict;
@@ -8,14 +8,13 @@ use warnings;
 
 use vars qw($VERSION);
 
-$VERSION = "0.3";
+$VERSION = "0.3.1";
 
 use Apache();
 use Apache::Constants qw(:common);
 use Apache::Request();
 
 use Image::Info qw(image_info);
-use DB_File;
 use CGI::FastTemplate;
 use URI::Escape;
 
@@ -523,6 +522,9 @@ int resizepicture(char* infile, char* outfile, int x, int y, int rotate, char* c
 	imlib_save_image(outfile);
 
 	imlib_context_set_image(image);
+	imlib_free_image();
+
+	imlib_context_set_image(buffer);
 	imlib_free_image();
 
 	return 1;

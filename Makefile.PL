@@ -1,5 +1,5 @@
 use ExtUtils::MakeMaker;
-# $Id: Makefile.PL,v 1.5 2001/12/30 16:02:23 mil Exp $
+# $Id: Makefile.PL,v 1.6 2002/01/09 15:49:30 mil Exp $
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 WriteMakefile(
@@ -9,7 +9,8 @@ WriteMakefile(
 		                   CGI::FastTemplate => 0, 
 											 Inline => 0, 
 											 mod_perl => 0,
-											 URI::Escape => 0
+											 URI::Escape => 0,
+											 Apache::Request => 0
 										 }, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM => 'lib/Apache/Gallery.pm', # retrieve abstract from module

@@ -1,6 +1,10 @@
-$Id: Changes,v 1.16 2002/01/01 23:27:00 mil Exp $
+$Id: Changes,v 1.17 2002/01/10 14:49:48 mil Exp $
 
 Revision history for Perl extension Apache::Gallery.
+
+0.3.1 Thu Jan 10 15:47:39 CET 2002
+
+  - Fixed a huge memoryleak.
 
 0.3 Wed Jan  2 00:25:21 CET 2002
 
