@@ -9,10 +9,6 @@ use vars qw($VERSION);
 
 $VERSION = "0.7";
 
-use File::Spec;
-
-my $inlinedir;
-
 BEGIN {
 
 	use mod_perl;
@@ -40,20 +36,6 @@ BEGIN {
 
 	}
 
-	$inlinedir=File::Spec->catdir(File::Spec->tmpdir(), 'aginline');
-	# First we try to create the dir.
-	# If this exists we check ownership
-	# and permissions before using it
-	unless (mkdir($inlinedir, 0700)) {
-		my @stat=stat($inlinedir);
-		# Check UID, GID and permissions
-		# XXX: Not portable to non-unix-systems
-		unless (( $stat[4]==$< ) and
-			( $stat[5]==$( ) and
-			( ($stat[2] & 07777) == 0700)) {
-			die("Somebody seems to be tampering with our inline dir");
-		}
-	}
 }
 
 use Image::Info qw(image_info);
@@ -61,6 +43,7 @@ use Image::Size qw(imgsize);
 use Image::Imlib2;
 use CGI::FastTemplate;
 use File::stat;
+use File::Spec;
 use POSIX qw(floor);
 use URI::Escape;
 use POSIX;
