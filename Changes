@@ -3,6 +3,11 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
+0.6
+
+        - Apache now internally handles image dispatch which enables
+          use of all Apache caching possibilities (Thomas Eibner)
+
 0.5.1 Sat Nov  9 11:49:29 CET 2002
 
 	- InlineDir is no longer configurable using PerlSetVar, which
