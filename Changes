@@ -10,6 +10,7 @@ Revision history for Perl extension Apache::Gallery.
   - Fix bug when rotating pictures and a .thm file was present (Thomas Eibner)
   - Apache::Gallery now allows for regular files to be served correctly (Thomas Eibner)
 	- Support for detailed flash information from Image::Info 1.11 (Me, Allan Joergensen)
+  - Moved Apache::Gallery into subversion revision control instead of CVS (Me)
 
 0.4 Sun Jun  2 13:11:09 CEST 2002
 
