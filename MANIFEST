@@ -7,14 +7,14 @@ README
 Changes
 lib/Apache/Gallery.pm
 UPGRADE
-htdocs/application-ogg.png
+htdocs/sound-ogg.png
 htdocs/video-wmv.png
 htdocs/video-asf.png
 htdocs/video-mov.png
 htdocs/application-pdf.png
 htdocs/application-doc.png
-htdocs/application-mp3.png
-htdocs/application-wav.png
+htdocs/sound-mp3.png
+htdocs/sound-wav.png
 htdocs/application-rtf.png
 htdocs/video-mpeg.png
 htdocs/video-mpg.png
