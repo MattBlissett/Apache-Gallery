@@ -23,7 +23,7 @@ use URI::Escape;
 my $escape_rule = "^A-Za-z0-9\-_.!~*'()\/";
 
 use Inline C => Config => 
-				LIBS => '-L/usr/X11R6/lib -lImlib2 -lttf -lm -ldl -lXext -lXext',
+				LIBS => '-L/usr/X11R6/lib -lImlib2 -lm -ldl -lXext -lXext',
 				DIRECTORY => Apache->request()->dir_config('InlineDir') ?  Apache->request()->dir_config('InlineDir') : "/tmp/",
 				INC => '-I/usr/X11R6/include',
 				ENABLE    => 'UNTAINT';
