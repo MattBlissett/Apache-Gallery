@@ -672,8 +672,9 @@ sub handler {
 			);
 		}
 
+		$tpl_vars{IMAGEURI} = uri_escape($r->uri(), $escape_rule);
+
 		if ($r->dir_config('GalleryAllowOriginal')) {
-			$tpl_vars{IMAGEURI} = uri_escape($r->uri(), $escape_rule);
 			$tpl_vars{SIZES} .= fill_in_file($tpl_vars{orig},
 				HASH => \%tpl_vars,
 			);
