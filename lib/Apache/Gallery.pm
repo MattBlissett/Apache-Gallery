@@ -430,6 +430,7 @@ sub handler {
 		foreach my $interval (@slideshow_intervals) {
 			$tpl->assign(IMAGEURI => uri_escape($r->uri(), $escape_rule));
 			$tpl->assign(SECONDS => $interval);
+			$tpl->assign(WIDTH => $image_width);
 			if ($apr->param('slideshow') && $apr->param('slideshow') == $interval and $nextpicture) {
 				$tpl->parse(SLIDESHOW => '.intervalactive');
 			}
