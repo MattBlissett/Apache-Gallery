@@ -3,7 +3,7 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
-Snapshot
+0.9 Sat Sep 11 22:03:20 CEST 2004
 
 	- Handle .thm for all filetypes and not just tiff, gif and png
 		(Michael Legart)

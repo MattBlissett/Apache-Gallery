@@ -7,7 +7,7 @@ use strict;
 
 use vars qw($VERSION);
 
-$VERSION = "0.8";
+$VERSION = "0.9";
 
 BEGIN {
 
