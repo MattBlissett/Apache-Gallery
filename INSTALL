@@ -29,6 +29,7 @@ Then, to install Apache::Gallery run the following commands:
 
    perl Makefile.PL
    make
+   make test (optional)
    make install
 
 Setup a virtualhostblock in httpd.conf, like this:
@@ -67,5 +68,9 @@ Apache::Gallery. You can write to michael@legart.dk
 Make sure you try the latest version of the gallery from 
 <http://apachegallery.dk/> before reporting bugs. 
 
-When reporting bugs please use this page:
+If you have problems installing Apache::Gallery, please make sure to run "make
+test" to see, what may be the problem.
+
+When reporting bugs please use this page and include the output from make test
+in your bugreport:
 <http://bugs.cpan.org/NoAuth/ReportBug.html?Queue=Apache%3A%3AGallery>
