@@ -14,9 +14,6 @@ $Date$
 
 - Make the template and imagesystem pluggable
 
-- an option to make comments to the directories. This might require
-  additional grouping to separate subfolders from images;
-
 - Make scaling quality configurable
 
 - Thumbnails are to be generated in tmp files first,
