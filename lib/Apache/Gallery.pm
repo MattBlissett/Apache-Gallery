@@ -548,7 +548,7 @@ sub handler {
 
 		my @infos = split /, /, $r->dir_config('GalleryInfo') ? $r->dir_config('GalleryInfo') : 'Picture Taken => DateTimeOriginal, Flash => Flash';
 		my $foundinfo = 0;
-		my $exifvalues;	
+		my $exifvalues;
 		foreach (@infos) {
 	
 			my ($human_key, $exif_key) = (split " => ")[0,1];
@@ -576,7 +576,7 @@ sub handler {
 		}
 
 		if ($exif_mode eq 'values') {
-			if ($exifvalues) {
+			if (defined($exifvalues)) {
 				$tpl->assign(EXIFVALUES => $exifvalues);
 			}
 			else {
@@ -594,7 +594,11 @@ sub handler {
 
 		if (($exif_mode eq 'namevalue' && $foundinfo) or $foundcomment) {
 			$tpl->parse(PICTUREINFO => 'pictureinfo');
-			$tpl->assign(EXIFVALUES => "");
+
+			unless (defined($exifvalues)) {
+				$tpl->assign(EXIFVALUES => "");
+			}
+
 		}
 		else {
 			$tpl->parse(PICTUREINFO => 'nopictureinfo');
