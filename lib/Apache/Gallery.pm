@@ -954,6 +954,8 @@ sub get_imageinfo {
 		$tmpfilename =~ s/\.(\w+)$/.thm/;
 		if (-e $tmpfilename && -f $tmpfilename && -r $tmpfilename) {
 			$imageinfo = image_info($tmpfilename);
+			$imageinfo->{width} = $width;
+			$imageinfo->{height} = $height;
 		}
 		# If there is no .thm file and our file is a JPEG file we try to extract the EXIf
 		# info using Image::Info
