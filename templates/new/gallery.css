@@ -1,8 +1,9 @@
 body {
-	background-color: #ffffff;
-    color: #aaaaaa;
+	background-color: #cccccc;
+    color: #666666;
 	font-family: Verdana, Lucida, Arial;
 	font-size: 10px;
+//	font-weight: bold;
 	margin-left: 10px;
 	margin-top: 10px;
 	text-align: center;
@@ -15,9 +16,9 @@ table {
 	margin-right: auto;
 }
 #title {
-    font-size: 13px;
+    font-size: 11px;
     text-align: left;
-    font-weight: bold;
+//    font-weight: bold;
 }
 #menu {
 	font-size: 13px;
@@ -26,8 +27,8 @@ table {
 	margin-right: 20px;
 }
 #directory {
-	background-color: #fafafa;
-	border: 6px solid #dddddd;
+	background-color: #ffffff;
+	border: 6px solid #aaaaaa;
 	padding: 20px;
 	text-align: left;
 	top: 0px;
@@ -43,19 +44,20 @@ table {
 	text-align: center;
 }
 #picture img {
-	border: 6px solid #dddddd;
+	border: 6px solid #777777;
 }
 a {
-	color: #cccc00;
+	color: #5555aa;
+	text-decoration: none;
 }
 a img {
-	border: 3px solid #cccc00;
+	border: 3px solid #5555aa;
 }
 a:hover {
-	color: #cc9900;
+	color: #ff9400;
 }
 a:hover img {
-	border: 3px solid #cc9900;
+	border: 3px solid #ff9400;
 }
 .folder img {
 	border: 0px;
@@ -67,9 +69,9 @@ a:hover img {
 	margin-top: 50px;
 }
 #comment {
-    color: #666666;
-    border: 3px solid #aaaaaa;
-    background-color: #fafafa;
+    background-color: #333333;
+    border: 3px solid #555555;
+    color: #999999;
     width: 400px;
     margin-left: auto;
     margin-right: auto;
