@@ -41,7 +41,8 @@ templates/nopictureinfo.tpl
 templates/interval.tpl
 templates/scaleactive.tpl
 templates/intervalactive.tpl
-templates/navpicture.tpl
+templates/navprev.tpl
+templates/navnext.tpl
 templates/file.tpl
 templates/layout.tpl
 templates/showpicture.tpl
