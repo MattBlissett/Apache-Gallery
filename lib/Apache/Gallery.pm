@@ -47,32 +47,15 @@ sub handler {
 
 	my $apr = Apache::Request->instance($r, DISABLE_UPLOADS => 1, POST_MAX => 1024);
 
-	# Is the file being fetched from the cache? Let's feed it from the cache outside the webscope.
-	if ($r->uri =~ m/\.cache/i) {
-
-		my $cached = cache_dir($r, 0);
-
-		$cached =~ s/\/\.cache//;
-		unless (open(FILE, "$cached")) {
-			$r->log_error("Error opening $cached: $!\n");
-			return SERVER_ERROR;
-		}
-
-		if ($r->uri =~ m/\.(jpe?g|png|tiff?|ppm)$/i) {
-			$r->content_type("image/$1");
-		}
-
-		$r->send_http_header;
-		$r->send_fd("FILE");
-		close(FILE);
-
-		return OK;
-
-	}
-
 	# Let Apache serve icons and files from the cache without us
 	# modifying the request
-	if ($r->uri =~ m/(^\/icons|\.cache)/i) {
+	if ($r->uri =~ m/^\/icons/i) {
+		return DECLINED;
+	}
+	if ($r->uri =~ m/\.cache\//i) {
+		my $file = cache_dir($r, 1);
+		$file =~ s/\/\.cache//;
+		$r->filename($file);
 		return DECLINED;
 	}
 
