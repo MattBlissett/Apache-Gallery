@@ -145,19 +145,20 @@ CONFIGURATION
         This options controls how many thumbnails should be displayed in a
         page. It requires $BROWSELINKS to be in the index.tpl template file.
 
+    GalleryImgFile
+        Pattern matching the files you want Apache::Gallery to view in the
+        index as thumbnails.
+
+        The default is '\.(jpe?g|png|tiff?|ppm)$'
+
     GalleryDocFile
-        Pattern matching the files you want Apache::Gallery to serve as
-        normal files.
+        Pattern matching the files you want Apache::Gallery to view in the
+        index as normal files. All other filetypes will still be served by
+        Apache::Gallery but are not visible in the index.
 
         The default is
-        '\.(mpe?g|avi|mov|asf|wmv|doc|mp3|ogg|pdf|rtf|wav|txt|dlt|html?|csv|
-        eps)$'
-
-    GalleryImgFile
-        Pattern matching the files you want Apache::Gallery to serve as
-        images.
-
-        The default is '\.(jpe?g|png|tiff?|ppm|gif)$'
+        '\.(mpe?g|avi|mov|asf|wmv|doc|mp3|ogg|pdf|rtf|wav|dlt|html?|csv|eps)
+        $'
 
 FEATURES
     Rotate images

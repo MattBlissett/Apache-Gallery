@@ -136,11 +136,11 @@ sub handler {
 
 	my $doc_pattern = $r->dir_config('GalleryDocFile');
 	unless ($doc_pattern) {
-		$doc_pattern = '\.(mpe?g|avi|mov|asf|wmv|doc|mp3|ogg|pdf|rtf|wav|txt|dlt|html?|csv|eps)$'
+		$doc_pattern = '\.(mpe?g|avi|mov|asf|wmv|doc|mp3|ogg|pdf|rtf|wav|dlt|html?|csv|eps)$'
 	}
 	my $img_pattern = $r->dir_config('GalleryImgFile');
 	unless ($img_pattern) {
-		$img_pattern = '\.(jpe?g|png|tiff?|ppm|gif)$'
+		$img_pattern = '\.(jpe?g|png|tiff?|ppm)$'
 	}
 
 	# Let Apache serve files we don't know how to handle anyway
@@ -1488,17 +1488,20 @@ default is "root:"
 This options controls how many thumbnails should be displayed in a 
 page. It requires $BROWSELINKS to be in the index.tpl template file.
 
-=item B<GalleryDocFile>
-
-Pattern matching the files you want Apache::Gallery to serve as normal files.
-
-The default is '\.(mpe?g|avi|mov|asf|wmv|doc|mp3|ogg|pdf|rtf|wav|txt|dlt|html?|csv|eps)$'
-
 =item B<GalleryImgFile>
 
-Pattern matching the files you want Apache::Gallery to serve as images.
+Pattern matching the files you want Apache::Gallery to view in the
+index as thumbnails. 
 
-The default is '\.(jpe?g|png|tiff?|ppm|gif)$'
+The default is '\.(jpe?g|png|tiff?|ppm)$'
+
+=item B<GalleryDocFile>
+
+Pattern matching the files you want Apache::Gallery to view in the index
+as normal files. All other filetypes will still be served by Apache::Gallery
+but are not visible in the index.
+
+The default is '\.(mpe?g|avi|mov|asf|wmv|doc|mp3|ogg|pdf|rtf|wav|dlt|html?|csv|eps)$'
 
 =back
 
