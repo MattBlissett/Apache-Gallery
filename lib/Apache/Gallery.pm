@@ -1199,10 +1199,10 @@ sub resizepicture {
 	my ($infile, $outfile, $x, $y, $rotate, $copyrightfile) = @_;
 
 	# Load image
-	my $image = Image::Imlib2->load($infile);
+	my $image = Image::Imlib2->load($infile) or warn("Unable to open file $infile, $!");
 
 	# Scale image
-	$image=$image->create_scaled_image($x, $y);
+	$image=$image->create_scaled_image($x, $y) or warn("Unable to scale image $infile. Are you running out of memory?");
 
 	# Rotate image
 	if ($rotate != 0) {
