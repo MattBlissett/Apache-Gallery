@@ -1106,7 +1106,7 @@ directories.
 The options are set in the httpd.conf/.htaccess file using the syntax:
 B<PerlSetVar OptionName 'value'>
 
-Example: B<PerlSetVar GallerCacheDir '/var/tmp/Apache-Gallery/'>
+Example: B<PerlSetVar GalleryCacheDir '/var/tmp/Apache-Gallery/'>
 
 =over 4
 
@@ -1114,7 +1114,7 @@ Example: B<PerlSetVar GallerCacheDir '/var/tmp/Apache-Gallery/'>
 
 Some cameras, like the Canon G3, can detect the orientation of a 
 the pictures you take and will save this information in the 
-'Orientation' EXIF field. Apache::Gallery will then automaticly
+'Orientation' EXIF field. Apache::Gallery will then automatically
 rotate your images. 
 
 This behavior is default but can be disabled by setting GalleryAutoRotate
@@ -1123,9 +1123,9 @@ to 0.
 =item B<GalleryCacheDir>
 
 Directory where Apache::Gallery should create its cache with scaled
-pictures. The default is /var/tmp/Apache-Gallery/ . Here a directory
+pictures. The default is /var/tmp/Apache-Gallery/ . Here, a directory
 for each virtualhost or location will be created automaticly. Make
-sure your webserver has writeaccess to the CacheDir.
+sure your webserver has write access to the CacheDir.
 
 =item B<GalleryTemplateDir>
 
