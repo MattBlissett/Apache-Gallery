@@ -789,6 +789,16 @@ sub generate_menu {
 
 	my @links = split (/\//, $r->uri);
 
+	# Get the full path of the base directory
+	my $dirname;
+	{
+		my @direlem = split (/\//, $filename);
+		for my $i ( 0 .. ( scalar(@direlem) - scalar(@links) ) ) {
+			$dirname .= shift(@direlem) . '/';
+		}
+		chop $dirname;
+	}
+
 	my $picturename;
 	if (-f $filename) {
 		$picturename = pop(@links);	
@@ -806,6 +816,14 @@ sub generate_menu {
 		my $linktext = $link;
 		unless ($link) {
 			$linktext = "root: ";
+		}
+
+		if ($link) {
+			$dirname .= '/' . $link;
+		}
+
+		if (-e $dirname . ".folder") {
+			$linktext = get_filecontent($dirname . ".folder");
 		}
 
 		$menu .= "<a href=\"".uri_escape($menuurl, $escape_rule)."\">$linktext</a> / ";
@@ -1025,6 +1043,10 @@ Example:
 	TITLE: This is the new title of the page
 	And this is the comment.<br>
 	And this is line two of the comment.
+
+The visible name of the folder is by default identical to the name of
+the folder, but can be changed by creating a file <directory>.folder
+with the visible name of the folder.
 
 =back
 
