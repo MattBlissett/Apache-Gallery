@@ -14,6 +14,8 @@ INSTALL
 lib/Apache/Gallery.pm
 t/001_use.t
 t/002_graphlibs.t
+t/003_comment.t
+t/commenttest
 t/injpg.jpg
 t/inpng.png
 templates/layout.tpl
