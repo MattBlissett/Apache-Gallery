@@ -16,18 +16,9 @@ $MENU
       </tr>
       <tr>
         <td align="left" width="20%">$BACK</td>
-        <td width="60%">
-          <center>
-            <table align="center" class="info">
-              <tr>
-                <td>
-                  $COMMENT
-		  $INFO
-                </td>
-              </tr>
-            </table>
-          </center>
-        </td>
+
+				$PICTUREINFO
+
         <td align="right" width="20%">$NEXT</td>
       </tr>
 	  <tr>

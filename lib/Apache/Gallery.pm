@@ -309,7 +309,9 @@ sub handler {
 			interval       => 'interval.tpl',
 			intervalactive => 'intervalactive.tpl',
 			slideshowisoff => 'slideshowisoff.tpl',
-			slideshowoff   => 'slideshowoff.tpl'
+			slideshowoff   => 'slideshowoff.tpl',
+			pictureinfo    => 'pictureinfo.tpl',
+			nopictureinfo  => 'nopictureinfo.tpl'
 		);
 
 		$tpl->assign(TITLE => "Viewing ".$r->uri()." at $image_width x $height");
@@ -381,8 +383,10 @@ sub handler {
 			}
 		}
 
+		my $foundcomment = 0;
 		if (-e $path . '/' . $picfilename . '.comment' && -f $path . '/' . $picfilename . '.comment') {
 		    my $comment_ref = get_comment($path . '/' . $picfilename . '.comment');
+				$foundcomment = 1;
 		    $tpl->assign(COMMENT => $comment_ref->{COMMENT} . '<br>') if $comment_ref->{COMMENT};
 		    $tpl->assign(TITLE => $comment_ref->{TITLE}) if $comment_ref->{TITLE};
 		} else {
@@ -403,8 +407,11 @@ sub handler {
 			} 
 		}
 
-		unless ($foundinfo) {
-			$tpl->assign(INFO => "No info found in image");
+		if ($foundinfo or $foundcomment) {
+			$tpl->parse(PICTUREINFO => 'pictureinfo');
+		}
+		else {
+			$tpl->parse(PICTUREINFO => 'nopictureinfo');
 		}	
 
 		foreach my $size (@sizes) {
