@@ -490,7 +490,7 @@ sub cache_dir {
 
 	unless ($r->dir_config('GalleryCacheDir')) {
 
-		$cache_root = File::Spec->catdir(File::Spec->tmpdir, 'Apache-Gallery');
+		$cache_root = '/var/tmp/Apache-Gallery/';
 		if ($r->server->is_virtual) {
 			$cache_root = File::Spec->catdir($cache_root, $r->server->server_hostname);
 		} else {

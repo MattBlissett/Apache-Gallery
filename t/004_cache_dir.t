@@ -42,12 +42,12 @@ sub request {
 }
 
 my $r=request(undef, 1);
-is(Apache::Gallery::cache_dir($r, 1), File::Spec->tmpdir.'/Apache-Gallery/hostname/uripath1/uripath2');
-is(Apache::Gallery::cache_dir($r, 0), File::Spec->tmpdir.'/Apache-Gallery/hostname/uripath1/uripath2/urifile');
+is(Apache::Gallery::cache_dir($r, 1), '/var/tmp/Apache-Gallery/hostname/uripath1/uripath2');
+is(Apache::Gallery::cache_dir($r, 0), '/var/tmp/Apache-Gallery/hostname/uripath1/uripath2/urifile');
 
 my $r=request(undef, 0);
-is(Apache::Gallery::cache_dir($r, 1), File::Spec->tmpdir.'/Apache-Gallery/location/uripath1/uripath2');
-is(Apache::Gallery::cache_dir($r, 0), File::Spec->tmpdir.'/Apache-Gallery/location/uripath1/uripath2/urifile');
+is(Apache::Gallery::cache_dir($r, 1), '/var/tmp/Apache-Gallery/location/uripath1/uripath2');
+is(Apache::Gallery::cache_dir($r, 0), '/var/tmp/Apache-Gallery/location/uripath1/uripath2/urifile');
 
 my $r=request('t/cachetest', 1);
 is(Apache::Gallery::cache_dir($r, 1), 't/cachetest/uripath1/uripath2');
