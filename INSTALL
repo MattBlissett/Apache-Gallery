@@ -42,7 +42,7 @@ your virtualhostblock to look like:
 	DocumentRoot /data/pictures/
 	ErrorLog     logs/gallery-error_log
 	TransferLog  logs/gallery-access_log
-	PerlSetVar   GalleryTemplateDir '/usr/local/apache/gallery/templates'
+	PerlSetVar   GalleryTemplateDir '/usr/local/apache/gallery/templates/default/'
 	PerlSetVar   GalleryInfo 'Picture Taken => DateTimeOriginal, Flash => Flash' 
 	PerlSetVar   GallerySizes '640 1024 1600 2272'
 	PerlSetVar   GalleryThumbnailSize '100x75'
@@ -61,7 +61,7 @@ like:
 	DocumentRoot /data/pictures/
 	ErrorLog     logs/gallery-error_log
 	TransferLog  logs/gallery-access_log
-	PerlSetVar   GalleryTemplateDir '/usr/local/apache/gallery/templates'
+	PerlSetVar   GalleryTemplateDir '/usr/local/apache/gallery/templates/default/'
 	PerlSetVar   GalleryInfo 'Picture Taken => DateTimeOriginal, Flash => Flash' 
 	PerlSetVar   GallerySizes '640 1024 1600 2272'
 	PerlSetVar   GalleryThumbnailSize '100x75'
