@@ -1,4 +1,3 @@
-.
 MANIFEST
 INSTALL
 Makefile.PL
@@ -6,12 +5,9 @@ TODO
 LICENSE
 README
 Changes
-lib
 lib/Apache
-lib/Apache/Gallery.pm.rej
 lib/Apache/Gallery.pm
 UPGRADE
-htdocs
 htdocs/application-ogg.png
 htdocs/video-wmv.png
 htdocs/video-asf.png
@@ -27,7 +23,6 @@ htdocs/video-mpg.png
 htdocs/video-avi.png
 htdocs/c.png
 htdocs/agfolder.png
-t
 t/002_inpng.png
 t/005_jpg.jpg
 t/002_graphlibs.t
@@ -39,7 +34,6 @@ t/003_comment.t
 t/003_commenttest
 t/005_imageinfo.t
 t/007_pod.t
-templates
 templates/pictureinfo.tpl
 templates/error.tpl
 templates/error.tpl.rej
