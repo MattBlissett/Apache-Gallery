@@ -5,6 +5,9 @@ For users upgrading from 0.5 to 0.5.1
 
 InlineDir is no longer honored, File::Spec is used to find a temporary
 directory (usually /tmp)
+Since 0.5, your .cache subdirectories are no longer used and can be
+safely deleted. All cached images are now kept in
+/var/tmp/Apache-Gallery/ unless you set GalleryCacheDir.
 
 For users upgrading from 0.4 to 0.5
 
