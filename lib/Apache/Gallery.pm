@@ -410,7 +410,7 @@ sub handler {
 			my $cookie = new CGI::Cookie(-name => 'GallerySize', -value => $width, -expires => '+6M');
 			$r->headers_out->{'Set-Cookie'} = $cookie;
 
-		} elsif ($cookies{'GallerySize'} and (grep $cookies{'GallerySize'}->value == $_, @sizes)) {
+		} elsif ($cookies{'GallerySize'} && (grep $cookies{'GallerySize'}->value == $_, @sizes)) {
 
 			$width = $cookies{'GallerySize'}->value;
 
