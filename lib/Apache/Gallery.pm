@@ -7,7 +7,7 @@ use strict;
 
 use vars qw($VERSION);
 
-$VERSION = "0.7";
+$VERSION = "0.8";
 
 BEGIN {
 
@@ -624,7 +624,7 @@ sub handler {
 			$tpl_vars{INFO} = "";
 		}
 
-		if ($foundinfo or $foundcomment) {
+		if ($exif_mode eq 'namevalue' && $foundinfo or $foundcomment) {
 
 			$tpl_vars{PICTUREINFO} = fill_in_file($tpl_vars{pictureinfo},
 				HASH => \%tpl_vars

@@ -1,4 +1,4 @@
-Apache/Gallery version 0.7
+Apache/Gallery version 0.8
 ===========================
 
 INSTALLATION
@@ -17,7 +17,7 @@ Perl Modules: (Use http://search.cpan.org/ to find them)
 - URI::Escape
 - Image::Info version 1.11. (NB NB NB: Version 1.12 is known to give problems)
 - Image::Size 
-- CGI::FastTemplate
+- Text::Template
 - CGI
 - Image::Imlib2 (1.00)
 
