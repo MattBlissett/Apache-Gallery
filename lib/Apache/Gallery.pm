@@ -849,6 +849,14 @@ sub get_thumbnailsize {
 	my $width = $thumbnailwidth;
 	my $height = $thumbnailheight;
 
+        # If the image is rotated, flip everything around.
+        if (defined $r->dir_config('GalleryThumbnailSizeLS')
+	    and $r->dir_config('GalleryThumbnailSizeLS') eq '1'
+	    and $orig_width < $orig_height) {
+		$width = $thumbnailheight;
+		$height = $thumbnailwidth;
+	}
+
 	my $scale = ($orig_width ? $width/$orig_width : 1);
 
 	if ($orig_height) {
@@ -1335,6 +1343,13 @@ The default is '640 800 1024 1600'
 Defines the width and height of the thumbnail images. 
 
 Defaults to '100x75'
+
+=item B<GalleryThumbnailSizeLS>
+
+If set to '1', B<GalleryThumbnailSize> is the long and the short side of
+the thumbnail image instead of the width and height.
+
+Defaults to '0'.
 
 =item B<GalleryCopyrightImage>
 

@@ -72,6 +72,12 @@ CONFIGURATION
 
         Defaults to '100x75'
 
+    GalleryThumbnailSizeLS
+        If set to '1', GalleryThumbnailSize is the long and the short side
+        of the thumbnail image instead of the width and height.
+
+        Defaults to '0'.
+
     GalleryCopyrightImage
         Image you want to blend into your images in the lower right corner.
         This could be a transparent png saying "copyright my name 2001".

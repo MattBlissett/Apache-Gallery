@@ -16,6 +16,14 @@ snapshot
 	  GalleryImgFile that makes it possible to configured which
 	  filetypes should be displayed. See the documentation for
 	  details. (Guillaume Rousse)
+	- Added new option GalleryThumbnailSizeLS. If set to 1,
+	  GalleryThumbnailSize is the long and the short side
+	  of the thumbnail image instead of the width and height.
+	  (Don Armstrong)
+
+If set to '1', GalleryThumbnailSize is the long and the short side
+of the thumbnail image instead of the width and height.
+
 
 0.7 Mon Sep  8 22:30:35 CEST 2003
 
