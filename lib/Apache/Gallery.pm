@@ -1298,10 +1298,17 @@ sub generate_menu {
 
 	my $r = shift;
 
+	my $root_text = (defined($r->dir_config('GalleryRootText')) ? $r->dir_config('GalleryRootText') : "root:" );
+	my $root_path = (defined($r->dir_config('GalleryRootPath')) ? $r->dir_config('GalleryRootPath') : "" );
+
 	my $subr = $r->lookup_uri($r->uri);
 	my $filename = $subr->filename;
 
 	my @links = split (/\//, $r->uri);
+	my $uri = $r->uri;
+	$uri =~ s/^$root_path//g;
+
+	my @links = split (/\//, $uri);
 
 	# Get the full path of the base directory
 	my $dirname;
@@ -1318,13 +1325,12 @@ sub generate_menu {
 		$picturename = pop(@links);	
 	}
 
-	my $root_text = (defined($r->dir_config('GalleryRootText')) ? $r->dir_config('GalleryRootText') : "root:" );
-	if ($r->uri eq '/') {
-		return qq{ <a href="/">$root_text</a> };
+	if ($r->uri eq $root_path) {
+		return qq{ <a href="$root_path">$root_text</a> };
 	}
 
 	my $menu;
-	my $menuurl;
+	my $menuurl = $root_path;
 	foreach my $link (@links) {
 
 		$menuurl .= $link."/";
@@ -1341,7 +1347,12 @@ sub generate_menu {
 			}
 		}
 
-		$menu .= "<a href=\"".uri_escape($menuurl, $escape_rule)."\">$linktext</a> / ";
+		if ("$root_path$uri" eq $menuurl) {
+			$menu .= "$linktext  / ";
+		}
+		else {
+			$menu .= "<a href=\"".uri_escape($menuurl, $escape_rule)."\">$linktext</a> / ";
+		}
 
 	}
 
@@ -1611,6 +1622,10 @@ That means that with the default setting "Picture Taken => DateTimeOriginal,
 Flash => Flash" you will have the variables $EXIF_DATETIMEORIGINAL and 
 $EXIF_FLASH avilable to your templates. You can place them
 anywhere you want.
+
+=item B<GalleryRootPath>
+
+Change the location of gallery root. The default is ""
 
 =item B<GalleryRootText>
 

@@ -6,6 +6,8 @@ Revision history for Perl extension Apache::Gallery.
 dev
 
 	- Added submit button to form in selection mode (Vlad Marchenko)
+	- Added new option GalleryRootPath for use when the gallery
+	  is not running from the root of the virtual host (Lubomir Host)
 
 0.9.1 Sat Sep 11 23:52:16 CEST 2004
 
