@@ -150,7 +150,7 @@ sub handler {
 
 		my $sortby = $r->dir_config('GallerySortBy');
 		if ($sortby && $sortby =~ m/^(size|atime|mtime|ctime)$/) {
-			@files = map(/^\d+ (.*)/, sort map(stat("$filename/$_")->$sortby." $_", @files));
+			@files = map(/^\d+ (.*)/, sort map(stat("$filename/$_")->$sortby()." $_", @files));
 		} else {
 			@files = sort @files;
 		}
@@ -261,7 +261,7 @@ sub handler {
 			$tpl->assign(FILES => "No files found");
 		}
 
-		if (-e $topdir . '.comment' && -f $topdir . '.comment') {
+		if (-f $topdir . '.comment') {
 			my $comment_ref = get_comment($topdir . '.comment');
 			$tpl->assign(COMMENT => $comment_ref->{COMMENT} . '<br>') if $comment_ref->{COMMENT};
 			$tpl->assign(TITLE => $comment_ref->{TITLE}) if $comment_ref->{TITLE};
@@ -365,9 +365,12 @@ sub handler {
 			nopictureinfo  => 'nopictureinfo.tpl'
 		);
 
+		my $resolution = (($image_width > $orig_width) && ($height > $orig_height)) ? 
+		    "$orig_width x $orig_height" : "$image_width x $height";
+
 		$tpl->assign(TITLE => "Viewing ".$r->uri()." at $image_width x $height");
 		$tpl->assign(META => " ");
-		$tpl->assign(RESOLUTION => "$image_width x $height");
+		$tpl->assign(RESOLUTION => $resolution);
 		$tpl->assign(MENU => generate_menu($r));
 		$tpl->assign(SRC => uri_escape(".cache/$cached", $escape_rule));
 		$tpl->assign(URI => $r->uri());
@@ -437,7 +440,7 @@ sub handler {
 		}
 
 		my $foundcomment = 0;
-		if (-e $path . '/' . $picfilename . '.comment' && -f $path . '/' . $picfilename . '.comment') {
+		if (-f $path . '/' . $picfilename . '.comment') {
 		    my $comment_ref = get_comment($path . '/' . $picfilename . '.comment');
 				$foundcomment = 1;
 		    $tpl->assign(COMMENT => $comment_ref->{COMMENT} . '<br>') if $comment_ref->{COMMENT};
@@ -606,6 +609,17 @@ sub scale_picture {
 	pop(@cachedir) unless (-d join("/", @cachedir));
 
 	my $cache = join("/", @cachedir);
+
+	if (($width > $orig_width) && ($height > $orig_height)) {
+	    require File::Copy;
+	    require File::Basename;
+
+	    my $fname     = File::Basename::basename($fullpath);
+	    my $cachefile = join("/",$cache,$fname);
+	    File::Copy::copy($fullpath,$cachefile);
+
+	    return $fname;
+	}
 
 	my ($thumbnailwidth, $thumbnailheight) = split(/x/, ($r->dir_config('GalleryThumbnailSize') ?  $r->dir_config('GalleryThumbnailSize') : "100x75"));
 
@@ -850,6 +864,14 @@ sub get_imageinfo {
 			}
 			$imageinfo->{$human_key} = $value;
 		} 
+	}
+
+	if ($r->dir_config('GalleryUseFileDate') &&
+		($r->dir_config('GalleryUseFileDate') eq '1'
+		|| !$imageinfo->{"Picture Taken"} )) {
+
+		my $st = stat($file);
+		$imageinfo->{"DateTimeOriginal"} = $imageinfo->{"Picture Taken"} = scalar localtime($st->mtime) if $st;
 	}
 
 	return $imageinfo;
@@ -1110,7 +1132,7 @@ directories.
 The options are set in the httpd.conf/.htaccess file using the syntax:
 B<PerlSetVar OptionName 'value'>
 
-Example: B<PerlSetVar GallerCacheDir '/var/tmp/Apache-Gallery/'>
+Example: B<PerlSetVar GalleryCacheDir '/var/tmp/Apache-Gallery/'>
 
 =over 4
 
@@ -1118,7 +1140,7 @@ Example: B<PerlSetVar GallerCacheDir '/var/tmp/Apache-Gallery/'>
 
 Some cameras, like the Canon G3, can detect the orientation of a 
 the pictures you take and will save this information in the 
-'Orientation' EXIF field. Apache::Gallery will then automaticly
+'Orientation' EXIF field. Apache::Gallery will then automatically
 rotate your images. 
 
 This behavior is default but can be disabled by setting GalleryAutoRotate
@@ -1127,9 +1149,9 @@ to 0.
 =item B<GalleryCacheDir>
 
 Directory where Apache::Gallery should create its cache with scaled
-pictures. The default is /var/tmp/Apache-Gallery/ . Here a directory
+pictures. The default is /var/tmp/Apache-Gallery/ . Here, a directory
 for each virtualhost or location will be created automaticly. Make
-sure your webserver has writeaccess to the CacheDir.
+sure your webserver has write access to the CacheDir.
 
 =item B<GalleryTemplateDir>
 
@@ -1205,6 +1227,11 @@ stat attribute. For example size, atime, mtime, ctime.
 Cache EXIF data using Memoize - this will make Apache::Gallery faster
 when many people access the same images, but it will also cache EXIF
 data until the current Apache child dies.
+
+=item B<GalleryUseFileDate>
+
+Set this option to 1 to make A::G show the files timestamp
+instead of the EXIF value for "Picture taken".
 
 =back
 
