@@ -210,11 +210,7 @@ sub handler {
 					my $imageinfo = get_imageinfo($r, $thumbfilename, $type, $width, $height);
 					my $cached = scale_picture($r, $thumbfilename, $thumbnailwidth, $thumbnailheight, $imageinfo);
 
-					my $rotate = 0;
-					if (-f $thumbfilename . ".rotate") {
-		    		$rotate = readfile_getnum($thumbfilename . ".rotate");
-					}
-
+					my $rotate = readfile_getnum($r, $imageinfo, $thumbfilename.".rotate");
 					$tpl->assign(FILEURL => uri_escape($fileurl, $escape_rule));
 					$tpl->assign(FILE    => $file);
 					$tpl->assign(DATE    => $imageinfo->{DateTimeOriginal} ? $imageinfo->{DateTimeOriginal} : ''); # should this really be a stat of the file instead of ''?
@@ -627,25 +623,7 @@ sub scale_picture {
 	if ($scale) {
 
 		my $newpath = $cache."/".$newfilename;
-		my $rotate = 0;
-
-		# Check to see if the image contains the Orientation EXIF key,
-		# but allow user to override using rotate
-		if (!defined($r->dir_config("GalleryAutoRotate")) 
-			|| $r->dir_config("GalleryAutoRotate") eq "1") {
-			if (defined($imageinfo->{Orientation})) {
-				if ($imageinfo->{Orientation} eq 'right_top') {
-					$rotate=1;
-				}	
-				elsif ($imageinfo->{Orientation} eq 'left_bot') {
-					$rotate=3;
-				}
-			}
-		}
-
-		if (-f $fullpath . ".rotate") {
-		    $rotate = readfile_getnum($fullpath . ".rotate");
-		}
+		my $rotate = readfile_getnum($r, $imageinfo, $fullpath . ".rotate");
 
 		if ($width == $thumbnailwidth or $width == $thumbnailheight) {
 		    resizepicture($fullpath, $newpath, $width, $height, $rotate, '');
@@ -848,18 +826,38 @@ sub get_imageinfo {
 }
 
 sub readfile_getnum {
-	my $filename = shift;
-	open(FH, "<$filename") or return 0;
-	my $temp = <FH>;
-	chomp($temp);
-	close(FH);
-	unless ($temp =~ /^\d$/) {
-		return 0;
+	my ($r, $imageinfo, $filename) = @_;
+
+	my $rotate = 0;
+
+	# Check to see if the image contains the Orientation EXIF key,
+	# but allow user to override using rotate
+	if (!defined($r->dir_config("GalleryAutoRotate")) 
+		|| $r->dir_config("GalleryAutoRotate") eq "1") {
+		if (defined($imageinfo->{Orientation})) {
+			if ($imageinfo->{Orientation} eq 'right_top') {
+				$rotate=1;
+			}	
+			elsif ($imageinfo->{Orientation} eq 'left_bot') {
+				$rotate=3;
+			}
+		}
 	}
-	unless ($temp == 1 || $temp == 2 || $temp == 3) {
-		return 0;
+
+	if (open(FH, "<$filename")) {
+		my $temp = <FH>;
+		chomp($temp);
+		close(FH);
+		unless ($temp =~ /^\d$/) {
+			$rotate = 0;
+		}
+		unless ($temp == 1 || $temp == 2 || $temp == 3) {
+			$rotate = 0;
+		}
+		$rotate = $temp;
 	}
-	return $temp;
+
+	return $rotate;
 }
 
 sub get_filecontent {
