@@ -1700,8 +1700,6 @@ Examples:
 Quality at 50:
         PerlSetVar      GalleryQuality '50'
 
-=back
-
 =head1 FEATURES
 
 =over 4

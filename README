@@ -104,8 +104,7 @@ CONFIGURATION
         Instead of the default filename ordering you can sort by any stat
         attribute. For example size, atime, mtime, ctime.
 
-    GalleryDirSortBy>
-
+    GalleryDirSortBy
         Set this variable to sort directories differently than other items,
         can be set to size, atime, mtime and ctime; setting any other value
         will revert to sorting by name.
@@ -212,6 +211,18 @@ CONFIGURATION
         Blue: PerlSetVar GalleryCopyrightColor '0,0,255,255'
 
         Transparent orange: PerlSetVar GalleryCopyrightColor '255,127,0,127'
+
+    GalleryQuality
+    The quality (1-100) of scaled images
+
+    This setting affects the quality of the scaled images. Set this to a low
+    number to reduce the size of the scaled images. Remember to clear out
+    your cache if you change this setting. Quality seems to default to 75,
+    at least in the jpeg and png loader code in Imlib2 1.1.0.
+
+    Examples:
+
+    Quality at 50: PerlSetVar GalleryQuality '50'
 
 FEATURES
     Rotate images
