@@ -904,6 +904,7 @@ sub get_imageinfo {
 						"1"  => "Yes",
 						"9"  => "Yes",
 						"16" => "No (Compulsory) Should be External Flash",
+						"17" => "Yes (External)",
 						"24" => "No",
 						"25" => "Yes (Auto)",
 						"73" => "Yes (Compulsory, Red Eye Reducing)",
