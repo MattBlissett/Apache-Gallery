@@ -45,7 +45,7 @@ BEGIN {
 use Image::Info qw(image_info);
 use Image::Size qw(imgsize);
 use Image::Imlib2;
-use Text::Template qw(fill_in_file);
+use Text::Template;
 use File::stat;
 use File::Spec;
 use POSIX qw(floor);
@@ -184,14 +184,22 @@ sub handler {
 
 		my $tpl_dir = $r->dir_config('GalleryTemplateDir');
 
-		my %tpl_vars = (layout    => "$tpl_dir/layout.tpl",
-				index     => "$tpl_dir/index.tpl",
-				directory => "$tpl_dir/directory.tpl",
-				picture   => "$tpl_dir/picture.tpl",
-				file      => "$tpl_dir/file.tpl",
-				comment   => "$tpl_dir/dircomment.tpl",
-				nocomment => "$tpl_dir/nodircomment.tpl",
-		);
+		# Instead of reading the templates every single time
+		# we need them, create a hash of template names and
+		# the associated Text::Template objects.
+		my %templates = create_templates({layout    => "$tpl_dir/layout.tpl",
+						  index     => "$tpl_dir/index.tpl",
+						  directory => "$tpl_dir/directory.tpl",
+						  picture   => "$tpl_dir/picture.tpl",
+						  file      => "$tpl_dir/file.tpl",
+						  comment   => "$tpl_dir/dircomment.tpl",
+						  nocomment => "$tpl_dir/nodircomment.tpl",
+						 });
+
+
+
+
+		my %tpl_vars;
 
 		$tpl_vars{TITLE} = "Index of: $uri";
 		$tpl_vars{META} = " ";
@@ -325,11 +333,11 @@ sub handler {
 					$dirtitle = $dirtitle ? $dirtitle : $file;
 					$dirtitle =~ s/_/ /g if $r->dir_config('GalleryUnderscoresToSpaces');
 
-					$tpl_vars{FILES} .= fill_in_file($tpl_vars{directory},
-						HASH=> {FILEURL => uri_escape($fileurl, $escape_rule),
-						FILE    => $dirtitle,
-					});
-
+					$tpl_vars{FILES} .=
+					     $templates{directory}->fill_in(HASH=> {FILEURL => uri_escape($fileurl, $escape_rule),
+										    FILE    => $dirtitle,
+										   }
+									   );
 				}
 				elsif (-f $thumbfilename && $thumbfilename =~ /$doc_pattern/i) {
 					my $type = lc($1);
@@ -349,15 +357,15 @@ sub handler {
 						$filetype = "unknown";
 					}
 
-					$tpl_vars{FILES} .= fill_in_file($tpl_vars{file},
-						HASH => {%tpl_vars,
-						FILEURL => uri_escape($fileurl, $escape_rule),
-						ALT => "Size: $size Bytes",
-						FILE => $file,
-						TYPE => $type,
-						FILETYPE => $filetype,
-					});
-
+					$tpl_vars{FILES} .=
+					     $templates{file}->fill_in(HASH => {%tpl_vars,
+										FILEURL => uri_escape($fileurl, $escape_rule),
+										ALT => "Size: $size Bytes",
+										FILE => $file,
+										TYPE => $type,
+										FILETYPE => $filetype,
+									       }
+								      );
 				}
 				elsif (-f $thumbfilename) {
 
@@ -379,9 +387,10 @@ sub handler {
 							 HEIGHT => (grep($rotate==$_, (1, 3)) ? $thumbnailwidth : $thumbnailheight),
 							 WIDTH => (grep($rotate==$_, (1, 3)) ? $thumbnailheight : $thumbnailwidth),
 							 SELECT  => $select_mode?'<input type="checkbox" name="selection" value="'.$file.'">&nbsp;&nbsp;':'',);
-					$tpl_vars{FILES} .= fill_in_file($tpl_vars{picture},
-									 HASH => {%tpl_vars,
-										  %file_vars});
+					$tpl_vars{FILES} .= $templates{picture}->fill_in(HASH => {%tpl_vars,
+												 %file_vars,
+												},
+										       );
 				}
 			}
 		}
@@ -395,22 +404,15 @@ sub handler {
 			my %comment_vars;
 			$comment_vars{COMMENT} = $comment_ref->{COMMENT} . '<br>' if $comment_ref->{COMMENT};
 			$comment_vars{TITLE} = $comment_ref->{TITLE} if $comment_ref->{TITLE};
-			$tpl_vars{DIRCOMMENT} = fill_in_file($tpl_vars{comment},
-							     HASH => \%comment_vars,
-							    );
+			$tpl_vars{DIRCOMMENT} = $templates{comment}->fill_in(HASH => \%comment_vars);
 			$tpl_vars{TITLE} = $comment_ref->{TITLE} if $comment_ref->{TITLE};
 		} else {
-			$tpl_vars{DIRCOMMENT} = fill_in_file($tpl_vars{nocomment});
+			$tpl_vars{DIRCOMMENT} = $templates{nocomment}->fill_in(HASH=>\%tpl_vars);
 		}
 
-		$tpl_vars{MAIN} = fill_in_file($tpl_vars{index},
-					HASH => \%tpl_vars,
-		);
-		
-		$tpl_vars{MAIN} = fill_in_file($tpl_vars{layout},
-					HASH => \%tpl_vars,
-		);
+		$tpl_vars{MAIN} = $templates{index}->fill_in(HASH => \%tpl_vars);
 
+		$tpl_vars{MAIN} = $templates{layout}->fill_in(HASH => \%tpl_vars);
 
 		$r->content_type('text/html');
 		$r->headers_out->{'Content-Length'} = length($tpl_vars{MAIN});
@@ -501,21 +503,23 @@ sub handler {
 		
 		my $tpl_dir = $r->dir_config('GalleryTemplateDir');
 
-		my %tpl_vars = (layout         => "$tpl_dir/layout.tpl",
-				picture        => "$tpl_dir/showpicture.tpl",
-				navpicture     => "$tpl_dir/navpicture.tpl",
-				info           => "$tpl_dir/info.tpl",
-				scale          => "$tpl_dir/scale.tpl",
-				scaleactive    => "$tpl_dir/scaleactive.tpl",
-				orig           => "$tpl_dir/orig.tpl",
-				refresh        => "$tpl_dir/refresh.tpl",
-				interval       => "$tpl_dir/interval.tpl",
-				intervalactive => "$tpl_dir/intervalactive.tpl",
-				slideshowisoff => "$tpl_dir/slideshowisoff.tpl",
-				slideshowoff   => "$tpl_dir/slideshowoff.tpl",
-				pictureinfo    => "$tpl_dir/pictureinfo.tpl",
-				nopictureinfo  => "$tpl_dir/nopictureinfo.tpl",
-			       );
+		my %templates = create_templates({layout         => "$tpl_dir/layout.tpl",
+						  picture        => "$tpl_dir/showpicture.tpl",
+						  navpicture     => "$tpl_dir/navpicture.tpl",
+						  info           => "$tpl_dir/info.tpl",
+						  scale          => "$tpl_dir/scale.tpl",
+						  scaleactive    => "$tpl_dir/scaleactive.tpl",
+						  orig           => "$tpl_dir/orig.tpl",
+						  refresh        => "$tpl_dir/refresh.tpl",
+						  interval       => "$tpl_dir/interval.tpl",
+						  intervalactive => "$tpl_dir/intervalactive.tpl",
+						  slideshowisoff => "$tpl_dir/slideshowisoff.tpl",
+						  slideshowoff   => "$tpl_dir/slideshowoff.tpl",
+						  pictureinfo    => "$tpl_dir/pictureinfo.tpl",
+						  nopictureinfo  => "$tpl_dir/nopictureinfo.tpl",
+						 });
+
+		my %tpl_vars;
 
 		my $resolution = (($image_width > $orig_width) && ($height > $orig_height)) ? 
 			"$orig_width x $orig_height" : "$image_width x $height";
@@ -568,9 +572,7 @@ sub handler {
 					$nav_vars{WIDTH}     = $width;
 					$nav_vars{PICTURE}   = uri_escape(".cache/$cached", $escape_rule);
 					$nav_vars{DIRECTION} = "&laquo; prev";
-					$tpl_vars{BACK} = fill_in_file($tpl_vars{navpicture},
-								       HASH => \%nav_vars,
-								      );
+					$tpl_vars{BACK} = $templates{navpicture}->fill_in(HASH => \%nav_vars);
 				}
 				else {
 					$tpl_vars{BACK} = "&nbsp";
@@ -593,9 +595,7 @@ sub handler {
 					$nav_vars{PICTURE}   = uri_escape(".cache/$cached", $escape_rule);
 					$nav_vars{DIRECTION} = "next &raquo;";
 
-					$tpl_vars{NEXT} = fill_in_file($tpl_vars{navpicture},
-							HASH => \%nav_vars
-					);
+					$tpl_vars{NEXT} = $templates{navpicture}->fill_in(HASH => \%nav_vars);
 					$tpl_vars{NEXTURL}   = uri_escape($nextpicture, $escape_rule);
 				}
 				else {
@@ -630,9 +630,7 @@ sub handler {
 					my %info_vars;
 					$info_vars{KEY} = $human_key;
 					$info_vars{VALUE} = $value;
-					$tpl_vars{INFO} .=  fill_in_file($tpl_vars{info},
-									 HASH => \%info_vars,
-									);
+					$tpl_vars{INFO} .=  $templates{info}->fill_in(HASH => \%info_vars);
 				}
 
 				if ($exif_mode eq 'variables') {
@@ -666,9 +664,7 @@ sub handler {
 
 		if ($exif_mode eq 'namevalue' && $foundinfo or $foundcomment) {
 
-			$tpl_vars{PICTUREINFO} = fill_in_file($tpl_vars{pictureinfo},
-				HASH => \%tpl_vars
-			);
+			$tpl_vars{PICTUREINFO} = $templates{pictureinfo}->fill_in(HASH => \%tpl_vars);
 
 			unless (defined($exifvalues)) {
 				$tpl_vars{EXIFVALUES} = "";
@@ -676,9 +672,7 @@ sub handler {
 
 		}
 		else {
-			$tpl_vars{PICTUREINFO} = fill_in_file($tpl_vars{nopictureinfo},
-					HASH => \%tpl_vars,
-			);
+			$tpl_vars{PICTUREINFO} = $templates{nopictureinfo}->fill_in(HASH => \%tpl_vars);
 		}
 
 		my $scaleable = 0;
@@ -689,14 +683,10 @@ sub handler {
 				$sizes_vars{SIZE}     = $size;
 				$sizes_vars{WIDTH}    = $size;
 				if ($width == $size) {
-					$tpl_vars{SIZES} .= fill_in_file($tpl_vars{scaleactive},
-						HASH => \%sizes_vars,
-					);
+					$tpl_vars{SIZES} .= $templates{scaleactive}->fill_in(HASH => \%sizes_vars);
 				}
 				else {
-					$tpl_vars{SIZES} .= fill_in_file($tpl_vars{scale},
-						HASH => \%sizes_vars,
-					);
+					$tpl_vars{SIZES} .= $templates{scale}->fill_in(HASH => \%sizes_vars);
 					$scaleable = 1;
 				}
 			}
@@ -707,17 +697,13 @@ sub handler {
 			$sizes_vars{IMAGEURI} = uri_escape($r->uri(), $escape_rule);
 			$sizes_vars{SIZE}     = $original_size;
 			$sizes_vars{WIDTH}    = $original_size;
-			$tpl_vars{SIZES} .= fill_in_file($tpl_vars{scaleactive},
-				HASH => \%sizes_vars,
-			);
+			$tpl_vars{SIZES} .= $templates{scaleactive}->fill_in(HASH => \%sizes_vars);
 		}
 
 		$tpl_vars{IMAGEURI} = uri_escape($r->uri(), $escape_rule);
 
 		if ($r->dir_config('GalleryAllowOriginal')) {
-			$tpl_vars{SIZES} .= fill_in_file($tpl_vars{orig},
-				HASH => \%tpl_vars,
-			);
+			$tpl_vars{SIZES} .= $templates{orig}->fill_in(HASH => \%tpl_vars);
 		}
 
 		my @slideshow_intervals = split (/ /, $r->dir_config('GallerySlideshowIntervals') ? $r->dir_config('GallerySlideshowIntervals') : '3 5 10 15 30');
@@ -729,25 +715,18 @@ sub handler {
 			$slideshow_vars{WIDTH} = ($width > $height ? $width : $height);
 
 			if ($cgi->param('slideshow') && $cgi->param('slideshow') == $interval and $nextpicture) {
-				$tpl_vars{SLIDESHOW} .= fill_in_file($tpl_vars{intervalactive},
-					HASH => \%slideshow_vars,
-				);
-
+				$tpl_vars{SLIDESHOW} .= $templates{intervalactive}->fill_in(HASH => \%slideshow_vars);
 			}
 			else {
 
-				$tpl_vars{SLIDESHOW} .= fill_in_file($tpl_vars{interval},
-					HASH => \%slideshow_vars,
-				);
+				$tpl_vars{SLIDESHOW} .= $templates{interval}->fill_in(HASH => \%slideshow_vars);
 
 			}
 		}
 
 		if ($cgi->param('slideshow') and $nextpicture) {
 
-			$tpl_vars{SLIDESHOW} .= fill_in_file($tpl_vars{slideshowoff},
-				HASH => \%tpl_vars,
-			);
+			$tpl_vars{SLIDESHOW} .= $templates{slideshowoff}->fill_in(HASH => \%tpl_vars);
 
 			unless ((grep $cgi->param('slideshow') == $_, @slideshow_intervals)) {
 				show_error($r, 200, "Invalid interval", "Invalid slideshow interval choosen");
@@ -757,23 +736,15 @@ sub handler {
 			$tpl_vars{URL} = uri_escape($nextpicture, $escape_rule);
 			$tpl_vars{WIDTH} = ($width > $height ? $width : $height);
 			$tpl_vars{INTERVAL} = $cgi->param('slideshow');
-			$tpl_vars{META} .=  fill_in_file($tpl_vars{refresh},
-				HASH => \%tpl_vars,
-			);
+			$tpl_vars{META} .=  $templates{refresh}->fill_in(HASH => \%tpl_vars);
 
 		}
 		else {
-			$tpl_vars{SLIDESHOW} .=  fill_in_file($tpl_vars{slideshowisoff},
-				HASH => \%tpl_vars,
-			);
+			$tpl_vars{SLIDESHOW} .=  $templates{slideshowisoff}->fill_in(HASH => \%tpl_vars);
 		}
 
-		$tpl_vars{MAIN} = fill_in_file($tpl_vars{picture},
-			HASH => \%tpl_vars,
-		);
-		$tpl_vars{MAIN} = fill_in_file($tpl_vars{layout},
-			HASH => \%tpl_vars,
-		);
+		$tpl_vars{MAIN} = $templates{picture}->fill_in(HASH => \%tpl_vars);
+		$tpl_vars{MAIN} = $templates{layout}->fill_in(HASH => \%tpl_vars);
 
 		$r->content_type('text/html');
 		$r->headers_out->{'Content-Length'} = length($tpl_vars{MAIN});
@@ -1270,22 +1241,19 @@ sub show_error {
 
 	my $tpl = $r->dir_config('GalleryTemplateDir');
 
-	my %tpl_vars = (layout => "$tpl/layout.tpl",
-			error  => "$tpl/error.tpl",
-	);
+	my %templates = create_templates({layout => "$tpl/layout.tpl",
+					  error  => "$tpl/error.tpl",
+					 });
 
+	my %tpl_vars;
 	$tpl_vars{TITLE}      = "Error! $errortitle";
 	$tpl_vars{META}       = "";
 	$tpl_vars{ERRORTITLE} = "Error! $errortitle";
 	$tpl_vars{ERROR}      = $error;
 
-	$tpl_vars{MAIN} = fill_in_file($tpl_vars{error},
-		HASH => \%tpl_vars,
-	);
+	$tpl_vars{MAIN} = $templates{error}->fill_in(HASH => \%tpl_vars);
 
-	$tpl_vars{PAGE} = fill_in_file($tpl_vars{layout},
-		HASH => \%tpl_vars,
- 	);
+	$tpl_vars{PAGE} = $templates{layout}->fill_in(HASH => \%tpl_vars);
 
 	$r->status($statuscode);
 	$r->content_type('text/html');
@@ -1455,6 +1423,40 @@ sub gallerysort {
 		@files = sort @files;
 	}
 	return @files;
+}
+
+# Create Text::Template objects used by Apache::Gallery. Takes a
+# hashref of template_name, template_filename pairs, and returns a
+# list of template_name, texttemplate_object pairs.
+sub create_templates {
+     my $templates = shift;
+
+     # This routine is called whenever a template has an error. Prints
+     # the error to STDERR and sticks the error in the output
+     sub tt_broken {
+	  my %args = @_;
+	  # Pull out the name and filename from the arg option [see
+	  # Text::Template for details]
+	  @args{qw(name file)} = @{$args{arg}};
+	  print STDERR qq(Template $args{name} ("$args{file}") is broken: $args{error});
+	  # Don't include the file name in the output, as the user can see this.
+	  return qq(<!-- Template $args{name} is broken: $args{error} -->);
+     }
+
+
+
+     my %texttemplate_objects;
+
+     for my $template_name (keys %$templates) {
+	  my $tt_obj = Text::Template->new(TYPE   => 'FILE',
+					   SOURCE => $$templates{$template_name},
+					   BROKEN => \&tt_broken,
+					   BROKEN_ARG => [$template_name, $$templates{$template_name}],
+ 					  )
+	       or die "Unable to create new Text::Template object for $template_name: $Text::Template::ERROR";
+	  $texttemplate_objects{$template_name} = $tt_obj;
+     }
+     return %texttemplate_objects;
 }
 
 1;
