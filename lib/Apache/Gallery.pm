@@ -55,7 +55,9 @@ sub handler {
 	if ($r->uri =~ m/\.cache\//i) {
 		my $file = cache_dir($r, 0);
 		$file =~ s/\/\.cache//;
-		$r->log_error("$file");
+		my $subr = $r->lookup_file($file);
+		$r->content_type($subr->content_type());
+		$r->path_info('');
 		$r->filename($file);
 		return DECLINED;
 	}
