@@ -96,9 +96,9 @@ sub handler {
 	# Handle selected images
 	if ($cgi->param('selection')) {
 		my @selected = $cgi->param('selection');
-		my $content = "@selected";
+		my $content = join "<br>\n",@selected;
 		$r->content_type('text/html');
-		$r->headers_out->{'Content-Length'} = length(${$content});
+		$r->headers_out->{'Content-Length'} = length($content);
 
 		if (!$::MP2) {
 			$r->send_http_header;
@@ -204,7 +204,7 @@ sub handler {
 		$tpl_vars{MENU} = generate_menu($r);
 
 		$tpl_vars{FORM_BEGIN} = $select_mode?'<form method="post">':'';
-		$tpl_vars{FORM_END}   = $select_mode?'</form>':'';
+		$tpl_vars{FORM_END}   = $select_mode?'<input type="submit" name="Get list" value="Get list"></form>':'';
 
 		# Read, sort, and filter files
 		my @files = grep { !/^\./ && -f "$filename/$_" } readdir (DIR);
@@ -596,9 +596,11 @@ sub handler {
 					$tpl_vars{NEXT} = fill_in_file($tpl_vars{navpicture},
 							HASH => \%nav_vars
 					);
+					$tpl_vars{NEXTURL}   = uri_escape($nextpicture, $escape_rule);
 				}
 				else {
 					$tpl_vars{NEXT} = "&nbsp;";
+					$tpl_vars{NEXTURL}   = '#';
 				}
 			}
 		}

@@ -3,6 +3,10 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
+dev
+
+	- Added submit button to form in selection mode (Vlad Marchenko)
+
 0.9.1 Sat Sep 11 23:52:16 CEST 2004
 
 	- Fix mod_perl 1 support that was broken with 0.9 (Michael Legart)
