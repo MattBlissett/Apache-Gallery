@@ -24,20 +24,11 @@ use URI::Escape;
 # Regexp for escaping URI's
 my $escape_rule = "^A-Za-z0-9\-_.!~*'()\/";
 
-# Workaround for Inline > 0.42 - it seems that Inline expects 
-# to find a .Inline directory in DIRECTORY - even though it 
-# doesnt use it?
-BEGIN {
-	my $inlinedir = File::Spec->tmpdir()."/.Inline";
-	unless (-d $inlinedir) {
-		mkdir($inlinedir, 755) or die "unable to create $inlinedir: $!";
-	}
-};
-
 use Inline (C => Config => 
 				LIBS => '-L/usr/X11R6/lib -lImlib2 -lm -ldl -lXext -lXext',
-				DIRECTORY => File::Spec->tmpdir(),
-				INC => '-I/usr/X11R6/include'
+				INC => '-I/usr/X11R6/include',
+				UNTAINT => 1,
+				DIRECTORY => File::Spec->tmpdir()
 			);
 
 use Inline 'C';
