@@ -27,7 +27,9 @@ templates/movie.tpl
 templates/scaleactive.tpl
 templates/interval.tpl
 templates/refresh.tpl
+templates/nopictureinfo.tpl
 templates/slideshowoff.tpl
 templates/intervalactive.tpl
 templates/slideshowisoff.tpl
+templates/pictureinfo.tpl
 UPGRADE
