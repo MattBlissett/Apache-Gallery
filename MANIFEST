@@ -35,7 +35,6 @@ t/005_imageinfo.t
 t/007_pod.t
 templates/pictureinfo.tpl
 templates/error.tpl
-templates/error.tpl.rej
 templates/slideshowisoff.tpl
 templates/scale.tpl
 templates/nopictureinfo.tpl
