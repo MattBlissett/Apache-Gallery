@@ -819,7 +819,7 @@ sub generate_menu {
 		}
 
 		if ($link) {
-			$dirname .= '/' . $link;
+			$dirname = File::Spec->catdir($dirname, $link);
 		}
 
 		if (-e $dirname . ".folder") {
