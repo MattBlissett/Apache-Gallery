@@ -65,6 +65,20 @@ sub handler {
 
 	my $cgi = new CGI;
 
+	# Handle selected images
+	if ($cgi->param('selection')) {
+		my @selected = $cgi->param('selection');
+		my $content = "@selected";
+		$r->content_type('text/html');
+		$r->header_out('Content-Length', length($content));
+		$r->send_http_header;
+		$r->print($content);
+		return OK;
+	}
+	
+	# Selectmode providing checkboxes beside all thumbnails
+	my $select_mode = $cgi->param('select');
+
 	# Let Apache serve icons and files from the cache without us
 	# modifying the request
 	if ($r->uri =~ m/^\/icons/i) {
@@ -139,6 +153,9 @@ sub handler {
 		}
 		
 		$tpl->assign(MENU => generate_menu($r));
+
+		$tpl->assign(FORM_BEGIN => $select_mode?'<form method="post">':'');
+		$tpl->assign(FORM_END   => $select_mode?'</form>':'');
 	
 		# Read, sort, and filter files
 		my @files = grep { !/^\./ && -f "$filename/$_" } readdir (DIR);
@@ -245,6 +262,7 @@ sub handler {
 					$tpl->assign(SRC     => uri_escape($uri."/.cache/$cached", $escape_rule));
 					$tpl->assign(HEIGHT => ($rotate ? $thumbnailwidth : $thumbnailheight));
 					$tpl->assign(WIDTH => ($rotate ? $thumbnailheight : $thumbnailwidth));
+					$tpl->assign(SELECT  => $select_mode?'<input type="checkbox" name="selection" value="'.$file.'">&nbsp;&nbsp;':'');
 
 					$tpl->parse(FILES => '.picture');
 
@@ -999,6 +1017,9 @@ sub generate_menu {
 
 	if (-f $filename) {
 		$menu .= $picturename;
+	}
+	else {
+		$menu .= "<a href=\"".uri_escape($menuurl, $escape_rule)."?select=1\">[select]</a> ";
 	}
 
 	return $menu;

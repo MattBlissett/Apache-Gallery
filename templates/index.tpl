@@ -2,6 +2,7 @@
   <div id="menu">
 $MENU
   </div>
+  $FORM_BEGIN
   <table>
     <tr>
       <td id="directory">
@@ -17,4 +18,5 @@ $FILES
 			</td>
 		</tr>
   </table>
+  $FORM_END
 </div>
