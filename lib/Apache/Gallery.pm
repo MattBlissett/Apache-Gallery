@@ -89,20 +89,9 @@ sub handler {
 		$file =~ s/\/\.cache//;
 		my $subr = $r->lookup_file($file);
 		$r->content_type($subr->content_type());
-
-		my $fh = new FileHandle;
-		if ($fh->open("< $file")) {		
+		$r->sendfile($file);
 		
-			my $st = stat($file);
-			$r->headers_out->{'Last-Modified'} = POSIX::strftime ("%a %b %e %H:%M:%S %Y", localtime($st->mtime));
-			$r->headers_out->{'Content-Length'} = -s $file;
-			$r->send_fd($fh);
-			$fh->close();
-			return OK;
-		}
-		else {
-			return SERVER_ERROR;
-		}
+		return OK;
 
 	}
 
