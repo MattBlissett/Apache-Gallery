@@ -7,7 +7,7 @@ use strict;
 
 use vars qw($VERSION);
 
-$VERSION = "0.5.1";
+$VERSION = "0.6";
 
 use Apache ();
 use Apache::Constants qw(:common);
@@ -186,9 +186,9 @@ sub handler {
 
 					next unless (grep $type eq $_, @filetypes);
 					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $width, $height);	
-					my $cached = scale_picture($r, $thumbfilename, $thumbnailwidth, $thumbnailheight);
-
 					my $imageinfo = get_imageinfo($r, $thumbfilename, $type, $width, $height);
+					my $cached = scale_picture($r, $thumbfilename, $thumbnailwidth, $thumbnailheight, $imageinfo);
+
 
 					$tpl->assign(FILEURL => uri_escape($fileurl, $escape_rule));
 					$tpl->assign(FILE    => $file);
@@ -280,7 +280,7 @@ sub handler {
 		$width       = floor($width);
 		$height      = floor($height);
 
-		my $cached = scale_picture($r, $filename, $image_width, $height);
+		my $cached = scale_picture($r, $filename, $image_width, $height, $imageinfo);
 		
 		my $tpl = new CGI::FastTemplate($r->dir_config('GalleryTemplateDir'));
 
@@ -336,7 +336,8 @@ sub handler {
 				if ($prevpicture and $displayprev) {
 					my ($orig_width, $orig_height, $type) = imgsize($path.$prevpicture);
 					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $orig_width, $orig_height);	
-					my $cached = scale_picture($r, $path.$prevpicture, $thumbnailwidth, $thumbnailheight);
+					my $imageinfo = get_imageinfo($r, $path.$prevpicture, $type, $orig_width, $orig_height);
+					my $cached = scale_picture($r, $path.$prevpicture, $thumbnailwidth, $thumbnailheight, $imageinfo);
 					$tpl->assign(URL       => uri_escape($prevpicture, $escape_rule));
 					$tpl->assign(FILENAME  => $prevpicture);
 					$tpl->assign(WIDTH     => $width);
@@ -356,7 +357,8 @@ sub handler {
 				if ($nextpicture) {
 					my ($orig_width, $orig_height, $type) = imgsize($path.$nextpicture);
 					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $orig_width, $orig_height);	
-					my $cached = scale_picture($r, $path.$nextpicture, $thumbnailwidth, $thumbnailheight);
+					my $imageinfo = get_imageinfo($r, $path.$nextpicture, $type, $thumbnailwidth, $thumbnailheight);
+					my $cached = scale_picture($r, $path.$nextpicture, $thumbnailwidth, $thumbnailheight, $imageinfo);
 					$tpl->assign(URL       => uri_escape($nextpicture, $escape_rule));
 					$tpl->assign(FILENAME  => $nextpicture);
 					$tpl->assign(WIDTH     => $width);
@@ -531,7 +533,7 @@ sub mkdirhier {
 
 sub scale_picture {
 
-	my ($r, $fullpath, $width, $height) = @_;
+	my ($r, $fullpath, $width, $height, $imageinfo) = @_;
 
 	my @dirs = split(/\//, $fullpath);
 	my $filename = pop(@dirs);
@@ -590,6 +592,15 @@ sub scale_picture {
 
 		my $newpath = $cache."/".$newfilename;
 		my $rotate = 0;
+
+		# Check to see if the image contains the Orientation EXIF key,
+		# but allow user to override using rotate
+		if (defined($imageinfo->{Orientation}) && $imageinfo->{Orientation} eq 'right_top') {
+			$rotate=1;
+		}	
+		elsif (defined($imageinfo->{Orientation}) && $imageinfo->{Orientation} eq 'left_bot') {
+			$rotate=3;
+		}
 
 		if (-f $fullpath . ".rotate") {
 		    $rotate = readfile_getnum($fullpath . ".rotate");

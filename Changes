@@ -9,15 +9,17 @@ Revision history for Perl extension Apache::Gallery.
 	  use of all Apache caching possibilities (Thomas Eibner)
 	- Documentation and better implementation of the .folder
 	  feature. (Jesper Skriver)
+	- Support the EXIF Orientation key for automatic rotate,
+	  if your camera supports that - like Canon G3 (Me)
 
 0.5.1 Sat Nov  9 11:49:29 CET 2002
 
 	- InlineDir is no longer configurable using PerlSetVar, which
-	  fixes make test.
-	- Added test-suite
-	- Write to the error log if unable to open files in the cache
+	  fixes make test. (Me)
+	- Added test-suite (Me, Andreas Plesner Jacobsen)
+	- Write to the error log if unable to open files in the cache (Me)
 	- cache_dir changed to use File::Spec to make Apache::Gallery
-	  more portable. It may even run under Windows now?
+	  more portable. It may even run under Windows now? (Andreas Plesner Jacobsen)
 
 0.5 Sun Sep 15 11:55:56 CEST 2002
 
