@@ -107,14 +107,32 @@ sub handler {
 	# Selectmode providing checkboxes beside all thumbnails
 	my $select_mode = $cgi->param('select');
 	
-	# Let Apache serve icons and files from the cache without us
-	# modifying the request
+	# Let Apache serve icons without us modifying the request
 	if ($r->uri =~ m/^\/icons/i) {
 		return MP2 ? Apache::DECLINED : Apache::Constants::DECLINED;
 	}
+	# Lookup the file in the cache and scale the image if the cached
+	# image does not exist
 	if ($r->uri =~ m/\.cache\//i) {
+
+		my $filename = $r->document_root().$r->uri();
+		$filename =~ s/\.cache//;
+
+		$filename =~ m/\/(\d+)x(\d+)\-/;
+		my $image_width = $1;
+		my $image_height = $2;
+
+		$filename =~ s/\/(\d+)x(\d+)\-//;
+
+		my ($width, $height, $type) = imgsize($filename);
+
+		my $imageinfo = get_imageinfo($r, $filename, $type, $width, $height);
+	
+		my $cached = scale_picture($r, $filename, $image_width, $image_height, $imageinfo);
+
 		my $file = cache_dir($r, 0);
 		$file =~ s/\.cache//;
+
 		my $subr = $r->lookup_file($file);
 		$r->content_type($subr->content_type());
 
@@ -349,7 +367,7 @@ sub handler {
 					next unless (grep $type eq $_, @filetypes);
 					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $width, $height);	
 					my $imageinfo = get_imageinfo($r, $thumbfilename, $type, $width, $height);
-					my $cached = scale_picture($r, $thumbfilename, $thumbnailwidth, $thumbnailheight, $imageinfo);
+					my $cached = get_scaled_picture_name($thumbfilename, $thumbnailwidth, $thumbnailheight);
 
 					my $rotate = readfile_getnum($r, $imageinfo, $thumbfilename.".rotate");
 					my %file_vars = (FILEURL => uri_escape($fileurl, $escape_rule),
@@ -475,7 +493,7 @@ sub handler {
 		$width       = floor($width);
 		$height      = floor($height);
 
-		my $cached = scale_picture($r, $filename, $image_width, $height, $imageinfo);
+		my $cached = get_scaled_picture_name($filename, $image_width, $height);
 		
 		my $tpl_dir = $r->dir_config('GalleryTemplateDir');
 
@@ -539,7 +557,7 @@ sub handler {
 					my ($orig_width, $orig_height, $type) = imgsize($path.$prevpicture);
 					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $orig_width, $orig_height);	
 					my $imageinfo = get_imageinfo($r, $path.$prevpicture, $type, $orig_width, $orig_height);
-					my $cached = scale_picture($r, $path.$prevpicture, $thumbnailwidth, $thumbnailheight, $imageinfo);
+					my $cached = get_scaled_picture_name($path.$prevpicture, $thumbnailwidth, $thumbnailheight);
 					my %nav_vars;
 					$nav_vars{URL}       = uri_escape($prevpicture, $escape_rule);
 					$nav_vars{FILENAME}  = $prevpicture;
@@ -563,7 +581,7 @@ sub handler {
 					my ($orig_width, $orig_height, $type) = imgsize($path.$nextpicture);
 					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $orig_width, $orig_height);	
 					my $imageinfo = get_imageinfo($r, $path.$nextpicture, $type, $thumbnailwidth, $thumbnailheight);
-					my $cached = scale_picture($r, $path.$nextpicture, $thumbnailwidth, $thumbnailheight, $imageinfo);
+					my $cached = get_scaled_picture_name($path.$nextpicture, $thumbnailwidth, $thumbnailheight);
 					my %nav_vars;
 					$nav_vars{URL}       = uri_escape($nextpicture, $escape_rule);
 					$nav_vars{FILENAME}  = $nextpicture;
@@ -786,7 +804,11 @@ sub cache_dir {
 
 	}
 
-	my (undef, $dirs, $filename) = File::Spec->splitpath($r->uri);
+	# If the uri contains .cache we need to remove it
+	my $uri = $r->uri;
+	$uri =~ s/\.cache//;
+
+	my (undef, $dirs, $filename) = File::Spec->splitpath($uri);
 	# We don't need a volume as this is a relative path
 
 	if ($strip_filename) {
@@ -825,6 +847,28 @@ sub mkdirhier {
 	}
 }
 
+sub get_scaled_picture_name {
+
+	my ($fullpath, $width, $height) = @_;
+
+	my (undef, undef, $type) = imgsize($fullpath);
+
+	my @dirs = split(/\//, $fullpath);
+	my $filename = pop(@dirs);
+	my $newfilename;
+
+	if (grep $type eq $_, qw(PPM TIF GIF)) {
+		$newfilename = $width."x".$height."-".$filename;
+		# needs to be configurable
+		$newfilename =~ s/\.(\w+)$/-$1\.jpg/;
+	} else {
+		$newfilename = $width."x".$height."-".$filename;
+	}
+
+	return $newfilename;
+	
+}
+
 sub scale_picture {
 
 	my ($r, $fullpath, $width, $height, $imageinfo) = @_;
@@ -836,15 +880,14 @@ sub scale_picture {
 
 	my $cache = cache_dir($r, 1);
 
+	my $newfilename = get_scaled_picture_name($fullpath, $width, $height);
+
 	if (($width > $orig_width) && ($height > $orig_height)) {
 	    require File::Copy;
-	    require File::Basename;
 
-	    my $fname     = File::Basename::basename($fullpath);
-	    my $cachefile = join("/",$cache,$fname);
-	    File::Copy::copy($fullpath,$cachefile);
+	    File::Copy::copy($fullpath,$cache."/".$newfilename);
 
-	    return $fname;
+	    return $newfilename;
 	}
 
 	my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $orig_width, $orig_height);
@@ -852,15 +895,6 @@ sub scale_picture {
 	# Do we want to generate a new file in the cache?
 	my $scale = 1;
 
-	my $newfilename;
-	if (grep $type eq $_, qw(PPM TIF GIF)) {
-		$newfilename = $width."x".$height."-".$filename;
-		# needs to be configurable
-		$newfilename =~ s/\.(\w+)$/-$1\.jpg/;
-	} else {
-		$newfilename = $width."x".$height."-".$filename;
-	}
-	
 	if (-f $cache."/".$newfilename) {	
 		$scale = 0;
 
@@ -1382,7 +1416,7 @@ sub resizepicture {
 			}
 		}
 	}
- 
+
 	$image->save($outfile);
 
 }

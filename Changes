@@ -12,6 +12,8 @@ Snapshot
 	  (Andreas Plesner)
 	- Report 404 for HEAD requests to non-existing files or directories
 	  (Michael Legart)
+	- Scale images when they are requested from the cache instead of
+	  before the index is displayed. (Michael Legart)
 
 0.8 Sun Mar  7 11:22:00 CET 2004
 
