@@ -930,7 +930,7 @@ sub scale_picture {
 
 		my $newpath = $cache."/".$newfilename;
 		my $rotate = readfile_getnum($r, $imageinfo, $fullpath . ".rotate");
-		my $quality = dir_config('GalleryQuality');
+		my $quality = $r->dir_config('GalleryQuality');
 
 		if ($width == $thumbnailwidth or $width == $thumbnailheight) {
 
