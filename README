@@ -147,7 +147,6 @@ FEATURES
 DEPENDENCIES
     Perl 5
     Apache with mod_perl
-    Apache::Request
     URI::Escape
     Image::Info
     Image::Size
@@ -167,7 +166,7 @@ AUTHOR
     Michael Legart <michael@legart.dk>
 
 COPYRIGHT AND LICENSE
-    Copyright (C) 2001-2002 Michael Legart <michael@legart.dk>
+    Copyright (C) 2001-2003 Michael Legart <michael@legart.dk>
 
     Templates designed by Thomas Kjaer <tk@lnx.dk>
 
@@ -183,6 +182,6 @@ THANKS
     (See the Changes file)
 
 SEE ALSO
-    perl, mod_perl, Apache::Request, Inline::C, CGI::FastTemplate,
-    Image::Info, and Image::Size.
+    perl, mod_perl, Inline::C, CGI::FastTemplate, Image::Info, and
+    Image::Size.
 

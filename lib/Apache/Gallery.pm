@@ -7,12 +7,16 @@ use strict;
 
 use vars qw($VERSION);
 
-$VERSION = "0.6";
+$VERSION = "0.6.1";
 
-use Apache ();
-use Apache::Constants qw(:common);
-use Apache::Request();
-
+use Apache2 ();
+use Apache::Server;
+use Apache::RequestRec;
+use Apache::Log;
+use APR::Table;
+use Apache::RequestIO ();
+use Apache::SubRequest ();
+use Apache::Const qw(:common);
 use Image::Info qw(image_info);
 use Image::Size qw(imgsize);
 use CGI::FastTemplate;
@@ -20,6 +24,9 @@ use File::stat;
 use File::Spec;
 use POSIX qw(floor);
 use URI::Escape;
+use CGI;
+
+use Data::Dumper;
 
 # Regexp for escaping URI's
 my $escape_rule = "^A-Za-z0-9\-_.!~*'()\/";
@@ -45,16 +52,15 @@ sub handler {
 		$memoized=1;
 	}
 
-	$r->header_out("X-Powered-By","apachegallery.dk $VERSION - Hest design!");
-	$r->header_out("X-Gallery-Version", '$Rev$ $Date$');
+	$r->headers_out->{"X-Powered-By"} = "apachegallery.dk $VERSION - Hest design!";
+	$r->headers_out->{"X-Gallery-Version"} = '$Rev$ $Date$';
 
 	# Just return the http headers if the client requested that
 	if ($r->header_only) {
-		$r->send_http_header;
 		return OK;
 	}
 
-	my $apr = Apache::Request->instance($r, DISABLE_UPLOADS => 1, POST_MAX => 1024);
+	my $cgi = new CGI;
 
 	# Let Apache serve icons and files from the cache without us
 	# modifying the request
@@ -248,8 +254,7 @@ sub handler {
 		my $content = $tpl->fetch("MAIN");
 
 		$r->content_type('text/html');
-		$r->header_out('Content-Length', length(${$content}));
-		$r->send_http_header;
+		$r->headers_out->{'Content-Length'} = length(${$content});
 
 		$r->print(${$content});
 		return OK;
@@ -291,12 +296,12 @@ sub handler {
 
 		# Check if the selected width is allowed
 		my @sizes = split (/ /, $r->dir_config('GallerySizes') ? $r->dir_config('GallerySizes') : '640 800 1024 1600');
-		if ($apr->param('width')) {
-			unless ((grep $apr->param('width') == $_, @sizes) or ($apr->param('width') == $original_size)) {
+		if ($cgi->param('width')) {
+			unless ((grep $cgi->param('width') == $_, @sizes) or ($cgi->param('width') == $original_size)) {
 				show_error($r, "Invalid width", "The specified width is invalid");
 				return OK;
 			}
-			$width = $apr->param('width');
+			$width = $cgi->param('width');
 		}
 		else {
 			$width = $sizes[0];
@@ -470,7 +475,7 @@ sub handler {
 			$tpl->assign(IMAGEURI => uri_escape($r->uri(), $escape_rule));
 			$tpl->assign(SECONDS => $interval);
 			$tpl->assign(WIDTH => ($width > $height ? $width : $height));
-			if ($apr->param('slideshow') && $apr->param('slideshow') == $interval and $nextpicture) {
+			if ($cgi->param('slideshow') && $cgi->param('slideshow') == $interval and $nextpicture) {
 				$tpl->parse(SLIDESHOW => '.intervalactive');
 			}
 			else {
@@ -478,16 +483,16 @@ sub handler {
 			}
 		}
 
-		if ($apr->param('slideshow') and $nextpicture) {
+		if ($cgi->param('slideshow') and $nextpicture) {
 
 			$tpl->parse(SLIDESHOW => '.slideshowoff');
 
-			unless ((grep $apr->param('slideshow') == $_, @slideshow_intervals)) {
+			unless ((grep $cgi->param('slideshow') == $_, @slideshow_intervals)) {
 				show_error($r, "Invalid interval", "Invalid slideshow interval choosen");
 				return OK;
 			}
 
-			$tpl->assign(INTERVAL => $apr->param('slideshow'));
+			$tpl->assign(INTERVAL => $cgi->param('slideshow'));
 			$tpl->parse(META => '.refresh');
 
 		}
@@ -499,15 +504,13 @@ sub handler {
 		my $content = $tpl->fetch("MAIN");
 
 		$r->content_type('text/html');
-		$r->header_out('Content-Length', length(${$content}));
-		$r->send_http_header;
+		$r->headers_out->{'Content-Length'} = length(${$content});
 
 		$r->print(${$content});
 		return OK;
 
 	}
 
-	return OK;
 }
 
 sub cache_dir {
@@ -924,7 +927,6 @@ sub show_error {
 	my $content = $tpl->fetch("MAIN");
 
 	$r->content_type('text/html');
-	$r->send_http_header;
 
 	$r->print(${$content});
 
@@ -1240,8 +1242,6 @@ with the visible name of the folder.
 
 =item B<Apache with mod_perl>
 
-=item B<Apache::Request>
-
 =item B<URI::Escape>
 
 =item B<Image::Info>
@@ -1289,7 +1289,7 @@ Thanks to Thomas Eibner and other for patches. (See the Changes file)
 
 =head1 SEE ALSO
 
-L<perl>, L<mod_perl>, L<Apache::Request>, L<Inline::C>, L<CGI::FastTemplate>,
+L<perl>, L<mod_perl>, L<Inline::C>, L<CGI::FastTemplate>,
 L<Image::Info>, and L<Image::Size>.
 
 =cut

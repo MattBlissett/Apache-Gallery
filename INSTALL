@@ -10,11 +10,11 @@ that you have the following installed:
 
 - Perl 5.6
 - Apache with mod_perl
-- Apache::Request
 - URI::Escape
 - Image::Info
 - Image::Size
 - CGI::FastTemplate
+- CGI
 - Inline::C
 - X11 libraries (ie, XFree86)
 - Imlib2 (http://prdownloads.sourceforge.net/enlightenment/imlib2-1.0.3.tar.gz)

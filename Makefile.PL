@@ -12,7 +12,7 @@ WriteMakefile(
 				Inline => 0, 
 				mod_perl => 0,
 				URI => 1.23,
-				Apache::Request => 0,
+				CGI => 2.93,
 				Test::More => 0,
 				File::Spec => 0
 										 }, # e.g., Module::Name => 1.1
