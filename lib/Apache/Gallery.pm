@@ -596,11 +596,16 @@ sub scale_picture {
 
 		# Check to see if the image contains the Orientation EXIF key,
 		# but allow user to override using rotate
-		if (defined($imageinfo->{Orientation}) && $imageinfo->{Orientation} eq 'right_top') {
-			$rotate=1;
-		}	
-		elsif (defined($imageinfo->{Orientation}) && $imageinfo->{Orientation} eq 'left_bot') {
-			$rotate=3;
+		if (!defined($r->dir_config("GalleryAutoRotate")) 
+			|| $r->dir_config("GalleryAutoRotate") eq "1") {
+			if (defined($imageinfo->{Orientation})) {
+				if ($imageinfo->{Orientation} eq 'right_top') {
+					$rotate=1;
+				}	
+				elsif ($imageinfo->{Orientation} eq 'left_bot') {
+					$rotate=3;
+				}
+			}
 		}
 
 		if (-f $fullpath . ".rotate") {
@@ -950,6 +955,16 @@ Example: B<PerlSetVar GallerCacheDir '/var/tmp/Apache-Gallery/'>
 
 =over 4
 
+=item B<GalleryAutoRotate>
+
+Some cameras, like the Canon G3, can detect the orientation of a 
+the pictures you take and will save this information in the 
+'Orientation' EXIF field. Apache::Gallery will then automaticly
+rotate your images. 
+
+This behavior is default but can be disabled by setting GalleryAutoRotate
+to 0.
+
 =item B<GalleryCacheDir>
 
 Directory where Apache::Gallery should create its cache with scaled
@@ -1035,7 +1050,8 @@ and automaticly rotates images with this info.
 
 If your camera does not support this, you can rotate the images 
 manually, This can also be used to override the rotate information
-from a camera that supports that.
+from a camera that supports that. You can also disable this behavior
+with the GalleryAutoRotate option.
 
 To use this functionality you have to create file with the name of the 
 picture you want rotated appened with ".rotate". The file should include 

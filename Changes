@@ -10,7 +10,8 @@ Revision history for Perl extension Apache::Gallery.
 	- Documentation and better implementation of the .folder
 	  feature. (Jesper Skriver)
 	- Support the EXIF Orientation key for automatic rotate,
-	  if your camera supports that - like Canon G3 (Me)
+	  if your camera supports that - like Canon G3. You can
+	  disable this by setting GalleryAutoRotate to 0 (Me)
 	- Works with Inline > 0.42 (Peter Andreasen)
 
 0.5.1 Sat Nov  9 11:49:29 CET 2002
