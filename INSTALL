@@ -25,7 +25,7 @@ with:
 
 apt-get install libimlib2-dev
 
-Then, to install the module run:
+Then, to install Apache::Gallery run the following commands:
 
    perl Makefile.PL
    make
