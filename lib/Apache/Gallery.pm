@@ -56,6 +56,7 @@ my $memoized;
 
 use Inline (C => Config => 
 				LIBS => '-L/usr/X11R6/lib -lImlib2',
+				INC => '-I/usr/X11R6/include',
 				GLOBAL_LOAD => 1,
 				UNTAINT => 1,
 				DIRECTORY => File::Spec->tmpdir()
