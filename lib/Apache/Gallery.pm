@@ -1712,6 +1712,8 @@ Quality at 50:
 Set this option to 1 to convert underscores to spaces in the listing
 of directory names.
 
+=back
+
 =head1 FEATURES
 
 =over 4
