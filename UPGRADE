@@ -1,6 +1,11 @@
 # $Author$ $Rev$
 # $Date$
 
+For users upgrading from 0.5 to 0.5.1
+
+InlineDir is no longer honored, File::Spec is used to find a temporary
+directory (usually /tmp)
+
 For users upgrading from 0.4 to 0.5
 
 Remember to update the following templates:
