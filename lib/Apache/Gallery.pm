@@ -46,7 +46,6 @@ use File::stat;
 use File::Spec;
 use POSIX qw(floor);
 use URI::Escape;
-use POSIX;
 use CGI;
 use CGI::Cookie;
 
