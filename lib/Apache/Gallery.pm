@@ -890,7 +890,7 @@ sub get_imageinfo {
 					}
 				}
 			}
-			if ($exif_key eq 'ApertureValue') {
+			if ($exif_key eq 'ApertureValue' || $exif_key eq 'FNumber') {
 				if ($value =~ /^(\d+)\/(\d+)$/) {
 					$value = eval { $1 / $2 };
 					if ($@) {
