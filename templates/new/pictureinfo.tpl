@@ -1,7 +1,7 @@
               <tr>
                  <td colspan="3">
                    <div id="comment">
-                      $NAMEVALUEINFO
+                      $INFO
                       $COMMENT
                    </div>
                  </td>

@@ -412,7 +412,7 @@ sub handler {
 	
 		my $exif_mode = $r->dir_config('GalleryEXIFMode');
 		unless ($exif_mode) {
-			$exif_mode = 'values';
+			$exif_mode = 'namevalue';
 		}
 
 		unless (opendir(DATADIR, $path)) {
@@ -503,7 +503,7 @@ sub handler {
 				if ($exif_mode eq 'namevalue') {
 					$tpl->assign(KEY => $human_key);
 					$tpl->assign(VALUE => $value);
-					$tpl->parse(NAMEVALUEINFO => '.info');
+					$tpl->parse(INFO => '.info');
 				}
 
 				if ($exif_mode eq 'variables') {
@@ -523,11 +523,11 @@ sub handler {
 		}
 
 		if ($foundcomment and !$foundinfo) {
-			$tpl->assign(NAMEVALUEINFO => "");
+			$tpl->assign(INFO => "");
 		}
 
 		if ($exif_mode ne 'namevalue') {
-			$tpl->assign(NAMEVALUEINFO => "");
+			$tpl->assign(INFO => "");
 		}
 
 		if (($exif_mode eq 'namevalue' && $foundinfo) or $foundcomment) {
@@ -1324,13 +1324,13 @@ get a list of filenames.
 You can choose how Apache::Gallery should display EXIF info
 from your images. 
 
-The default setting is 'values' which will make A::G parse
-the configured values into the var $EXIFVALUES as 'value | value | value'
-
-You can also set the setting to 'namevalue'. This setting will make 
+The default setting is 'namevalue'. This setting will make 
 Apache::Gallery print out the names and values of the EXIF values 
 you configure with GalleryInfo. The information will be parsed into 
-$NAMEVALUEINFO in pictureinfo.tpl.  
+$INFO in pictureinfo.tpl.  
+
+You can also set it to 'values' which will make A::G parse
+the configured values into the var $EXIFVALUES as 'value | value | value'
 
 If you set this option to 'variables' the items you configure in GalleryInfo 
 will be available to your templates as $EXIF_<KEYNAME> (in all uppercase). 
