@@ -477,15 +477,8 @@ sub cache_dir {
 
 	unless ($r->dir_config('GalleryCacheDir')) {
 
-		if ($r->server->is_virtual) {
-
-			$cache_root = "/var/tmp/Apache-Gallery/" . $r->server->server_hostname;
-
-		} else {
-
-			$cache_root = "/var/tmp/Apache-Gallery/" . $r->location;
-
-		}
+		$cache_root = "/var/tmp/Apache-Gallery/";
+		$cache_root .= ($r->server->is_virtual ? $r->server->server_hostname : $r->location);
 
 	} else {
 
@@ -515,7 +508,7 @@ sub create_cache {
 
 sub mkdirhier {
 
-	my ($dir) = @_;
+	my $dir = shift;
 
 	unless (-d $dir) {
 
@@ -928,6 +921,13 @@ and store the shared objects. This is also where you can find debug
 information if the c-code fails to compile.
 
 Defaults to '/tmp'
+
+=item B<GalleryCacheDir>
+
+Directory where Apache::Gallery should create its cache with scaled
+pictures. The default is /var/tmp/Apache-Gallery/ . Here a directory
+for each virtualhost or location will be created automaticly. Make
+sure your webserver has writeaccess to the CacheDir.
 
 =item B<GalleryTemplateDir>
 
