@@ -50,6 +50,21 @@ Setup a virtualhostblock in httpd.conf, like this:
 	</Location>
 </VirtualHost>
 
+Warning: Apache::Gallery does not work properly if mod_autoindex 
+is loaded by Apache. Indeed, mod_autoindex overrides Apache::Gallery 
+and does not let it displaying directory content. 
+
+To check if your apache loads mod_autoindex, just look for this line 
+in httpd.conf:
+
+LoadModule autoindex_module /usr/lib/apache/1.3/mod_autoindex.so
+
+If this line is not commented, Apache::Gallery will only work when 
+user access an image, whenever a directory listing will be requested, 
+Apache will answer a classic (and ugly) directory listing performed by 
+mod_autoindex.
+
+
 Copy the files from templates/ to where you pointed GalleryTemplateDir to,
 copy htdocs/folder.png and htdocs/video-*.png to your Apache icons 
 directory and copy htdocs/gallery.css to the DocumentRoot of your gallery.
