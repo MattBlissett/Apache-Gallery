@@ -1,6 +1,7 @@
 package Apache::Gallery;
 
-# $Id: Gallery.pm,v 1.99 2002/07/26 11:51:34 thomas Exp $
+# $Author$ $Rev$
+# $Date$
 
 use strict;
 
@@ -35,7 +36,7 @@ sub handler {
 	my $r = shift or Apache->request();
 
 	$r->header_out("X-Powered-By","apachegallery.dk $VERSION - Hest design!");
-	$r->header_out("X-Gallery-Version", '$Id: Gallery.pm,v 1.99 2002/07/26 11:51:34 thomas Exp $');
+	$r->header_out("X-Gallery-Version", '$Rev$ $Date$');
 
 	if ($r->header_only) {
 		$r->send_http_header;
