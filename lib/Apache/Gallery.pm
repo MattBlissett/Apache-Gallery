@@ -51,7 +51,7 @@ my $escape_rule = "^A-Za-z0-9\-_.!~*'()\/";
 my $memoized;
 
 use Inline (C => Config => 
-				LIBS => '-lImlib2',
+				LIBS => '-L/usr/X11R6/lib -lImlib2',
 				GLOBAL_LOAD => 1,
 				UNTAINT => 1,
 				DIRECTORY => File::Spec->tmpdir()
