@@ -8,7 +8,7 @@ WriteMakefile(
     'PREREQ_PM'		=> { 
  				Image::Info  => 0,
 				Image::Size => 0,
-				Image::Imlib2 => 0.12,
+				Image::Imlib2 => 1.00,
 				CGI::FastTemplate => 0, 
 				mod_perl => 0,
 				URI => 1.23,
