@@ -336,6 +336,7 @@ sub handler {
 		}
 		else {
 			$tpl->assign(FILES => "No files found");
+			$tpl->assign(BROWSELINKS => "");
 		}
 
 		if (-f $topdir . '.comment') {
