@@ -8,6 +8,8 @@ Snapshot
 	- Handle .thm for all filetypes and not just tiff, gif and png
 		(Michael Legart)
 	- Make GallerySortBy work for directories (Michael Legart)
+	- Make GalleryDirSortBy override GallerySortBy for directories
+	  (Andreas Plesner)
 
 0.8 Sun Mar  7 11:22:00 CET 2004
 

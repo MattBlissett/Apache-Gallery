@@ -215,8 +215,14 @@ sub handler {
 		# Read and sort directories
 		rewinddir (DIR);
 		my @directories = grep { !/^\./ && -d "$filename/$_" } readdir (DIR);
-		if ($sortby && $sortby =~ m/^(size|atime|mtime|ctime)$/) {
-			@directories = map(/^\d+ (.*)/, sort map(stat("$filename/$_")->$sortby()." $_", @directories));
+		my $dirsortby;
+		if (defined($r->dir_config('GalleryDirSortBy'))) {
+			$dirsortby=$r->dir_config('GalleryDirSortBy');
+		} else {
+			$dirsortby=$sortby;
+		}
+		if ($dirsortby && $dirsortby =~ m/^(size|atime|mtime|ctime)$/) {
+			@directories = map(/^\d+ (.*)/, sort map(stat("$filename/$_")->$dirsortby()." $_", @directories));
 		} else {
 			@directories = sort @directories;
 		}
@@ -1500,6 +1506,12 @@ a slideshow. The default is '3 5 10 15 30'
 
 Instead of the default filename ordering you can sort by any
 stat attribute. For example size, atime, mtime, ctime.
+
+=item B<GalleryDirSortBy>
+
+Set this variable to sort directories differently than other items,
+can be set to size, atime, mtime and ctime; setting any other value
+will revert to sorting by name.
 
 =item B<GalleryMemoize>
 
