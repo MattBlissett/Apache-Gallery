@@ -74,7 +74,9 @@ sub handler {
 	if (-d $filename) {
 
 		unless (-d $filename."/.cache") {
-			create_cache($r, $filename);
+			unless (create_cache($r, $filename)) {
+				return OK;
+			}
 		}
 
 		my $tpl = new CGI::FastTemplate($r->dir_config('GalleryTemplateDir'));
@@ -222,7 +224,9 @@ sub handler {
 		my $path = (join "/", @tmp)."/";
 
 		unless (-d $path."/.cache") {
-			create_cache($r, $path);
+			unless (create_cache($r, $path)) {
+				return OK;
+			}
 		}
 
 		my ($orig_width, $orig_height, $type) = imgsize($filename);
@@ -446,8 +450,9 @@ sub create_cache {
 	my ($r, $path) = @_;
 	unless (mkdir ($path."/.cache", 0777)) {
 		show_error($r, $!, "Unable to create cache directory in $path: $!");
-		return OK;
+		return 0;
 	}
+	return 1;
 }
 
 sub scale_picture {
@@ -683,6 +688,7 @@ sub show_error {
 	);
 
 	$tpl->assign(TITLE      => "Error! $errortitle");
+	$tpl->assign(META       => "");
 	$tpl->assign(ERRORTITLE => "Error! $errortitle");
 	$tpl->assign(ERROR      => $error);
 
