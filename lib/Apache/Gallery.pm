@@ -880,9 +880,18 @@ sub scale_picture {
 		my $rotate = readfile_getnum($r, $imageinfo, $fullpath . ".rotate");
 
 		if ($width == $thumbnailwidth or $width == $thumbnailheight) {
-		    resizepicture($fullpath, $newpath, $width, $height, $rotate, '');
+
+		    resizepicture($fullpath, $newpath, $width, $height, $rotate, '', '', '', '');
+
 		} else {
-		    resizepicture($fullpath, $newpath, $width, $height, $rotate, ($r->dir_config('GalleryCopyrightImage') ? $r->dir_config('GalleryCopyrightImage') : ''));
+
+				resizepicture($fullpath, $newpath, $width, $height, $rotate, 
+					($r->dir_config('GalleryCopyrightImage') ? $r->dir_config('GalleryCopyrightImage') : ''), 
+					($r->dir_config('GalleryTTFDir') ? $r->dir_config('GalleryTTFDir') : ''), 
+					($r->dir_config('GalleryCopyrightText') ? $r->dir_config('GalleryCopyrightText') : ''), 
+					($r->dir_config('GalleryTTFFile') ? $r->dir_config('GalleryTTFFile') : ''), 
+					($r->dir_config('GalleryTTFSize') ?  $r->dir_config('GalleryTTFSize') : ''));
+
 		}
 	}
 
@@ -1287,7 +1296,7 @@ sub generate_menu {
 }
 
 sub resizepicture {
-	my ($infile, $outfile, $x, $y, $rotate, $copyrightfile) = @_;
+	my ($infile, $outfile, $x, $y, $rotate, $copyrightfile, $GalleryTTFDir, $GalleryCopyrightText, $GalleryTTFFile, $GalleryTTFSize) = @_;
 
 	# Load image
 	my $image = Image::Imlib2->load($infile) or warn("Unable to open file $infile, $!");
@@ -1301,7 +1310,7 @@ sub resizepicture {
 	}
 
 	# blend copyright image onto image
-	if ($copyrightfile ne '') {
+ 	if ($copyrightfile ne '') {
 		if (-f $copyrightfile and (my $logo=Image::Imlib2->load($copyrightfile))) {
 			my $x = $image->get_width();
 			my $y = $image->get_height();
@@ -1314,6 +1323,37 @@ sub resizepicture {
 		}
 	}
 
+	if ($GalleryTTFDir && $GalleryCopyrightText && $GalleryTTFFile) {
+		if (!-d $GalleryTTFDir) {
+
+			Apache->request->log_error("GalleryTTFDir $GalleryTTFDir is not a dir\n");
+
+		} elsif ($GalleryCopyrightText eq '') {
+
+			Apache->request->log_error("GalleryCopyrightText is empty. No text inserted to picture\n");
+
+		} elsif (!-e "$GalleryTTFDir/$GalleryTTFFile") {
+
+			Apache->request->log_error("GalleryTTFFile $GalleryTTFFile was not found\n");
+
+		} else {
+ 
+			$GalleryTTFFile =~ s/\.TTF$//i;
+			$image->add_font_path("$GalleryTTFDir");
+			$image->set_colour(200, 200, 200, 200);
+			$image->load_font("$GalleryTTFFile/$GalleryTTFSize");
+			my($text_x, $text_y) = $image->get_text_size("$GalleryCopyrightText");
+			my $x = $image->get_width();
+			my $y = $image->get_height();
+
+			if (($text_x < $x) && ($text_y < $y)) {
+				$image->draw_text($x-$text_x, $y-$text_y, "$GalleryCopyrightText");
+			} else {
+				Apache->request->log_error("Text is to big for the picture.\n");
+			}
+		}
+	}
+ 
 	$image->save($outfile);
 
 }
