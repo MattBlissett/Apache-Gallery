@@ -1690,8 +1690,6 @@ Blue:
 Transparent orange:
         PerlSetVar      GalleryCopyrightColor '255,127,0,127'
 
-=back
-
 =item B<GalleryQuality>
 
 The quality (1-100) of scaled images

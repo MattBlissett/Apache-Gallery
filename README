@@ -213,95 +213,96 @@ CONFIGURATION
         Transparent orange: PerlSetVar GalleryCopyrightColor '255,127,0,127'
 
     GalleryQuality
-    The quality (1-100) of scaled images
+        The quality (1-100) of scaled images
 
-    This setting affects the quality of the scaled images. Set this to a low
-    number to reduce the size of the scaled images. Remember to clear out
-    your cache if you change this setting. Quality seems to default to 75,
-    at least in the jpeg and png loader code in Imlib2 1.1.0.
+        This setting affects the quality of the scaled images. Set this to a
+        low number to reduce the size of the scaled images. Remember to
+        clear out your cache if you change this setting. Quality seems to
+        default to 75, at least in the jpeg and png loader code in Imlib2
+        1.1.0.
 
-    Examples:
+        Examples:
 
-    Quality at 50: PerlSetVar GalleryQuality '50'
+        Quality at 50: PerlSetVar GalleryQuality '50'
 
     GalleryUnderscoresToSpaces
-    Set this option to 1 to convert underscores to spaces in the listing of
-    directory names.
+        Set this option to 1 to convert underscores to spaces in the listing
+        of directory names.
 
 FEATURES
-    Rotate images
-        Some cameras, like the Canon G3, detects the orientation of a
-        picture and adds this info to the EXIF header. Apache::Gallery
-        detects this and automaticly rotates images with this info.
+        Rotate images
+            Some cameras, like the Canon G3, detects the orientation of a
+            picture and adds this info to the EXIF header. Apache::Gallery
+            detects this and automaticly rotates images with this info.
 
-        If your camera does not support this, you can rotate the images
-        manually, This can also be used to override the rotate information
-        from a camera that supports that. You can also disable this behavior
-        with the GalleryAutoRotate option.
+            If your camera does not support this, you can rotate the images
+            manually, This can also be used to override the rotate
+            information from a camera that supports that. You can also
+            disable this behavior with the GalleryAutoRotate option.
 
-        To use this functionality you have to create file with the name of
-        the picture you want rotated appened with ".rotate". The file should
-        include a number where these numbers are supported:
+            To use this functionality you have to create file with the name
+            of the picture you want rotated appened with ".rotate". The file
+            should include a number where these numbers are supported:
 
-                "1", rotates clockwise by 90 degree
-                "2", rotates clockwise by 180 degrees
-                "3", rotates clockwise by 270 degrees
+                    "1", rotates clockwise by 90 degree
+                    "2", rotates clockwise by 180 degrees
+                    "3", rotates clockwise by 270 degrees
 
-        So if we want to rotate "Picture1234.jpg" 90 degrees clockwise we
-        would create a file in the same directory called
-        "Picture1234.jpg.rotate" with the number 1 inside of it.
+            So if we want to rotate "Picture1234.jpg" 90 degrees clockwise
+            we would create a file in the same directory called
+            "Picture1234.jpg.rotate" with the number 1 inside of it.
 
-    Comments
-        To include comments for a directory you create a <directory>.comment
-        file where the first line can contain "TITLE: New title" which will
-        be the title of the page, and a comment on the following lines. To
-        include comments for each picture you create files called
-        picture.jpg.comment where the first line can contain "TITLE: New
-        title" which will be the title of the page, and a comment on the
-        following lines.
+        Comments
+            To include comments for a directory you create a
+            <directory>.comment file where the first line can contain
+            "TITLE: New title" which will be the title of the page, and a
+            comment on the following lines. To include comments for each
+            picture you create files called picture.jpg.comment where the
+            first line can contain "TITLE: New title" which will be the
+            title of the page, and a comment on the following lines.
 
-        Example:
+            Example:
 
-                TITLE: This is the new title of the page
-                And this is the comment.<br>
-                And this is line two of the comment.
+                    TITLE: This is the new title of the page
+                    And this is the comment.<br>
+                    And this is line two of the comment.
 
-        The visible name of the folder is by default identical to the name
-        of the folder, but can be changed by creating a file
-        <directory>.folder with the visible name of the folder.
+            The visible name of the folder is by default identical to the
+            name of the folder, but can be changed by creating a file
+            <directory>.folder with the visible name of the folder.
 
 DEPENDENCIES
-    Perl 5
-    Apache with mod_perl
-    URI::Escape
-    Image::Info
-    Image::Size
-    Text::Template
-    Image::Imlib2
-    X11 libraries (ie, XFree86)
-    Imlib2 Remember the -dev package when using rpm, deb or other package
-    formats!
+        Perl 5
+        Apache with mod_perl
+        URI::Escape
+        Image::Info
+        Image::Size
+        Text::Template
+        Image::Imlib2
+        X11 libraries (ie, XFree86)
+        Imlib2 Remember the -dev package when using rpm, deb or other
+        package formats!
 
 AUTHOR
-    Michael Legart <michael@legart.dk>
+        Michael Legart <michael@legart.dk>
 
 COPYRIGHT AND LICENSE
-    Copyright (C) 2001-2004 Michael Legart <michael@legart.dk>
+        Copyright (C) 2001-2004 Michael Legart <michael@legart.dk>
 
-    Templates designed by Thomas Kjaer <tk@lnx.dk>
+        Templates designed by Thomas Kjaer <tk@lnx.dk>
 
-    Apache::Gallery is free software and is released under the Artistic
-    License. See http://www.perl.com/language/misc/Artistic.html for
-    details.
+        Apache::Gallery is free software and is released under the Artistic
+        License. See http://www.perl.com/language/misc/Artistic.html for
+        details.
 
-    The video icons are from the GNOME project. http://www.gnome.org/
+        The video icons are from the GNOME project. http://www.gnome.org/
 
 THANKS
-    Thanks to Thomas Kjaer for templates and design of
-    http://apachegallery.dk Thanks to Thomas Eibner and other for patches.
-    (See the Changes file)
+        Thanks to Thomas Kjaer for templates and design of
+        http://apachegallery.dk Thanks to Thomas Eibner and other for
+        patches. (See the Changes file)
 
 SEE ALSO
-    perl, mod_perl, Image::Imlib2, CGI::FastTemplate, Image::Info, and
-    Image::Size.
+        perl, mod_perl, Image::Imlib2, CGI::FastTemplate, Image::Info, and
+        Image::Size.
 
