@@ -125,6 +125,7 @@ DEPENDENCIES
     X11 libraries (ie, XFree86)
     Imlib2 Remember the -dev package when using rpm, deb or other package
     formats!
+    Test::MockObject If you want complete testing of Apache::Gallery
 
 BUGS
     Fatal errors are showed on a page with a HTTP OK return code. This is
