@@ -1,6 +1,6 @@
-#!/usr//bin/perl
+#!/usr/bin/perl
 
-#$Id: gallery-editcomments.pl,v 1.2 2001/10/04 18:57:16 mil Exp $
+#$Id: gallery-editcomments.pl,v 1.3 2001/10/14 17:31:42 mil Exp $
 
 use warnings;
 use strict;

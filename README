@@ -1,7 +1,7 @@
 Apache/Gallery version 0.01
 ===========================
 
-$Id: README,v 1.5 2001/10/01 09:23:10 tk Exp $
+$Id: README,v 1.7 2001/10/14 17:53:53 mil Exp $
 
 INSTALLATION
 
@@ -31,7 +31,7 @@ to the DocumentRoot of your gallery.
 
 Create /usr/local/apache/Inline and make sure your httpd can write to this
 directory. This will be used by the Inline module to compile the c-code used
-to access functions in libgb2.
+to access functions in Imlib2
 
 DEPENDENCIES
 
@@ -41,7 +41,7 @@ This module requires these other modules and libraries:
 - Image::Info
 - CGI::FastTemplate
 - Inline
-- libgd2
+- Imlib2 (http://prdownloads.sourceforge.net/enlightenment/imlib2-1.0.3.tar.gz)
 
 COPYRIGHT AND LICENCE
 

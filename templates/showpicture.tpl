@@ -6,7 +6,8 @@ $MENU
     <table>
       <tr>
         <td colspan="3">
-          <center class="nav">
+						<center class="nav">
+						Viewing picture $NUMBER of $TOTAL at $RESOLUTION pixels<br>
             <img src="$SRC"><br>
             Size [ <a href="$URI?width=640">640</a> |
             <a href="$URI?width=800">800</a> |

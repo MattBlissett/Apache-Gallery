@@ -1,6 +1,6 @@
 package Apache::Gallery;
 
-# $Id: Gallery.pm,v 1.15 2001/10/05 10:43:09 mil Exp $
+# $Id: Gallery.pm,v 1.18 2001/10/14 16:26:28 mil Exp $
 
 use 5.006;
 use strict;
@@ -8,7 +8,7 @@ use warnings;
 
 use vars qw($VERSION);
 
-$VERSION = "0.1.1";
+$VERSION = "0.2";
 
 use Apache();
 use Apache::Constants qw(:common);
@@ -18,7 +18,8 @@ use Image::Info qw(image_info);
 use DB_File;
 use CGI::FastTemplate;
 
-use Inline C => Config => LIBS => '-lgd -ljpeg -lpng -lz -lm',
+use Inline C => Config => 
+				LIBS => '-L/usr/X11R6/lib -lImlib2 -lttf -lm -ldl -lXext -lXext',
 				DIRECTORY => '/usr/local/apache/Inline',
 				ENABLE    => 'UNTAINT';
 
@@ -177,6 +178,7 @@ sub handler {
 		);
 
 		$tpl->assign(TITLE => "Viewing ".$r->uri()." at $width x $height");
+		$tpl->assign(RESOLUTION => "$width x $height");
 		$tpl->assign(MENU => generate_menu($r));
 		$tpl->assign(SRC => ".cache/".$cached);
 		$tpl->assign(URI => $r->uri());
@@ -193,8 +195,13 @@ sub handler {
 		closedir(DATADIR);
 		@pictures = sort @pictures;
 
+		$tpl->assign(TOTAL => scalar @pictures);
+		
 		for (my $i=0; $i <= $#pictures; $i++) {
 			if ($pictures[$i] eq $filename) {
+
+				$tpl->assign(NUMBER => $i+1);
+				
 				my $prevpicture = $pictures[$i-1];
 				if ($prevpicture and $i > 0) {
 					my $cached = scale_picture($r, $path.$prevpicture, 100, 75);
@@ -349,30 +356,40 @@ sub generate_menu {
 1;
 __DATA__
 __C__
-#include "gd.h"
+
+#include <X11/Xlib.h>
+#include <Imlib2.h>
+#include <stdio.h>
+#include <string.h>
 
 int resizepicture(char* infile, char* outfile, int x, int y) {
 
-	gdImagePtr im_in;
-	gdImagePtr im_out;
+	Imlib_Image image;
+	Imlib_Image buffer;
+	int old_x;
+	int old_y;
 
-	FILE *in;
-	FILE *out;
+	image = imlib_load_image(infile);
 
-	in = fopen (infile, "rb");
-	im_in = gdImageCreateFromJpeg(in);
-	fclose(in);
+	imlib_context_set_image(image);
+	imlib_context_set_blend(1);
+	imlib_context_set_anti_alias(1);
 	
-	im_out = gdImageCreateTrueColor(x, y);
-	gdImageCopyResized(im_out, im_in, 0, 0, 0, 0, x, y, im_in->sx, im_in->sy);
+	old_x  = imlib_image_get_width();
+	old_y = imlib_image_get_height();
 
-	out = fopen(outfile, "wb");
-	gdImageJpeg(im_out, out, 80);
-	fclose(out);
+	buffer = imlib_create_image(x,y);
+	imlib_context_set_image(buffer);
+	
+	imlib_blend_image_onto_image(image, 0, 0, 0, old_x, old_y, 0, 0, x, y);
 
-	gdImageDestroy(im_in);
-	gdImageDestroy(im_out);
+	imlib_context_set_image(buffer);
+	imlib_save_image(outfile);
 
+	imlib_context_set_image(image);
+	imlib_free_image();
+
+	return 1;
 }
 
 __END__
