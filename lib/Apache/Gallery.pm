@@ -24,7 +24,7 @@ BEGIN {
 		require Apache::SubRequest;
 		require Apache::Const;
 	
-		Apache::Const->import(-compile => 'OK','DECLINED','FORBIDDEN');
+		Apache::Const->import(-compile => 'OK','DECLINED','FORBIDDEN','NOT_FOUND');
 	
 	}
 	else {
@@ -32,7 +32,7 @@ BEGIN {
 		require Apache::Constants;
 		require Apache::Request;
 	
-		Apache::Constants->import('OK','DECLINED','FORBIDDEN');
+		Apache::Constants->import('OK','DECLINED','FORBIDDEN','NOT_FOUND');
 
 	}
 
@@ -68,6 +68,10 @@ sub handler {
 	$r->headers_out->{"X-Powered-By"} = "apachegallery.dk $VERSION - Hest design!";
 	$r->headers_out->{"X-Gallery-Version"} = '$Rev$ $Date$';
 
+  my $filename = $r->filename;
+  $filename =~ s/\/$//;
+  my $topdir = $filename;
+
 	# Just return the http headers if the client requested that
 	if ($r->header_only) {
 
@@ -75,7 +79,12 @@ sub handler {
 			$r->send_http_header;
 		}
 
-		return MP2 ? Apache::OK : Apache::Constants::OK;
+  	if (-f $filename or -d $filename) {
+			return MP2 ? Apache::OK : Apache::Constants::OK;
+		}
+		else {
+			return MP2 ? Apache::NOT_FOUND : Apache::Constants::NOT_FOUND;
+		}
 	}
 
 	my $cgi = new CGI;
@@ -124,12 +133,7 @@ sub handler {
 	my $uri = $r->uri;
 	$uri =~ s/\/$//;
 
-	my $filename = $r->filename;
-	$filename =~ s/\/$//;
-	my $topdir = $filename;
-
 	unless (-f $filename or -d $filename) {
-	
 		show_error($r, 404, "404!", "No such file or directory: ".uri_escape($r->uri, $escape_rule));
 		return MP2 ? Apache::OK : Apache::Constants::OK;
 	}

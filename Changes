@@ -10,6 +10,8 @@ Snapshot
 	- Make GallerySortBy work for directories (Michael Legart)
 	- Make GalleryDirSortBy override GallerySortBy for directories
 	  (Andreas Plesner)
+	- Report 404 for HEAD requests to non-existing files or directories
+	  (Michael Legart)
 
 0.8 Sun Mar  7 11:22:00 CET 2004
 
