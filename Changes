@@ -3,7 +3,7 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
-0.8 Sun Feb 29 16:09:59 CET 2004
+0.8 Sun Mar  7 11:22:00 CET 2004
 
 	- Remember choosen width by setting a cookie (Rene Joergensen)
 	- Fixed a bug where $EXIFVALUES was left blank if a picture
@@ -25,10 +25,6 @@ Revision history for Perl extension Apache::Gallery.
 	- Create copyright notices on pictures using truetype fonts
     instead of png images. Font, color and size can be configured
     (Thomas Petersen, Michael Legart)
-
-If set to '1', GalleryThumbnailSize is the long and the short side
-of the thumbnail image instead of the width and height.
-
 
 0.7 Mon Sep  8 22:30:35 CEST 2003
 
