@@ -219,11 +219,17 @@ sub handler {
 					my $imageinfo = get_imageinfo($r, $thumbfilename, $type, $width, $height);
 					my $cached = scale_picture($r, $thumbfilename, $thumbnailwidth, $thumbnailheight, $imageinfo);
 
+					my $rotate = 0;
+					if (-f $thumbfilename . ".rotate") {
+		    		$rotate = readfile_getnum($thumbfilename . ".rotate");
+					}
 
 					$tpl->assign(FILEURL => uri_escape($fileurl, $escape_rule));
 					$tpl->assign(FILE    => $file);
 					$tpl->assign(DATE    => $imageinfo->{DateTimeOriginal} ? $imageinfo->{DateTimeOriginal} : ''); # should this really be a stat of the file instead of ''?
 					$tpl->assign(SRC     => uri_escape($uri."/.cache/$cached", $escape_rule));
+					$tpl->assign(HEIGHT => ($rotate ? $thumbnailwidth : $thumbnailheight));
+					$tpl->assign(WIDTH => ($rotate ? $thumbnailheight : $thumbnailwidth));
 
 					$tpl->parse(FILES => '.picture');
 

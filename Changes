@@ -19,6 +19,7 @@ Revision history for Perl extension Apache::Gallery.
 	  exif values (Thomas Eibner) 
 	- Directory comments added (Hans Joergensen)
 	- New GallerySortBy option to allow sort by time, size etc (Iain Wade)
+	- Set width/height on thumbnail images for better performance (Iain Wade) 
 
 0.5.1 Sat Nov  9 11:49:29 CET 2002
 
