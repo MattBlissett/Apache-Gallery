@@ -71,6 +71,11 @@ sub handler {
 
 	# Just return the http headers if the client requested that
 	if ($r->header_only) {
+
+		if (!MP2) {
+			$r->send_http_header;
+		}
+
 		return MP2 ? Apache::OK : Apache::Constants::OK;
 	}
 
