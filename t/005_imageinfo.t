@@ -1,6 +1,16 @@
 use Data::Dumper;
-
-use Test::More tests => 1;
+BEGIN {
+  $tests=1;
+  eval { require Apache::FakeRequest; };
+  if ($@) {
+    print("1..$tests\n");
+    for (1..$tests) {
+      print ("ok $_ # skip Apache::FakeRequest not found\n");
+    }
+    exit 0;
+  }
+}
+use Test::More tests => $tests;
 use Apache::FakeRequest;
 
 use Apache::Gallery;

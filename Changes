@@ -3,8 +3,9 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
-0.6.1
-	
+0.7
+
+	- Support mod_perl version 1 and 2 (1.99) (Michael Legart)	
 	- Send status code 500 on errors, 404 on file not found and
 	  make IE show our own errorpage. (Thomas L. Kjeldsen)
 	- Bugfix for directories named "0" (Andreas Plesner Jacobsen)

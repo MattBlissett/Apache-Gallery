@@ -7,30 +7,34 @@ use strict;
 
 use vars qw($VERSION);
 
-$VERSION = "0.6.1";
+$VERSION = "0.7";
 
-use mod_perl;
-use constant MP2 => ($mod_perl::VERSION >= 1.99);
+BEGIN {
 
-if (MP2) {
-	require Apache2;
-	require Apache::Server;
-	require Apache::RequestRec;
-	require Apache::Log;
-	require APR::Table;
-	require Apache::RequestIO;
-	require Apache::SubRequest;
-	require Apache::Const;
+	use mod_perl;
+	use constant MP2 => ($mod_perl::VERSION >= 1.99);
+	
+	if (MP2) {
+		require Apache2;
+		require Apache::Server;
+		require Apache::RequestRec;
+		require Apache::Log;
+		require APR::Table;
+		require Apache::RequestIO;
+		require Apache::SubRequest;
+		require Apache::Const;
+	
+		Apache::Const->import(-compile => 'OK','DECLINED','FORBIDDEN');
+	
+	}
+	else {
+		require Apache;
+		require Apache::Constants;
+		require Apache::Request;
+	
+		Apache::Constants->import('OK','DECLINED','FORBIDDEN');
 
-	Apache::Const->import(-compile => 'OK','DECLINED','FORBIDDEN');
-
-}
-else {
-	require Apache;
-	require Apache::Constants;
-	require Apache::Request;
-
-	Apache::Constants->import('OK','DECLINED','FORBIDDEN');
+	}
 
 }
 
@@ -85,25 +89,18 @@ sub handler {
 		my @selected = $cgi->param('selection');
 		my $content = "@selected";
 		$r->content_type('text/html');
-		$r->header_out('Content-Length', length($content));
-		$r->send_http_header;
+		$r->headers_out->{'Content-Length'} = length(${$content});
+
+		if (!MP2) {
+			$r->send_http_header;
+		}
+
 		$r->print($content);
 		return MP2 ? Apache::OK : Apache::Constants::OK;
 	}
 	
 	# Selectmode providing checkboxes beside all thumbnails
 	my $select_mode = $cgi->param('select');
-
-	# Handle selected images
-	if ($cgi->param('selection')) {
-		my @selected = $cgi->param('selection');
-		my $content = "@selected";
-		$r->content_type('text/html');
-		$r->header_out('Content-Length', length($content));
-		$r->send_http_header;
-		$r->print($content);
-		return OK;
-	}
 	
 	# Let Apache serve icons and files from the cache without us
 	# modifying the request
@@ -1072,7 +1069,11 @@ sub generate_menu {
 		$menu .= $picturename;
 	}
 	else {
-		$menu .= "<a href=\"".uri_escape($menuurl, $escape_rule)."?select=1\">[select]</a> ";
+
+		if ($r->dir_config('GallerySelectionMode') && $r->dir_config('GallerySelectionMode') eq '1') {
+			$menu .= "<a href=\"".uri_escape($menuurl, $escape_rule);
+			$menu .= "?select=1\">[select]</a> ";
+		}
 	}
 
 	return $menu;
@@ -1275,6 +1276,11 @@ data until the current Apache child dies.
 
 Set this option to 1 to make A::G show the files timestamp
 instead of the EXIF value for "Picture taken".
+
+=item B<GallerySelectionMode>
+
+Enable the selection mode. Select images with checkboxes and
+get a list of filenames. 
 
 =back
 
