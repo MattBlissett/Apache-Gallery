@@ -1,0 +1,16 @@
+lib/Apache/Gallery.pm
+README
+LICENSE
+Changes
+test.pl
+Makefile.PL
+htdocs/gallery.css
+htdocs/folder.png
+MANIFEST
+templates/navpicture.tpl
+templates/directory.tpl
+templates/index.tpl
+templates/picture.tpl
+templates/layout.tpl
+templates/showpicture.tpl
+templates/error.tpl

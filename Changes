@@ -1,0 +1,8 @@
+$Id: Changes,v 1.2 2001/08/20 23:18:16 mil Exp $
+
+Revision history for Perl extension Apache::Gallery.
+
+0.01  Mon Aug 20 19:38:31 2001
+	- original version; created by h2xs 1.21 with options
+		-XA -n Apache::Gallery
+

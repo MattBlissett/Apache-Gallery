@@ -1,0 +1,52 @@
+Apache/Gallery version 0.01
+===========================
+
+$Id: README,v 1.4 2001/09/10 16:33:31 mil Exp $
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make install
+
+Setup a virtualhostblock in httpd.conf, like this:
+
+<VirtualHost 213.237.118.52>
+	ServerName   gallery.yourdomain.dk
+	DocumentRoot /data/pictures/
+	ErrorLog     logs/gallery-error_log
+	TransferLog  logs/gallery-access_log
+	PerlSetVar   GalleryTemplateDir '/usr/local/apache/gallery/templates'
+	<Location />
+		SetHandler        perl-script
+		PerlHandler       Apache::Gallery
+	</Location>
+</VirtualHost>
+
+Copy the files from templates/ to where you pointed GalleryTemplateDir to,
+copy htdocs/folder.png to your Apache icons directory and copy htdocs/gallery.css
+to the DocumentRoot of your gallery.
+
+Create /usr/local/apache/Inline and make sure your httpd can write to this
+directory. This will be used by the Inline module to compile the c-code used
+to access functions in libgb2.
+
+DEPENDENCIES
+
+This module requires these other modules and libraries:
+
+- Apache with mod_perl
+- Image::Info
+- CGI::FastTemplate
+- Inline
+- libgd2
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2001 Michael Legart <michael@legart.dk>
+
+Templates designed by Thomas Kjaer <thomas@lnx.dk>
+
+See LICENSE for details.
