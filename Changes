@@ -12,6 +12,10 @@ snapshot
 	  (Jesper Skriver)
 	- Fixed a bug where comments did not get shown when using
 	  the variables exif mode (Thomas L. Kjeldsen)
+	- Added two new configuration options GalleryDocFile and
+	  GalleryImgFile that makes it possible to configured which
+	  filetypes should be displayed. See the documentation for
+	  details. (Guillaume Rousse)
 
 0.7 Mon Sep  8 22:30:35 CEST 2003
 

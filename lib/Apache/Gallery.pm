@@ -134,8 +134,17 @@ sub handler {
 		return MP2 ? Apache::OK : Apache::Constants::OK;
 	}
 
+	my $doc_pattern = $r->dir_config('GalleryDocFile');
+	unless ($doc_pattern) {
+		$doc_pattern = '\.(mpe?g|avi|mov|asf|wmv|doc|mp3|ogg|pdf|rtf|wav|txt|dlt|html?|csv|eps)$'
+	}
+	my $img_pattern = $r->dir_config('GalleryImgFile');
+	unless ($img_pattern) {
+		$img_pattern = '\.(jpe?g|png|tiff?|ppm|gif)$'
+	}
+
 	# Let Apache serve files we don't know how to handle anyway
-	if (-f $filename && $filename !~ m/\.(?:jpe?g|png|tiff?|ppm)$/i) {
+	if (-f $filename && $filename !~ m/$img_pattern/i) {
 		return MP2 ? Apache::DECLINED : Apache::Constants::DECLINED;
 	}
 
@@ -191,11 +200,12 @@ sub handler {
 
 				my $file = $topdir."/".$picture;
 
-				if ($file =~ m/\.(mpe?g|mov|avi|asf|wmv|wav|rtf|pdf|ogg|mp3|doc)$/i) {
+				if ($file =~ /$doc_pattern/i) {
 					push (@downloadable_files, $picture);
+					
 				}
 
-				if ($file =~ m/\.(?:jpe?g|png|tiff?|ppm)$/i) {
+				if ($file =~ /$img_pattern/i) {
 					push (@new_files, $picture);
 				}
 
@@ -284,17 +294,22 @@ sub handler {
 					$tpl->parse(FILES => '.directory');
 
 				}
-				elsif (-f $thumbfilename && $thumbfilename =~ m/\.(mpe?g|avi|mov|asf|wmv|doc|mp3|ogg|pdf|rtf|wav)$/i) {
+				elsif (-f $thumbfilename && $thumbfilename =~ /$doc_pattern/i) {
 					my $type = lc($1);
 					my $stat = stat($thumbfilename);
 					my $size = $stat->size;
 					my $filetype;
 
 					if ($thumbfilename =~ m/\.(mpe?g|avi|mov|asf|wmv)$/i) {
-						$filetype = "video";
-					}
-					else {
-						$filetype = "application";
+						$filetype = "video-$type";
+					} elsif ($thumbfilename =~ m/\.(txt|html?)$/i) {
+						$filetype = "text-$type";
+					} elsif ($thumbfilename =~ m/\.(mp3|ogg|wav)$/i) {
+						$filetype = "sound-$type";
+					} elsif ($thumbfilename =~ m/\.(doc|pdf|rtf|csv|eps)$/i) {
+						$filetype = "application-$type";
+					} else {
+						$filetype = "unknown";
 					}
 
 					$tpl->assign(FILEURL => uri_escape($fileurl, $escape_rule), 
@@ -311,7 +326,7 @@ sub handler {
 					my ($width, $height, $type) = imgsize($thumbfilename);
 					next if $type eq 'Data stream is not a known image file format';
 
-					my @filetypes = qw(JPG TIF PNG PPM);
+					my @filetypes = qw(JPG TIF PNG PPM GIF);
 
 					next unless (grep $type eq $_, @filetypes);
 					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $width, $height);	
@@ -475,7 +490,7 @@ sub handler {
 			show_error($r, 500, "Unable to access directory", "Unable to access directory $path");
 			return MP2 ? Apache::OK : Apache::Constants::OK;
 		}
-		my @pictures = grep { /^[^.].*\.(jpe?g|png|ppm|tiff?)$/i } readdir (DATADIR);
+		my @pictures = grep { /$img_pattern/i } readdir (DATADIR);
 		closedir(DATADIR);
 		@pictures = sort @pictures;
 
@@ -766,7 +781,7 @@ sub scale_picture {
 	my $scale = 1;
 
 	my $newfilename;
-	if (grep $type eq $_, qw(PPM TIF)) {
+	if (grep $type eq $_, qw(PPM TIF GIF)) {
 		$newfilename = $width."x".$height."-".$filename;
 		# needs to be configurable
 		$newfilename =~ s/\.(\w+)$/-$1\.jpg/;
@@ -857,7 +872,7 @@ sub get_imageinfo {
 	if ($type eq 'Data stream is not a known image file format') {
 		# should never be reached, this is supposed to be handled outside of here
 		Apache->request->log_error("Something was fishy with the type of the file $file\n");
-	} elsif (grep $type eq $_, qw(PPM TIF PNG)) {
+	} elsif (grep $type eq $_, qw(PPM TIF PNG GIF)) {
 		# These files do not natively have EXIF info embedded in the file
 		my $tmpfilename = $file;
 		# We have a problem with Windows based file extensions here as they are often .THM
@@ -1398,6 +1413,18 @@ default is "root:"
 
 This options controls how many thumbnails should be displayed in a 
 page. It requires $BROWSELINKS to be in the index.tpl template file.
+
+=item B<GalleryDocFile>
+
+Pattern matching the files you want Apache::Gallery to serve as normal files.
+
+The default is '\.(mpe?g|avi|mov|asf|wmv|doc|mp3|ogg|pdf|rtf|wav|txt|dlt|html?|csv|eps)$'
+
+=item B<GalleryImgFile>
+
+Pattern matching the files you want Apache::Gallery to serve as images.
+
+The default is '\.(jpe?g|png|tiff?|ppm|gif)$'
 
 =back
 

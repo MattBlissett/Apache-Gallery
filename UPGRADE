@@ -3,11 +3,11 @@
 
 For users upgrading from 0.7 to snapshot
 
-In the default templates, the path to the folder icon was 
-wrong so you need to update your templates/default/directory.tpl
-(only if using the default templates). Also make sure that
-you have the htdocs/agfolder.png file in your Apache icons
-directory.
+You need to create new directory called gallery in Apaches
+icons directory. Copy the png files from the htdocs dictory
+to this new directory.
+
+The directory.tpl and file.tpl templates needs to be updated.
 
 For users upgrading from 0.6 to 0.7
 
