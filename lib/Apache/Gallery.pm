@@ -568,7 +568,7 @@ sub handler {
 				}
 
 				if ($exif_mode eq 'values') {
-					$exifvalues .= "| ".$value;
+					$exifvalues .= "| ".$value." ";
 				}
 
 			} 
