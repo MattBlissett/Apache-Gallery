@@ -10,6 +10,7 @@ use vars qw($VERSION);
 $VERSION = "0.6.1";
 
 use Apache2 ();
+use Apache::compat;
 use Apache::Server;
 use Apache::RequestRec;
 use Apache::Log;
@@ -24,6 +25,7 @@ use File::stat;
 use File::Spec;
 use POSIX qw(floor);
 use URI::Escape;
+use FileHandle;
 use CGI;
 
 use Data::Dumper;
@@ -72,9 +74,17 @@ sub handler {
 		$file =~ s/\/\.cache//;
 		my $subr = $r->lookup_file($file);
 		$r->content_type($subr->content_type());
-		$r->path_info('');
-		$r->filename($file);
-		return DECLINED;
+
+		my $fh = new FileHandle;
+		if ($fh->open("< $file")) {		
+			$r->send_fd($fh);
+			$fh->close();
+			return OK;
+		}
+		else {
+			return SERVER_ERROR;
+		}
+
 	}
 
 	my $uri = $r->uri;
