@@ -253,7 +253,7 @@ sub handler {
 			$tpl->assign(FILES => "No files found");
 		}
 
-		if (-e $topdir . '.comment' && -f $topdir . '.comment') {
+		if (-f $topdir . '.comment') {
 			my $comment_ref = get_comment($topdir . '.comment');
 			$tpl->assign(COMMENT => $comment_ref->{COMMENT} . '<br>') if $comment_ref->{COMMENT};
 			$tpl->assign(TITLE => $comment_ref->{TITLE}) if $comment_ref->{TITLE};
@@ -430,7 +430,7 @@ sub handler {
 		}
 
 		my $foundcomment = 0;
-		if (-e $path . '/' . $picfilename . '.comment' && -f $path . '/' . $picfilename . '.comment') {
+		if (-f $path . '/' . $picfilename . '.comment') {
 		    my $comment_ref = get_comment($path . '/' . $picfilename . '.comment');
 				$foundcomment = 1;
 		    $tpl->assign(COMMENT => $comment_ref->{COMMENT} . '<br>') if $comment_ref->{COMMENT};
