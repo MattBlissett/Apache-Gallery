@@ -1198,12 +1198,15 @@ sub resizepicture {
 	}
 
 	# blend copyright image onto image
-	if ($copyrightfile and (my $logo=Image::Imlib2->load($copyrightfile))) {
+	if (-f $copyrightfile and (my $logo=Image::Imlib2->load($copyrightfile))) {
 		my $x = $image->get_width();
 		my $y = $image->get_height();
 		my $logox = $logo->get_width();
 		my $logoy = $logo->get_height();
 		$image->blend($logo, 0, 0, 0, $logox, $logoy, $x-$logox, $y-$logoy, $logox, $logoy);
+	}
+	else {
+		Apache->request->log_error("GalleryCopyrightImage $copyrightfile was not found\n");
 	}
 
 	$image->save($outfile);
