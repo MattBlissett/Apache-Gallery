@@ -159,7 +159,7 @@ sub handler {
 			nocomment => 'nodircomment.tpl'
 		);
 
-		$tpl->assign(TITLE => "Index of: ".uri_escape($uri, $escape_rule));
+		$tpl->assign(TITLE => "Index of: $uri");
 		$tpl->assign(META => " ");
 
 		unless (opendir (DIR, $filename)) {
