@@ -9,7 +9,7 @@ that you have the following installed:
 - Perl 5
 - Apache with mod_perl
 - URI::Escape
-- Image::Info
+- Image::Info version 1.11. (NB NB NB: Version 1.12 is known to give problems)
 - Image::Size
 - CGI::FastTemplate
 - CGI
@@ -33,7 +33,7 @@ Then, to install Apache::Gallery run the following commands:
 If you use Apache 1.3 and mod_perl 1, you need to configure
 your virtualhostblock to look like:
 
-<VirtualHost 123.123.123.123>
+<VirtualHost *>
 	ServerName   gallery.yourdomain.org
 	DocumentRoot /data/pictures/
 	ErrorLog     logs/gallery-error_log
@@ -52,7 +52,7 @@ your virtualhostblock to look like:
 In case you run apache 2 and modperl 2 (or 1.99), it needs to look
 like:
 
-<VirtualHost 123.123.123.123>
+<VirtualHost *>
 	ServerName   gallery.yourdomain.org
 	DocumentRoot /data/pictures/
 	ErrorLog     logs/gallery-error_log
