@@ -1,6 +1,6 @@
 package Apache::Gallery;
 
-# $Id: Gallery.pm,v 1.42 2002/01/10 14:50:37 mil Exp $
+# $Id: Gallery.pm,v 1.81 2002/06/05 15:13:38 mil Exp $
 
 use 5.006;
 use strict;
@@ -8,17 +8,20 @@ use warnings;
 
 use vars qw($VERSION);
 
-$VERSION = "0.3.1";
+$VERSION = "0.4";
 
-use Apache();
+use Apache ();
 use Apache::Constants qw(:common);
 use Apache::Request();
 
 use Image::Info qw(image_info);
+use Image::Size qw(imgsize);
 use CGI::FastTemplate;
+use File::stat;
+use POSIX qw(floor);
 use URI::Escape;
 
-my $escape_rule = '^a-zA-Z0-9/_\\.';
+my $escape_rule = "^A-Za-z0-9\-_.!~*'()\/";
 
 use Inline C => Config => 
 				LIBS => '-L/usr/X11R6/lib -lImlib2 -lttf -lm -ldl -lXext -lXext',
@@ -33,6 +36,8 @@ sub handler {
 
 	my $r = shift or Apache->request();
 
+	$r->header_out("X-Powered-By","apachegallery.dk $VERSION - Hest design!");
+
 	if ($r->header_only) {
 		$r->send_http_header;
 		return OK;
@@ -40,18 +45,16 @@ sub handler {
 
 	my $apr = Apache::Request->instance($r, DISABLE_UPLOADS => 1, POST_MAX => 1024);
 
-	if ($r->uri =~ m/(^\/icons|\.css$|\.cache)/) {
+	if ($r->uri =~ m/(^\/icons|\.cache|\.(css|txt|avi|mpe?g|mov|asf)$)/i) {
 		return DECLINED;
 	}
-
-	$r->content_type('text/html');
-	$r->send_http_header;
 
 	my $uri = $r->uri;
 	$uri =~ s/\/$//;
 
-	my $subr = $r->lookup_uri($r->uri);
+	my $subr     = $r->lookup_uri($r->uri);
 	my $filename = $subr->filename;
+	my $topdir   = $filename;
 
 	unless (-f $filename or -d $filename) {
 	
@@ -74,11 +77,11 @@ sub handler {
 			layout    => 'layout.tpl',
 			index     => 'index.tpl',
 			directory => 'directory.tpl',
-			picture   => 'picture.tpl'
+			picture   => 'picture.tpl',
+			movie     => 'movie.tpl'
 		);
 
 		$tpl->assign(TITLE => "Index of: ".$uri);
-
 
 		unless (opendir (DIR, $filename)) {
 			show_error ($r, $!, "Unable to access $filename: $!");
@@ -86,10 +89,12 @@ sub handler {
 		}
 		
 		$tpl->assign(MENU => generate_menu($r));
-		
-		my @files = grep {!/^\./} readdir (DIR);
-
+	
+		# Read, sort and filter files
+		my @files = grep { !/^\./ && -f "$filename/$_" } readdir (DIR);
 		@files = sort @files;
+
+		my @movies;
 
 		if (@files) {
 
@@ -97,21 +102,40 @@ sub handler {
 			my $counter = 0;
 			foreach my $picture (@files) {
 
-				my $file = $r->document_root.$uri."/".$picture;
+				my $file = $topdir."/".$picture;
 
-				if (-f $file && !($file =~ m/\.(jpg|jpeg|png)$/i)) {
+				if ($file =~ m/\.(mpe?g|mov|avi|asf)$/i) {
+					push (@movies, $picture);
+				}
+
+				if (-f $file && !($file =~ m/\.(jpe?g|png|tiff?|ppm)$/i)) {
 					splice(@files, $counter, 1);
 				}
 
 				$counter++;
 
 			}
+		}
+
+		# Read and sort directories
+		rewinddir (DIR);
+		my @directories = grep { !/^\./ && -d "$filename/$_" } readdir (DIR);
+		@directories = sort @directories;
+		closedir(DIR);
+
+		# Combine directories and files to one listing
+		my @listing;
+		push (@listing, @directories);
+		push (@listing, @files);
+		push (@listing, @movies);
+
+		if (@listing) {
 
 			my $filelist;
 
-			foreach my $file (@files) {
+			foreach my $file (@listing) {
 
-				my $thumbfilename = $r->document_root.$uri."/".$file;
+				my $thumbfilename = $topdir."/".$file;
 
 				my $fileurl = $uri."/".$file;
 
@@ -121,18 +145,34 @@ sub handler {
 					$tpl->parse(FILES => '.directory');
 
 				}
+				elsif (-f $thumbfilename && $thumbfilename =~ m/\.(mpe?g|avi|mov|asf)$/i) {
+					my $type = lc($1);
+					my $stat = stat($thumbfilename);
+					my $size = $stat->size;
+					$tpl->assign(FILEURL => uri_escape($fileurl, $escape_rule), 
+					             ALT => "Size: $size Bytes", 
+					             FILE => $file, 
+					             TYPE => $type);
+
+					$tpl->parse(FILES => '.movie');						 
+
+				}
 				elsif (-f $thumbfilename) {
 
-					my $imageinfo = image_info($thumbfilename);
+					my ($width, $height, $type) = imgsize($thumbfilename);
+					next if $type eq 'Data stream is not a known image file format';
 
-					next unless ($imageinfo->{file_media_type} && $imageinfo->{file_media_type} eq 'image/jpeg');
-					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($thumbfilename);	
+					my @filetypes = qw(JPG TIF PNG PPM);
+
+					next unless (grep $type eq $_, @filetypes);
+					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $thumbfilename, $width, $height);	
 					my $cached = scale_picture($r, $thumbfilename, $thumbnailwidth, $thumbnailheight);
 
+					my $imageinfo = get_imageinfo($thumbfilename, $type, $width, $height);
 
-					$tpl->assign(FILEURL => $fileurl);
+					$tpl->assign(FILEURL => uri_escape($fileurl, $escape_rule));
 					$tpl->assign(FILE    => $file);
-					$tpl->assign(DATE    => $imageinfo->{DateTimeOriginal});
+					$tpl->assign(DATE    => $imageinfo->{DateTimeOriginal} ? $imageinfo->{DateTimeOriginal} : ''); # should this really be a stat of the file instead of ''?
 					$tpl->assign(SRC     => uri_escape($uri."/.cache/$cached", $escape_rule));
 
 					$tpl->parse(FILES => '.picture');
@@ -145,39 +185,53 @@ sub handler {
 			$tpl->assign(FILES => "Empty dir");
 		}
 
-		closedir (DIR);
-
 		$tpl->parse("MAIN", ["index", "layout"]);
 		my $content = $tpl->fetch("MAIN");
+
+		$r->content_type('text/html');
+		$r->send_http_header;
+
 		$r->print(${$content});
 		return OK;
 
 	}
 	else {
-
-		my $imageinfo = image_info($filename);
-
-		my $width = $imageinfo->{width};
-		if ($width > 640) {
-			$width = 640;
+# original size
+		if (defined($ENV{QUERY_STRING}) && $ENV{QUERY_STRING} eq 'orig') {
+			if ($r->dir_config('GalleryAllowOriginal') ? 1 : 0) {
+				$r->filename($filename);
+				return DECLINED;
+			} else {
+				return FORBIDDEN;
+			}
 		}
 
+		my ($orig_width, $orig_height, $type) = imgsize($filename);
+		my $width = $orig_width;
+
+		my $imageinfo = get_imageinfo($filename, $type, $orig_width, $orig_height);
+
 		# Check if the selected width is allowed
+		my @sizes = split (/ /, $r->dir_config('GallerySizes') ? $r->dir_config('GallerySizes') : '640 800 1024 1600');
 		if ($apr->param('width')) {
-			my @sizes = split (/ /, $r->dir_config('GallerySizes') ? $r->dir_config('GallerySizes') : '640 800 1024 1600');
 			unless (grep $apr->param('width') == $_, @sizes) {
 				show_error($r, "Invalid width", $apr->param('width')." is an invalid width.");
 				return OK;
 			}
 			$width = $apr->param('width');
 		}
+		else {
+			$width = $sizes[0];
+		}	
 
-		my $scale = ($imageinfo->{width} ? $width/$imageinfo->{width} : 1);
-		my $height = $imageinfo->{height} * $scale;
+		my $scale = ($orig_width ? $width/$orig_width : 1);
+		my $height = $orig_height * $scale;
+
+		$width  = floor($width);
+		$height = floor($height);
 
 		my $cached = scale_picture($r, $filename, $width, $height);
-
-
+		
 		my $tpl = new CGI::FastTemplate($r->dir_config('GalleryTemplateDir'));
 
 		$tpl->define(
@@ -185,7 +239,8 @@ sub handler {
 			picture     => 'showpicture.tpl',
 			navpicture  => 'navpicture.tpl',
 			info        => 'info.tpl',
-			scale       => 'scale.tpl'
+			scale       => 'scale.tpl',
+			orig        => 'orig.tpl'
 		);
 
 		$tpl->assign(TITLE => "Viewing ".$r->uri()." at $width x $height");
@@ -202,7 +257,7 @@ sub handler {
 			show_error($r, "Unable to open dir", "Unable to access $path");
 			return OK;
 		}
-		my @pictures = grep { /\.(jpg|jpeg|png)$/i } readdir (DATADIR);
+		my @pictures = grep { /^[^.].*\.(jpe?g|png|ppm|tiff?)$/i } readdir (DATADIR);
 		closedir(DATADIR);
 		@pictures = sort @pictures;
 
@@ -212,12 +267,20 @@ sub handler {
 			if ($pictures[$i] eq $filename) {
 
 				$tpl->assign(NUMBER => $i+1);
-				
+
 				my $prevpicture = $pictures[$i-1];
-				if ($prevpicture and $i > 0) {
-					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($path.$prevpicture);	
+				my $displayprev = ($i>0 ? 1 : 0);
+
+				if ($r->dir_config("GalleryWrapNavigation")) {
+					$prevpicture = $pictures[$i>0 ? $i-1 : $#pictures];
+					$displayprev = 1;
+				}	
+				if ($prevpicture and $displayprev) {
+					my ($orig_width, $orig_height, $type) = imgsize($path.$prevpicture);
+					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $path.$prevpicture, $orig_width, $orig_height);	
 					my $cached = scale_picture($r, $path.$prevpicture, $thumbnailwidth, $thumbnailheight);
 					$tpl->assign(URL       => uri_escape($prevpicture, $escape_rule));
+					$tpl->assign(FILENAME  => $prevpicture);
 					$tpl->assign(WIDTH     => $width);
 					$tpl->assign(PICTURE   => uri_escape(".cache/$cached", $escape_rule));
 					$tpl->assign(DIRECTION => "Prev");
@@ -228,10 +291,16 @@ sub handler {
 				}
 
 				my $nextpicture = $pictures[$i+1];
+				if ($r->dir_config("GalleryWrapNavigation")) {
+					$nextpicture = $pictures[$i == $#pictures ? 0 : $i+1];
+				}	
+
 				if ($nextpicture) {
-					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($path.$nextpicture);	
+					my ($orig_width, $orig_height, $type) = imgsize($path.$prevpicture);
+					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $path.$nextpicture, $orig_width, $orig_height);	
 					my $cached = scale_picture($r, $path.$nextpicture, $thumbnailwidth, $thumbnailheight);
 					$tpl->assign(URL       => uri_escape($nextpicture, $escape_rule));
+					$tpl->assign(FILENAME  => $nextpicture);
 					$tpl->assign(WIDTH     => $width);
 					$tpl->assign(PICTURE   => uri_escape(".cache/$cached", $escape_rule));
 					$tpl->assign(DIRECTION => "Next");
@@ -252,7 +321,7 @@ sub handler {
 		}
 
 		my @infos = split /, /, $r->dir_config('GalleryInfo') ? $r->dir_config('GalleryInfo') : 'Picture Taken => DateTimeOriginal, Flash => Flash';
-
+		my $foundinfo = 0;
 		foreach (@infos) {
 		
 			my ($key, $value) = (split " => ")[0,1];
@@ -287,22 +356,34 @@ sub handler {
 				$tpl->assign(KEY => $key);
 				$tpl->assign(VALUE => $content);
 				$tpl->parse(INFO => '.info');
+				$foundinfo = 1;
 			} 
 			else {
 				print STDERR $value, " not found in picture info\n";
 			}
 		}
 
-		my @sizes = split (/ /, $r->dir_config('GallerySizes') ? $r->dir_config('GallerySizes') : '640x480 800x600 1024x768 1600x1200');
+		unless ($foundinfo) {
+			$tpl->assign(INFO => "No info found in image");
+		}	
+
 		foreach my $size (@sizes) {
 			$tpl->assign(IMAGEURI => $r->uri());
 			$tpl->assign(SIZE     => $size);
 			$tpl->assign(WIDTH    => $size);
 			$tpl->parse(SIZES => '.scale');
 		}	
+		if ($r->dir_config('GalleryAllowOriginal')) {
+			$tpl->assign(IMAGEURI => $r->uri());
+			$tpl->parse(SIZES => '.orig');
+		}
 
 		$tpl->parse("MAIN", ["picture", "layout"]);
 		my $content = $tpl->fetch("MAIN");
+
+		$r->content_type('text/html');
+		$r->send_http_header;
+
 		$r->print(${$content});
 		return OK;
 
@@ -318,11 +399,54 @@ sub scale_picture {
 	my @dirs = split(/\//, $fullpath);
 	my $filename = pop(@dirs);
 
+	my ($orig_width, $orig_height, $type) = imgsize($fullpath);
+
 	my $cache = join ("/", @dirs) . "/.cache";
 
-	my $newfilename = $width."x".$height."-".$filename;
+	my ($thumbnailwidth, $thumbnailheight) = split(/x/, ($r->dir_config('GalleryThumbnailSize') ?  $r->dir_config('GalleryThumbnailSize') : "100x75"));
 
-	unless (-f $cache."/".$newfilename) {
+	# Do we want to generate a new file in the cache?
+	my $scale = 1;
+
+	my $newfilename;
+	if (grep $type eq $_, qw(PPM TIF)) {
+		$newfilename = $width."x".$height."-".$filename;
+		# needs to be configurable
+		$newfilename =~ s/\.(\w+)$/-$1\.jpg/;
+	} else {
+		$newfilename = $width."x".$height."-".$filename;
+	}
+	
+	if (-f $cache."/".$newfilename) {	
+		$scale = 0;
+
+		# Check to see if the image has changed
+		my $filestat = stat($fullpath);
+		my $cachestat = stat($cache."/".$newfilename);
+		if ($filestat->mtime > $cachestat->mtime) {
+			$scale = 1;
+		}	
+
+		# Check to see if the .rotate file has been added og changed
+		if (-f $fullpath . ".rotate") {
+			my $rotatestat = stat($fullpath . ".rotate");
+			if ($rotatestat->mtime > $cachestat->mtime) {
+				$scale = 1;
+			}	
+		}		
+		# Check to see if the copyrightimage has been added or changed
+		if ($r->dir_config('GalleryCopyrightImage') && -f $r->dir_config('GalleryCopyrightImage')) {
+			unless ($width == $thumbnailwidth or $width == $thumbnailheight) {
+				my $copyrightstat = stat($r->dir_config('GalleryCopyrightImage'));
+				if ($copyrightstat->mtime > $cachestat->mtime) {
+					$scale = 1;
+				}	
+			}
+		}	
+
+	}	
+
+	if ($scale) {
 
 		my $newpath = $cache."/".$newfilename;
 
@@ -332,7 +456,7 @@ sub scale_picture {
 		    $rotate = readfile_getnum($fullpath . ".rotate");
 		}
 
-		if ($width == 100 or $width == 75) {
+		if ($width == $thumbnailwidth or $width == $thumbnailheight) {
 		    resizepicture($fullpath, $newpath, $width, $height, $rotate, '');
 		} else {
 		    resizepicture($fullpath, $newpath, $width, $height, $rotate, ($r->dir_config('GalleryCopyrightImage') ? $r->dir_config('GalleryCopyrightImage') : ''));
@@ -344,20 +468,58 @@ sub scale_picture {
 }
 
 sub get_thumbnailsize {
-	my $filename = shift;
+	my ($r, $filename, $orig_width, $orig_height) = @_;
 
-	my $imageinfo = image_info($filename);
+	my ($thumbnailwidth, $thumbnailheight) = split(/x/, ($r->dir_config('GalleryThumbnailSize') ?  $r->dir_config('GalleryThumbnailSize') : "100x75"));
 
-	my $width = 100;
-	if ($imageinfo->{width} < $imageinfo->{height}) {
-		$width = 75;
+	my $width = $thumbnailwidth;
+	if ($orig_width < $orig_height) {
+		# rotated image
+		$width = $thumbnailheight;
 	}
-	my $scale = ($imageinfo->{width} ? $width/$imageinfo->{width} : 1);
-	my $height = $imageinfo->{height} * $scale;
+	my $scale = ($orig_width ? $width/$orig_width : 1);
+	my $height = $orig_height * $scale;
+
+	$height = floor($height);
+	$width  = floor($width);
 
 	return ($width, $height);
 }
 
+sub get_imageinfo {
+	my ($file, $type, $width, $height) = @_;
+	my $imageinfo;
+	if ($type eq 'Data stream is not a known image file format') {
+		# should never be reached, this is supposed to be handled outside of here
+		Apache->request->log_error("Something was fishy with the type of the file $file\n");
+	} elsif (grep $type eq $_, qw(PPM TIF PNG)) {
+		# These files do not natively have EXIF info embedded in the file
+		my $tmpfilename = $file;
+		# We have a problem with Windows based file extensions here as they are often .THM
+		$tmpfilename =~ s/\.(\w+)$/.thm/;
+		if (-e $tmpfilename && -f $tmpfilename) {
+			$imageinfo = image_info($tmpfilename);
+		} else {
+			$imageinfo = {};
+		}
+		$imageinfo->{width} = $width;
+		$imageinfo->{height} = $height;
+	} elsif (grep $type eq $_, qw(JPG)) {
+		# Only for files that natively keep the EXIF info in the same file
+		$imageinfo = image_info($file);
+		# What if this picture doesn't have EXIF info in it?
+		if (defined($imageinfo->{error}) && $imageinfo->{error} eq 'Unrecognized file format') {
+		    $imageinfo = {};
+		    $imageinfo->{width} = $width;
+		    $imageinfo->{height} = $height;
+		}
+	} else {
+		$imageinfo = {};
+		$imageinfo->{width} = $width;
+		$imageinfo->{height} = $height;
+	}
+	return $imageinfo;
+}
 
 sub readfile_getnum {
 	my $filename = shift;
@@ -416,6 +578,9 @@ sub show_error {
 	$tpl->parse("MAIN", ["error", "layout"]);
 
 	my $content = $tpl->fetch("MAIN");
+
+	$r->content_type('text/html');
+	$r->send_http_header;
 
 	$r->print(${$content});
 
@@ -538,30 +703,180 @@ Apache::Gallery - mod_perl handler to create an image gallery
 
 =head1 SYNOPSIS
 
-In httpd.conf:
+See the INSTALL file in the distribution for installation instructions.
 
-<VirtualHost 213.237.118.52>
-   ServerName   gallery.foo.org
-   DocumentRoot /path/to/pictures
-   ErrorLog     logs/gallery-error_log
-   TransferLog  logs/gallery-access_log
-   PerlSetVar   InlineDir '/tmp/'
-   PerlSetVar   GalleryTemplateDir '/usr/local/apache/gallery/templates'
-   PerlSetVar   GalleryInfo 'Picture Taken => DateTimeOriginal, Flash => Flash' 
-   PerlSetVar   GallerySizes '640 1024 1600 2272'
-   <Location />
-      SetHandler        perl-script
-      PerlHandler       Apache::Gallery
-   </Location>
-</VirtualHost>
+=head1 DESCRIPTION
 
+Apache::Gallery creates an thumbnail index of each directory and allows 
+viewing pictures in different resolutions. Pictures are resized on the 
+fly and cached. The gallery can be configured and customized in many ways
+and a custom copyright image can be added to all the images without
+modifying the original.
+
+=head1 CONFIGURATION
+
+In your httpd.conf you set the global options for the gallery. You can
+also override each of the options in .htaccess files in your gallery
+directories.
+
+The options are set in the httpd.conf/.htaccess file using the syntax:
+B<PerlSetVar OptionName 'value'>
+
+Example: B<PerlSetVar InlineDir '/tmp/inline'>
+
+=over 4
+
+=item B<InlineDir>
+
+Full path to the directory Inline should compile the inline c-code
+and store the shared objects. This is also where you can find debug
+information if the c-code fails to compile.
+
+Defaults to '/tmp'
+
+=item B<GalleryTemplateDir>
+
+Full path to the directory where you placed the templates. This option
+can be used both in your global configuration and in .htaccess files,
+this way you can have different layouts in different parts of your 
+gallery.
+
+No default value, this option is required.
+
+=item B<GalleryInfo>
+
+With this option you can define which EXIF information you would like
+to present from the image. The format is: '<MyName => KeyInEXIF, 
+MyOtherName => OtherKeyInEXIF'
+
+Examples of keys: B<ShutterSpeedValue>, B<ApertureValue>, B<SubjectDistance>,
+and B<Camera>
+
+You can view all the keys from the EXIF header using this perl-oneliner:
+
+perl -e 'use Data::Dumper; use Image::Info qw(image_info); print Dumper(image_info(shift));' filename.jpg
+
+Default is: 'Picture Taken => DateTimeOriginal, Flash => Flash'
+
+=item B<GallerySizes>
+
+Defines which widths images can be scaled to. Images cannot be
+scaled to other widths than the ones you define with this option.
+
+The default is '640 1024 1600 2272'
+
+=item B<GalleryThumbnailSize>
+
+Defines the width and height of the thumbnail images. 
+
+Defaults to '100x75'
+
+=item B<GalleryCopyrightImage>
+
+Image you want to blend into your images in the lower right
+corner. This could be a transparent png saying "copyright
+my name 2001".
+
+Optional.
+
+=item B<GalleryWrapNavigation>
+
+Make the navigation in the picture view wrap around (So Next
+at the end displays the first picture, etc.)
+
+Set to 1 or 0, default is 0
+
+=item B<GalleryAllowOriginal>
+
+Allow the user to download the Original picture without
+resizing or putting the CopyrightImage on it.
+
+Set to 1 or 0, default is 0
+
+=back
+
+=head1 FEATURES
+
+=over 4
+
+=item B<Rotate images>
+
+Pictures can be rotated on the fly without modifying the original image.
+
+To use this functionality you have to create file with the name of the 
+picture you want rotated appened with ".rotate". The file should include 
+a number where these numbers are supported:
+
+	"1", rotates clockwise by 90 degree
+	"2", rotates clockwise by 180 degrees
+	"3", rotates clockwise by 270 degrees
+
+So if we want to rotate "Picture1234.jpg" 90 degrees clockwise we would
+create a file in the same directory called "Picture1234.jpg.rotate" with
+the number 1 inside of it.
+
+=item B<Comments>
+
+To include comments for each picture you create files called 
+picture.jpg.comment where the first line can contain "TITLE: New
+title" which will be the title of the page, and a comment on the
+following lines.
+
+Example:
+TITLE: This is the new title of the page
+And this is the comment.
+
+=back
+
+=head1 DEPENDENCIES
+
+=over 4
+
+=item B<Perl 5.6>
+
+=item B<Apache with mod_perl>
+
+=item B<Apache::Request>
+
+=item B<URI::Escape>
+
+=item B<Image::Info>
+
+=item B<CGI::FastTemplate>
+
+=item B<Inline::C>
+
+=item B<X11 libraries>
+(ie, XFree86)
+
+=item B<Imlib2>
+Remember the -dev package when using rpm, deb or other package formats!
+
+=back
 
 =head1 AUTHOR
 
-Michael Legart <gallery@legart.dk>
+Michael Legart <michael@legart.dk>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2001-2002 Michael Legart <michael@legart.dk>
+
+Templates designed by Thomas Kjaer <tk@lnx.dk>
+
+Apache::Gallery is free software and is released under the Artistic License.
+See B<http://www.perl.com/language/misc/Artistic.html> for details.
+
+The video icons are from the GNOME project. B<http:://www.gnome.org/>
+
+=head1 THANKS
+
+Thanks to Thomas Kjaer for templates and design of B<http://apachegallery.dk>
+and thanks to Thomas Eibner for patches.
 
 =head1 SEE ALSO
 
-L<perl>.
+L<perl>, L<mod_perl>, L<Apache::Request>, L<Inline::C>, L<CGI::FastTemplate>,
+and L<Image::Info>.
 
 =cut

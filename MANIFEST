@@ -1,10 +1,16 @@
 htdocs/folder.png
 htdocs/gallery.css
+htdocs/video-asf.png
+htdocs/video-avi.png
+htdocs/video-mov.png
+htdocs/video-mpeg.png
+htdocs/video-mpg.png
 Changes
 LICENSE
 MANIFEST
 Makefile.PL
 README
+INSTALL
 test.pl
 lib/Apache/Gallery.pm
 src/gallery-buildcache.pl
@@ -18,4 +24,6 @@ templates/navpicture.tpl
 templates/picture.tpl
 templates/showpicture.tpl
 templates/scale.tpl
+templates/movie.tpl
+templates/orig.tpl
 UPGRADE

@@ -7,8 +7,7 @@
 	<link rel="stylesheet" href="/gallery.css">
 </head>
 
-<body leftmargin="0" topmargin="0" link="#5555aa" vlink="#5555aa"
-alink="#ff9400">
+<body>
 $MAIN
 </body>
 </html>

@@ -1,87 +1,51 @@
 body {
-	background-color: #ffffff;
-//	font-family: helvetica, arial, sans-serif;
-	font-family: Tahoma, lucida, helvetica, arial, sans-serif;
+	background-color: #cccccc;
+	font-family: Verdana, Lucida, Arial;
 	font-size: 10px;
-	color: #666666;
+	margin-left: 10px;
+	margin-top: 10px;
+	text-align: center;
 }
-a {
-//	color: #888888;
-	color: #5555aa;
-	text-decoration: none;
+td {
+	font-size: 10px;
 }
-a:hover {
-//	color: #5555aa;
-	color: #ff9400;
-	text-decoration: underline;
-}
-img {
-}
-#page {
-	position: absolute;
-	top: 0px;
-	width: auto;
-	height: auto;
-	visibility: visible;
-	background-color: #ffffff;
-	border: 0px;
-	padding: 20px;
+table {
+	margin-left: auto;
+	margin-right: auto;
 }
 #menu {
-	border: 0px;
-	height: 40px;
 	font-size: 11px;
-	font-weight: bold;
-	color: #666666;
+	text-align: left;
+	height: 30px;
 }
-#dir {
-	background-color: #FFFFFF;
-	border: 0px;
-	border: 1px dashed #999999;
-	padding: 10px;
+#directory {
+	background-color: #ffffff;
+	border: 1px solid #666666;
+	padding: 20px;
+	text-align: left;
+	top: 0px;
+}
+#folder {
+	float: left;
+	height: 100px;
+	padding: 2px;
+	text-align: center;
+	width: 120px;
 }
 #picture img {
 	border: 1px solid #000000;
 }
-#gallery {
-	padding: 10px;
-	text-align: center;
+a {
+	color: #5555aa;
 }
-td {
-	font-family: Tahoma, lucida, helvetica, arial, sans-serif;
-	font-size: 10px;
-}
-h1, h2, h3, h4, h5 {
-	text-transform: capitalize;
-	font-weight: bold;
-}
-#folder img {
-	border-width: 0px;
-	width: 48px;
-	height: 48px;
-}
-#folder {
-	width: 100px;
-	height: 75px;
-	text-align: center;
+a:hover {
+	color: #ff9400;
 }
 .info {
-	background-color: #f0f0f0;
-	font-color: #333333;
+	background-color: #eeeeee;
+	border: 1px dashed #888888;
+	color: #666666;
+	font-size: 10px;
+	margin: 10px;
 	padding: 5px;
-	margin: 5px;
-	border: 1px dashed #666666;
-}
-.hest {
-	border-top: 1px solid #000000;
-	border-bottom: 1px solid #000000;
-	border-left: 1px solid #000000;
-	border-right: 1px solid #000000;
-}
-.path {
-	font-size: 12px;
-	font-weight: bold;
-}
-.nav img {
-//	border: 1px solid #000000;
 }

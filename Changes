@@ -1,10 +1,37 @@
-$Id: Changes,v 1.17 2002/01/10 14:49:48 mil Exp $
+$Id: Changes,v 1.35 2002/06/02 16:12:34 thomas Exp $
 
 Revision history for Perl extension Apache::Gallery.
 
+0.4 Sun Jun  2 13:11:09 CEST 2002
+
+	- Round height and width to integers when scaling to avoid
+	  widths like 640x479.393939393939 (Me)
+	- Regenerate scaled pictures and thumbnails if the original
+	  image has changed, the image.rotate file has been added or
+	  changed or if the copyright image was added og changed. (Me)
+	- Don't show files starting with "." in the thumbnail index (Yann Kerhervé)
+	- Made thumbnailsizes configurable with the GalleryThumbnailSize
+	  option. (Me)
+	- Print "Unknown" instead of $INFO in the imageinfo field if
+	  unable to find any EXIF information. (Me)
+	- Added perldoc documentation of the module and a installationguide. (Me)
+	- Always list directories before images (Me)
+	- Allow textfiles (ie, robots.txt) (Me)
+	- Fixed a bug where $FILES was printed instead of "Empty directory"
+	  if directory contained unsupported files (.txt, .htaccess etc) (Me)
+	- New templates where folders doesn't get displayed one on each line (Thomas Kjaer)
+	- Works without a VirtualHost now (Does not use DocumentRoot) (Peter Breton) 
+	- New option GalleryWrapNavigation to enable a new feature in the
+	  pictureview where "Next" at the end displays the first picture etc
+		(Peter Breton/Me)
+	- New option AllowOriginal for the user to be able to download the
+	  original picture, not enabled by default (Thomas Eibner)
+	- TIFF and PPM support (Thomas Eibner)
+	- Initial movie support - download movie clips (Rene Joergensen)
+
 0.3.1 Thu Jan 10 15:47:39 CET 2002
 
-  - Fixed a huge memoryleak.
+	- Fixed a huge memoryleak.
 
 0.3 Wed Jan  2 00:25:21 CET 2002
 

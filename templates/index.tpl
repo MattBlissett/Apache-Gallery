@@ -1,11 +1,19 @@
-<div id="page">
+<div>
   <div id="menu">
 $MENU
   </div>
-  <div id="dir">
+  <table>
+    <tr>
+      <td id="directory">
+        <div>
 $FILES
-  </div>
-  <div id="gallery">
-    Indexed by <a href="http://legart.dk">Apache::Gallery</a> - Copyright &copy; 2001 Michael Legart - Hest design!
-  </div>
+        </div>
+      </td>
+    </tr>
+		<tr>
+			<td>
+    		Indexed by <a href="http://apachegallery.dk">Apache::Gallery</a> - Copyright &copy; 2001 Michael Legart - <a href="http://www.hestdesign.com/">Hest Design!</a>
+			</td>
+		</tr>
+  </table>
 </div>
