@@ -160,6 +160,53 @@ CONFIGURATION
         '\.(mpe?g|avi|mov|asf|wmv|doc|mp3|ogg|pdf|rtf|wav|dlt|html?|csv|eps)
         $'
 
+    GalleryTTFDir
+        To use the GalleryCopyrightText feature you must set this option to
+        the directory where your True Type fonts are stored. No default is
+        set.
+
+        Example:
+
+                PerlSetVar      GalleryTTFDir '/usr/share/fonts/'
+
+    GalleryTTFFile
+        To use the GalleryCopyrightText feature this option must be set to
+        the name of the True Type font you wish to use. Example:
+
+                PerlSetVar      GalleryTTFFile 'verdanab.ttf'
+
+    GalleryTTFSize
+        Configure the size of the CopyrightText that will be inserted as
+        copyright notice in the corner of your pictures.
+
+        Example:
+
+                PerlSetVar      GalleryTTFSize '10'
+
+    GalleryCopyrightText
+        The text that will be inserted as copyright notice.
+
+        Example:
+
+                PerlSetVar      GalleryCopyrightText '(c) Michael Legart'
+
+    GalleryCopyrightColor
+        The text color of your copyright notice.
+
+        Examples:
+
+        White: PerlSetVar GalleryCopyrightColor '255,255,255,255'
+
+        Black: PerlSetVar GalleryCopyrightColor '0,0,0,255'
+
+        Red: PerlSetVar GalleryCopyrightColor '255,0,0,255'
+
+        Green: PerlSetVar GalleryCopyrightColor '0,255,0,255'
+
+        Blue: PerlSetVar GalleryCopyrightColor '0,0,255,255'
+
+        Transparent orange: PerlSetVar GalleryCopyrightColor '255,127,0,127'
+
 FEATURES
     Rotate images
         Some cameras, like the Canon G3, detects the orientation of a

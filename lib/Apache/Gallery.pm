@@ -881,7 +881,7 @@ sub scale_picture {
 
 		if ($width == $thumbnailwidth or $width == $thumbnailheight) {
 
-		    resizepicture($fullpath, $newpath, $width, $height, $rotate, '', '', '', '');
+		    resizepicture($fullpath, $newpath, $width, $height, $rotate, '', '', '', '', '');
 
 		} else {
 
@@ -889,6 +889,7 @@ sub scale_picture {
 					($r->dir_config('GalleryCopyrightImage') ? $r->dir_config('GalleryCopyrightImage') : ''), 
 					($r->dir_config('GalleryTTFDir') ? $r->dir_config('GalleryTTFDir') : ''), 
 					($r->dir_config('GalleryCopyrightText') ? $r->dir_config('GalleryCopyrightText') : ''), 
+					($r->dir_config('GalleryCopyrightColor') ? $r->dir_config('GalleryCopyrightColor') : ''), 
 					($r->dir_config('GalleryTTFFile') ? $r->dir_config('GalleryTTFFile') : ''), 
 					($r->dir_config('GalleryTTFSize') ?  $r->dir_config('GalleryTTFSize') : ''));
 
@@ -1296,7 +1297,7 @@ sub generate_menu {
 }
 
 sub resizepicture {
-	my ($infile, $outfile, $x, $y, $rotate, $copyrightfile, $GalleryTTFDir, $GalleryCopyrightText, $GalleryTTFFile, $GalleryTTFSize) = @_;
+	my ($infile, $outfile, $x, $y, $rotate, $copyrightfile, $GalleryTTFDir, $GalleryCopyrightText, $text_color, $GalleryTTFFile, $GalleryTTFSize) = @_;
 
 	# Load image
 	my $image = Image::Imlib2->load($infile) or warn("Unable to open file $infile, $!");
@@ -1323,7 +1324,7 @@ sub resizepicture {
 		}
 	}
 
-	if ($GalleryTTFDir && $GalleryCopyrightText && $GalleryTTFFile) {
+	if ($GalleryTTFDir && $GalleryCopyrightText && $GalleryTTFFile, $text_color) {
 		if (!-d $GalleryTTFDir) {
 
 			Apache->request->log_error("GalleryTTFDir $GalleryTTFDir is not a dir\n");
@@ -1340,14 +1341,20 @@ sub resizepicture {
  
 			$GalleryTTFFile =~ s/\.TTF$//i;
 			$image->add_font_path("$GalleryTTFDir");
-			$image->set_colour(200, 200, 200, 200);
+
+			my ($r_val, $g_val, $b_val, $a_val) = split (/,/, $text_color);
+
+			$image->set_colour($r_val, $g_val, $b_val, $a_val);
+
 			$image->load_font("$GalleryTTFFile/$GalleryTTFSize");
 			my($text_x, $text_y) = $image->get_text_size("$GalleryCopyrightText");
 			my $x = $image->get_width();
 			my $y = $image->get_height();
 
-			if (($text_x < $x) && ($text_y < $y)) {
-				$image->draw_text($x-$text_x, $y-$text_y, "$GalleryCopyrightText");
+			my $offset = 3;
+
+			if (($text_x < $x - $offset) && ($text_y < $y - $offset)) {
+				$image->draw_text($x-$text_x-$offset, $y-$text_y-$offset, "$GalleryCopyrightText");
 			} else {
 				Apache->request->log_error("Text is to big for the picture.\n");
 			}
@@ -1542,6 +1549,63 @@ as normal files. All other filetypes will still be served by Apache::Gallery
 but are not visible in the index.
 
 The default is '\.(mpe?g|avi|mov|asf|wmv|doc|mp3|ogg|pdf|rtf|wav|dlt|html?|csv|eps)$'
+
+=item B<GalleryTTFDir>
+
+To use the GalleryCopyrightText feature you must set this option to the
+directory where your True Type fonts are stored. No default is set.
+
+Example:
+
+	PerlSetVar      GalleryTTFDir '/usr/share/fonts/'
+
+=item B<GalleryTTFFile>
+
+To use the GalleryCopyrightText feature this option must be set to the
+name of the True Type font you wish to use. Example:
+
+	PerlSetVar      GalleryTTFFile 'verdanab.ttf'
+
+=item B<GalleryTTFSize>
+
+Configure the size of the CopyrightText that will be inserted as 
+copyright notice in the corner of your pictures.
+
+Example:
+
+	PerlSetVar      GalleryTTFSize '10'
+
+=item B<GalleryCopyrightText>
+
+The text that will be inserted as copyright notice.
+
+Example:
+
+        PerlSetVar      GalleryCopyrightText '(c) Michael Legart'
+
+=item B<GalleryCopyrightColor>
+
+The text color of your copyright notice.
+
+Examples:
+
+White:
+        PerlSetVar      GalleryCopyrightColor '255,255,255,255'
+
+Black:
+        PerlSetVar      GalleryCopyrightColor '0,0,0,255'
+
+Red:
+        PerlSetVar      GalleryCopyrightColor '255,0,0,255'
+
+Green:
+        PerlSetVar      GalleryCopyrightColor '0,255,0,255'
+
+Blue:
+        PerlSetVar      GalleryCopyrightColor '0,0,255,255'
+
+Transparent orange:
+        PerlSetVar      GalleryCopyrightColor '255,127,0,127'
 
 =back
 
