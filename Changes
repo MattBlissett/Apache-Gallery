@@ -12,7 +12,7 @@ Revision history for Perl extension Apache::Gallery.
 	- Support the EXIF Orientation key for automatic rotate,
 	  if your camera supports that - like Canon G3. You can
 	  disable this by setting GalleryAutoRotate to 0 (Me)
-	- Works with Inline > 0.42 (Peter Andreasen)
+	- Works with Inline > 0.42 (Peter Andreasen/Me)
 	- Show nice icons and allow downloads for doc,mp3,ogg,rtf,wav
 	  and wmv in addition to the current movie types (Me)
 
