@@ -23,7 +23,7 @@ Revision history for Perl extension Apache::Gallery.
 	- Support for the FNumber EXIF value (Thomas Corell)
 	- Added GalleryRootText option to allow changing the name of
 	  the root element in the menu (Christopher Knight)
-	- Use Image::Imlib2 instead of Inline::C (Andreas Plenser Jacobsen)
+	- Use Image::Imlib2 instead of Inline::C (Andreas Plesner Jacobsen)
 	- New option GalleryMaxThumbnailsPerPage to limit the number
 	  of thumbnails displayed per page. Disabled by default
 	  and requires templates update. (Michael Legart)
