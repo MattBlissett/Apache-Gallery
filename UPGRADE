@@ -6,7 +6,9 @@ For users upgrading from 0.6 to 0.7
 Copy htdocs/agfolder.png to your Apache
 icons directory.
 
-Copy htdocs/gallery.css to your DocumentRoot. 
+To update to the new layout, copy templates/new/gallery.css 
+to your DocumentRoot and copy templates/new/*.tpl to your
+GalleryTemplateDir. 
 
 For users upgrading from 0.5.1 to 0.6
 
