@@ -355,7 +355,7 @@ sub handler {
 		foreach (@infos) {
 		
 			my ($human_key, $exif_key) = (split " => ")[0,1];
-			my $value = $imageinfo->{human_key};
+			my $value = $imageinfo->{$human_key};
 			if (defined($value)) {
 				$tpl->assign(KEY => $human_key);
 				$tpl->assign(VALUE => $value);
@@ -568,7 +568,7 @@ sub get_imageinfo {
 				}
 				$value = $exif_value;
 			}
-			$imageinfo->{human_key} = $value;
+			$imageinfo->{$human_key} = $value;
 		} 
 	}
 
