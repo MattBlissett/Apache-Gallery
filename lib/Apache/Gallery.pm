@@ -1687,12 +1687,13 @@ Transparent orange:
 
 =item B<GalleryQuality>
 
-The quality (0-100) of scaled images
+The quality (1-100) of scaled images
 
 This setting affects the quality of the scaled images.
-Set this to a low number to reduce the size of the scaled
-images.
+Set this to a low number to reduce the size of the scaled images.
 Remember to clear out your cache if you change this setting.
+Quality seems to default to 75, at least in the jpeg and png loader code in
+Imlib2 1.1.0.
 
 Examples:
 
