@@ -114,11 +114,14 @@ FEATURES
         title" which will be the title of the page, and a comment on the
         following lines.
 
-        Example: TITLE: This is the new title of the page And this is the
-        comment.<br> And this is line two of the comment.
+        Example:
+
+                TITLE: This is the new title of the page
+                And this is the comment.<br>
+                And this is line two of the comment.
 
 DEPENDENCIES
-    Perl 5.6
+    Perl 5
     Apache with mod_perl
     Apache::Request
     URI::Escape
@@ -147,7 +150,7 @@ COPYRIGHT AND LICENSE
     License. See http://www.perl.com/language/misc/Artistic.html for
     details.
 
-    The video icons are from the GNOME project. http:://www.gnome.org/
+    The video icons are from the GNOME project. http://www.gnome.org/
 
 THANKS
     Thanks to Thomas Kjaer for templates and design of

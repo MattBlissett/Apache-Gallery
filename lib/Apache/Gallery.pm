@@ -7,7 +7,7 @@ use strict;
 
 use vars qw($VERSION);
 
-$VERSION = "0.4.1";
+$VERSION = "0.5";
 
 use Apache ();
 use Apache::Constants qw(:common);
@@ -1035,9 +1035,10 @@ title" which will be the title of the page, and a comment on the
 following lines.
 
 Example:
-TITLE: This is the new title of the page
-And this is the comment.<br>
-And this is line two of the comment.
+
+	TITLE: This is the new title of the page
+	And this is the comment.<br>
+	And this is line two of the comment.
 
 =back
 
@@ -1045,7 +1046,7 @@ And this is line two of the comment.
 
 =over 4
 
-=item B<Perl 5.6>
+=item B<Perl 5>
 
 =item B<Apache with mod_perl>
 
@@ -1089,7 +1090,7 @@ Templates designed by Thomas Kjaer <tk@lnx.dk>
 Apache::Gallery is free software and is released under the Artistic License.
 See B<http://www.perl.com/language/misc/Artistic.html> for details.
 
-The video icons are from the GNOME project. B<http:://www.gnome.org/>
+The video icons are from the GNOME project. B<http://www.gnome.org/>
 
 =head1 THANKS
 

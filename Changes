@@ -3,6 +3,8 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
+0.5 Sun Sep 15 11:55:56 CEST 2002
+
 	- Added slideshow feature (Me)	
 	- Code cleanup (Me)
 	- Moved the cache to one single directory outside the webscope (Rene Joergensen)

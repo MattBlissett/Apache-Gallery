@@ -1,7 +1,7 @@
 # $Author$ $Rev$
 # $Date$
 
-For users upgrading from 0.4 to devel
+For users upgrading from 0.4 to 0.5
 
 Remember to update the following templates:
 templates/interval.tpl
