@@ -407,6 +407,10 @@ sub handler {
 			} 
 		}
 
+		if ($foundcomment and !$foundinfo) {
+			$tpl->assign(INFO => "");
+		}
+
 		if ($foundinfo or $foundcomment) {
 			$tpl->parse(PICTUREINFO => 'pictureinfo');
 		}
