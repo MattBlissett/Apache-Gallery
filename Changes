@@ -17,6 +17,7 @@ Revision history for Perl extension Apache::Gallery.
 	  and wmv in addition to the current movie types (Me)
 	- Now displays nice values for Aperture,FocalLength,ShutterSpeed
 	  exif values (Thomas Eibner) 
+        - Directory comments added (Hans Joergensen)
 
 0.5.1 Sat Nov  9 11:49:29 CET 2002
 

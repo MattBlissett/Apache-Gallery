@@ -117,7 +117,10 @@ FEATURES
         "Picture1234.jpg.rotate" with the number 1 inside of it.
 
     Comments
-        To include comments for each picture you create files called
+        To include comments for a directory you create a directory.comment
+        file where the first line can contain "TITLE: New title" which will
+        be the title of the page, and a comment on the following lines. To
+        include comments for each picture you create files called
         picture.jpg.comment where the first line can contain "TITLE: New
         title" which will be the title of the page, and a comment on the
         following lines.
@@ -144,6 +147,7 @@ DEPENDENCIES
     X11 libraries (ie, XFree86)
     Imlib2 Remember the -dev package when using rpm, deb or other package
     formats!
+
 BUGS
     Fatal errors are showed on a page with a HTTP OK return code. This is
     because Internet Explorer will show it's own error page otherwise. Is it
@@ -170,7 +174,6 @@ THANKS
     (See the Changes file)
 
 SEE ALSO
-    the perl manpage, the mod_perl manpage, the Apache::Request manpage, the
-    Inline::C manpage, the CGI::FastTemplate manpage, the Image::Info
-    manpage, and the Image::Size manpage.
+    perl, mod_perl, Apache::Request, Inline::C, CGI::FastTemplate,
+    Image::Info, and Image::Size.
 

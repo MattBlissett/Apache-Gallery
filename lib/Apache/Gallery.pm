@@ -106,7 +106,9 @@ sub handler {
 			index     => 'index.tpl',
 			directory => 'directory.tpl',
 			picture   => 'picture.tpl',
-			file      => 'file.tpl'
+			file      => 'file.tpl',
+			comment   => 'dircomment.tpl',
+			nocomment => 'nodircomment.tpl'
 		);
 
 		$tpl->assign(TITLE => "Index of: ".uri_escape($uri, $escape_rule));
@@ -224,6 +226,15 @@ sub handler {
 		}
 		else {
 			$tpl->assign(FILES => "No files found");
+		}
+
+		if (-e $topdir . '.comment' && -f $topdir . '.comment') {
+			my $comment_ref = get_comment($topdir . '.comment');
+			$tpl->assign(COMMENT => $comment_ref->{COMMENT} . '<br>') if $comment_ref->{COMMENT};
+			$tpl->assign(TITLE => $comment_ref->{TITLE}) if $comment_ref->{TITLE};
+			$tpl->parse(DIRCOMMENT => 'comment');
+		} else {
+			$tpl->parse(DIRCOMMENT => 'nocomment');
 		}
 
 		$tpl->parse("MAIN", ["index", "layout"]);
@@ -1126,6 +1137,10 @@ the number 1 inside of it.
 
 =item B<Comments>
 
+To include comments for a directory you create a directory.comment
+file where the first line can contain "TITLE: New title" which
+will be the title of the page, and a comment on the following 
+lines.
 To include comments for each picture you create files called 
 picture.jpg.comment where the first line can contain "TITLE: New
 title" which will be the title of the page, and a comment on the
