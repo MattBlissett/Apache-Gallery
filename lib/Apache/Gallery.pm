@@ -673,10 +673,7 @@ sub scale_picture {
 
 	my ($orig_width, $orig_height, $type) = imgsize($fullpath);
 
-	my @cachedir = split("/", cache_dir($r, 0));
-	pop(@cachedir) unless (-d join("/", @cachedir));
-
-	my $cache = join("/", @cachedir);
+	my $cache = cache_dir($r, 1);
 
 	if (($width > $orig_width) && ($height > $orig_height)) {
 	    require File::Copy;
