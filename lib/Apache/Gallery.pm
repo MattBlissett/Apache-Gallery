@@ -917,7 +917,7 @@ sub get_imageinfo {
 					}
 				}
 			}
-			if ($exif_key eq 'ApertureValue' || $exif_key eq 'FNumber') {
+			if ($exif_key eq 'ApertureValue') {
 				if ($value =~ /^(\d+)\/(\d+)$/) {
 					$value = eval { $1 / $2 };
 					if ($@) {
@@ -925,6 +925,17 @@ sub get_imageinfo {
 					} else {
 						# poor man's rounding
 						$value = int(exp($value*log(2)*0.5)*10)/10;
+						$value = "f" . $value;
+					}
+				}
+			}
+			if ($exif_key eq 'FNumber') {
+				if ($value =~ /^(\d+)\/(\d+)$/) {
+					$value = eval { $1 / $2 };
+					if ($@) {
+						$value = $@;
+					} else {
+						$value = int($value*10+0.5)/10;
 						$value = "f" . $value;
 					}
 				}
