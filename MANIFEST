@@ -14,10 +14,10 @@ INSTALL
 lib/Apache/Gallery.pm
 t/001_use.t
 t/002_graphlibs.t
+t/002_injpg.jpg
+t/002_inpng.png
 t/003_comment.t
-t/commenttest
-t/injpg.jpg
-t/inpng.png
+t/003_commenttest
 templates/layout.tpl
 templates/showpicture.tpl
 templates/picture.tpl

@@ -2,8 +2,8 @@ use Test::More tests => 4;
 use Apache::Gallery;
 use Image::Size qw(imgsize);
 
-Apache::Gallery::resizepicture('t/inpng.png', 't/inpng-resized.png', 10, 10, 0, '');
-Apache::Gallery::resizepicture('t/injpg.jpg', 't/injpg-resized.jpg', 10, 10, 0, '');
+Apache::Gallery::resizepicture('t/002_inpng.png', 't/inpng-resized.png', 10, 10, 0, '');
+Apache::Gallery::resizepicture('t/002_injpg.jpg', 't/injpg-resized.jpg', 10, 10, 0, '');
 my ($pngwidth, $pngheight)=imgsize('t/inpng-resized.png');
 my ($jpgwidth, $jpgheight)=imgsize('t/injpg-resized.jpg');
 
