@@ -88,6 +88,7 @@ sub handler {
 		);
 
 		$tpl->assign(TITLE => "Index of: ".$uri);
+		$tpl->assign(META => " ");
 
 		unless (opendir (DIR, $filename)) {
 			show_error ($r, $!, "Unable to access directory $filename: $!");
@@ -269,15 +270,22 @@ sub handler {
 		my $tpl = new CGI::FastTemplate($r->dir_config('GalleryTemplateDir'));
 
 		$tpl->define(
-			layout      => 'layout.tpl',
-			picture     => 'showpicture.tpl',
-			navpicture  => 'navpicture.tpl',
-			info        => 'info.tpl',
-			scale       => 'scale.tpl',
-			orig        => 'orig.tpl'
+			layout         => 'layout.tpl',
+			picture        => 'showpicture.tpl',
+			navpicture     => 'navpicture.tpl',
+			info           => 'info.tpl',
+			scale          => 'scale.tpl',
+			scaleactive    => 'scaleactive.tpl',
+			orig           => 'orig.tpl',
+			refresh        => 'refresh.tpl',
+			interval       => 'interval.tpl',
+			intervalactive => 'intervalactive.tpl',
+			slideshowisoff => 'slideshowisoff.tpl',
+			slideshowoff   => 'slideshowoff.tpl'
 		);
 
 		$tpl->assign(TITLE => "Viewing ".$r->uri()." at $image_width x $height");
+		$tpl->assign(META => " ");
 		$tpl->assign(RESOLUTION => "$image_width x $height");
 		$tpl->assign(MENU => generate_menu($r));
 		$tpl->assign(SRC => ".cache/".$cached);
@@ -292,13 +300,16 @@ sub handler {
 		@pictures = sort @pictures;
 
 		$tpl->assign(TOTAL => scalar @pictures);
-		
+
+		my $prevpicture;
+		my $nextpicture;
+	
 		for (my $i=0; $i <= $#pictures; $i++) {
 			if ($pictures[$i] eq $picfilename) {
 
 				$tpl->assign(NUMBER => $i+1);
 
-				my $prevpicture = $pictures[$i-1];
+				$prevpicture = $pictures[$i-1];
 				my $displayprev = ($i>0 ? 1 : 0);
 
 				if ($r->dir_config("GalleryWrapNavigation")) {
@@ -320,7 +331,7 @@ sub handler {
 					$tpl->assign(BACK => "&nbsp");
 				}
 
-				my $nextpicture = $pictures[$i+1];
+				$nextpicture = $pictures[$i+1];
 				if ($r->dir_config("GalleryWrapNavigation")) {
 					$nextpicture = $pictures[$i == $#pictures ? 0 : $i+1];
 				}	
@@ -373,13 +384,47 @@ sub handler {
 				$tpl->assign(IMAGEURI => uri_escape($r->uri(), $escape_rule));
 				$tpl->assign(SIZE     => $size);
 				$tpl->assign(WIDTH    => $size);
+				if ($width == $size) {
+					$tpl->parse(SIZES => '.scaleactive');
+				}
+				else {
 				$tpl->parse(SIZES => '.scale');
+				}
 			}
 		}
 
 		if ($r->dir_config('GalleryAllowOriginal')) {
 			$tpl->assign(IMAGEURI => uri_escape($r->uri(), $escape_rule));
 			$tpl->parse(SIZES => '.orig');
+		}
+
+		my @slideshow_intervals = split (/ /, $r->dir_config('GallerySlideshowIntervals') ? $r->dir_config('GallerySlideshowIntervals') : '3 5 10 15 30');
+		foreach my $interval (@slideshow_intervals) {
+			$tpl->assign(IMAGEURI => uri_escape($r->uri(), $escape_rule));
+			$tpl->assign(SECONDS => $interval);
+			if ($apr->param('slideshow') && $apr->param('slideshow') == $interval and $nextpicture) {
+				$tpl->parse(SLIDESHOW => '.intervalactive');
+			}
+			else {
+				$tpl->parse(SLIDESHOW => '.interval');
+			}
+		}
+
+		if ($apr->param('slideshow') and $nextpicture) {
+
+			$tpl->parse(SLIDESHOW => '.slideshowoff');
+
+			unless ((grep $apr->param('slideshow') == $_, @slideshow_intervals)) {
+				show_error($r, "Invalid interval", $apr->param('slideshow')." is not an allowed interval.");
+				return OK;
+			}
+
+			$tpl->assign(INTERVAL => $apr->param('slideshow'));
+			$tpl->parse(META => '.refresh');
+
+		}
+		else {
+			$tpl->parse(SLIDESHOW => '.slideshowisoff');
 		}
 
 		$tpl->parse("MAIN", ["picture", "layout"]);
@@ -650,7 +695,6 @@ sub show_error {
 
 	$r->print(${$content});
 
-	return OK;
 }
 
 sub generate_menu {
@@ -858,6 +902,11 @@ Allow the user to download the Original picture without
 resizing or putting the CopyrightImage on it.
 
 Set to 1 or 0, default is 0
+
+=item B<GallerySlideshowIntervals>
+
+With this option you can configure which intervals can be selected for
+a slideshow. The default is '3 5 10 15 30'
 
 =back
 

@@ -1,6 +1,3 @@
-$Author$ $Rev$
-$Date$
-
 NAME
     Apache::Gallery - mod_perl handler to create an image gallery
 
@@ -59,7 +56,7 @@ CONFIGURATION
         Defines which widths images can be scaled to. Images cannot be
         scaled to other widths than the ones you define with this option.
 
-        The default is '640 1024 1600 2272'
+        The default is '640 800 1024 1600'
 
     GalleryThumbnailSize
         Defines the width and height of the thumbnail images.
@@ -83,6 +80,10 @@ CONFIGURATION
         putting the CopyrightImage on it.
 
         Set to 1 or 0, default is 0
+
+    GallerySlideshowIntervals
+        With this option you can configure which intervals can be selected
+        for a slideshow. The default is '3 5 10 15 30'
 
 FEATURES
     Rotate images
@@ -116,11 +117,18 @@ DEPENDENCIES
     Apache::Request
     URI::Escape
     Image::Info
+    Image::Size
     CGI::FastTemplate
     Inline::C
     X11 libraries (ie, XFree86)
     Imlib2 Remember the -dev package when using rpm, deb or other package
     formats!
+BUGS
+    Fatal errors are showed on a page with a HTTP OK return code. This is
+    because Internet Explorer will show it's own error page otherwise. Is it
+    possible to force IE to show our custom errormessage even when returning
+    HTTP status code 500?
+
 AUTHOR
     Michael Legart <michael@legart.dk>
 
@@ -137,10 +145,11 @@ COPYRIGHT AND LICENSE
 
 THANKS
     Thanks to Thomas Kjaer for templates and design of
-    http://apachegallery.dk and thanks to Thomas Eibner for patches.
+    http://apachegallery.dk Thanks to Thomas Eibner and other for patches.
+    (See the Changes file)
 
 SEE ALSO
     the perl manpage, the mod_perl manpage, the Apache::Request manpage, the
-    Inline::C manpage, the CGI::FastTemplate manpage, and the Image::Info
-    manpage.
+    Inline::C manpage, the CGI::FastTemplate manpage, the Image::Info
+    manpage, and the Image::Size manpage.
 

@@ -5,6 +5,7 @@
 <head>
 	<title>$TITLE</title>
 	<link rel="stylesheet" href="/gallery.css">
+	$META
 </head>
 
 <body>

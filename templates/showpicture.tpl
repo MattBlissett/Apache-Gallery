@@ -9,7 +9,8 @@ $MENU
 						<center class="nav">
 						Viewing picture $NUMBER of $TOTAL at $RESOLUTION pixels<br>
             <img src="$SRC"><br>
-            Size [ $SIZES ]
+            Size [ $SIZES ]<br>
+						Slideshow [ $SLIDESHOW ]
           </center>
         </td>
       </tr>
@@ -32,7 +33,7 @@ $MENU
 	  <tr>
 	  	<td colspan="3">
 		  <div id="gallery">
-		    Indexed by <a href="http://apachegallery.dk">Apache::Gallery</a> - Copyright &copy; 2001 Michael Legart - <a href="http://www.hestdesign.com/">Hest Design!</a>
+		    Indexed by <a href="http://apachegallery.dk">Apache::Gallery</a> - Copyright &copy; 2001-2002 Michael Legart - <a href="http://www.hestdesign.com/">Hest Design!</a>
 		  </div>
 		</td>
 	  </tr>

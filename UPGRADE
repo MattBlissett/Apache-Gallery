@@ -1,6 +1,18 @@
 # $Author$ $Rev$
 # $Date$
 
+For users upgrading from 0.4 to devel
+
+Remember to update the following templates:
+templates/interval.tpl
+templates/intervalactive.tpl
+templates/layout.tpl
+templates/refresh.tpl
+templates/scaleactive.tpl
+templates/showpicture.tpl
+templates/slideshowisoff.tpl
+templates/slideshowoff.tpl
+
 For users upgrading from 0.3 to 0.4:
 
 Two new options have been added, they are both optional:

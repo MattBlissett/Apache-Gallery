@@ -3,6 +3,9 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
+	- Added slideshow feature (Me)	
+	- Code cleanup (Me)
+
 0.4.1 Sun Aug 11 17:48:09 CEST 2002
 
 	- URI Escape image URL in the size selection URLs. (Me)
