@@ -15,6 +15,8 @@ Revision history for Perl extension Apache::Gallery.
 	- Works with Inline > 0.42 (Peter Andreasen/Me)
 	- Show nice icons and allow downloads for doc,mp3,ogg,rtf,wav
 	  and wmv in addition to the current movie types (Me)
+	- Now displays nice values for Aperture,FocalLength,ShutterSpeed
+	  exif values (Thomas Eibner) 
 
 0.5.1 Sat Nov  9 11:49:29 CET 2002
 

@@ -732,6 +732,43 @@ sub get_imageinfo {
 				}
 				$value = $exif_value;
 			}
+			if ($exif_key eq 'FocalLength') {
+				if ($value =~ /^(\d+)\/(\d+)$/) {
+					$value = eval { $1 / $2 };
+					if ($@) {
+						$value = $@;
+					} else {
+						$value = int($value + 0.5) . "mm";
+
+					}
+				}
+			}
+			if ($exif_key eq 'ShutterSpeedValue') {
+				if ($value =~ /^(\d+)\/(\d+)$/) {
+					$value = eval { $1 / $2 };
+					if ($@) {
+						$value = $@;
+					} else {
+						$value = 1/(exp($value*log(2)));
+						if ($value < 1) {
+							$value = "1/" . (int((1/$value)));
+						}
+						$value = $value . " sec";
+					}
+				}
+			}
+			if ($exif_key eq 'ApertureValue') {
+				if ($value =~ /^(\d+)\/(\d+)$/) {
+					$value = eval { $1 / $2 };
+					if ($@) {
+						$value = $@;
+					} else {
+						# poor man's rounding
+						$value = int(exp($value*log(2)*0.5)*10)/10;
+						$value = "f" . $value;
+					}
+				}
+			}
 			$imageinfo->{$human_key} = $value;
 		} 
 	}
