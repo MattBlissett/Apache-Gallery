@@ -215,8 +215,14 @@ sub handler {
 		# Read and sort directories
 		rewinddir (DIR);
 		my @directories = grep { !/^\./ && -d "$filename/$_" } readdir (DIR);
-		@directories = sort @directories;
+		if ($sortby && $sortby =~ m/^(size|atime|mtime|ctime)$/) {
+			@directories = map(/^\d+ (.*)/, sort map(stat("$filename/$_")->$sortby()." $_", @directories));
+		} else {
+			@directories = sort @directories;
+		}
+
 		closedir(DIR);
+
 
 		# Combine directories and files to one listing
 		my @listing;
