@@ -290,8 +290,10 @@ sub handler {
 						$dirtitle = get_filecontent($thumbfilename . ".folder");
 					}
 
-					$tpl->assign(FILEURL => uri_escape($fileurl, $escape_rule), FILE => ($dirtitle ? $dirtitle : $file));
-					$tpl->parse(FILES => '.directory');
+					$tpl_vars{FILES} .= fill_in_file($tpl_vars{directory},
+						HASH=> {FILEURL => uri_escape($fileurl, $escape_rule),
+						FILE    => ($dirtitle ? $dirtitle : $file),
+					});
 
 				}
 				elsif (-f $thumbfilename && $thumbfilename =~ /$doc_pattern/i) {
@@ -312,13 +314,14 @@ sub handler {
 						$filetype = "unknown";
 					}
 
-					$tpl->assign(FILEURL => uri_escape($fileurl, $escape_rule), 
-					             ALT => "Size: $size Bytes", 
-					             FILE => $file, 
-					             TYPE => $type,
-					             FILETYPE => $filetype);
-
-					$tpl->parse(FILES => '.file');						 
+					$tpl_vars{FILES} .= fill_in_file($tpl_vars{file},
+						HASH => {%tpl_vars,
+						FILEURL => uri_escape($fileurl, $escape_rule),
+						ALT => "Size: $size Bytes",
+						FILE => $file,
+						TYPE => $type,
+						FILETYPE => $filetype,
+					});
 
 				}
 				elsif (-f $thumbfilename) {
@@ -607,102 +610,135 @@ sub handler {
 
 		if ($exif_mode eq 'values') {
 			if (defined($exifvalues)) {
-				$tpl->assign(EXIFVALUES => $exifvalues);
+				$tpl_vars{EXIFVALUES} = $exifvalues;
 			}
 			else {
-				$tpl->assign(EXIFVALUES => "");
+				$tpl_vars{EXIFVALUES} = "";
 			}
 		}
 
 		if ($foundcomment and !$foundinfo) {
-			$tpl->assign(INFO => "");
+			$tpl_vars{INFO} = "";
 		}
 
 		if ($exif_mode ne 'namevalue') {
-			$tpl->assign(INFO => "");
+			$tpl_vars{INFO} = "";
 		}
 
 		if ($foundinfo or $foundcomment) {
 
-			$tpl->parse(PICTUREINFO => 'pictureinfo');
+			$tpl_vars{PICTUREINFO} = fill_in_file($tpl_vars{pictureinfo},
+				HASH => \%tpl_vars
+			);
 
 			unless (defined($exifvalues)) {
-				$tpl->assign(EXIFVALUES => "");
+				$tpl_vars{EXIFVALUES} = "";
 			}
 
 		}
 		else {
-			$tpl->parse(PICTUREINFO => 'nopictureinfo');
+			$tpl_vars{PICTUREINFO} = 'nopictureinfo';
 		}	
 
 		my $scaleable = 0;
 		foreach my $size (@sizes) {
 			if ($size<=$original_size) {
-				$tpl->assign(IMAGEURI => uri_escape($r->uri(), $escape_rule));
-				$tpl->assign(SIZE     => $size);
-				$tpl->assign(WIDTH    => $size);
+				my %sizes_vars;
+				$sizes_vars{IMAGEURI} = uri_escape($r->uri(), $escape_rule);
+				$sizes_vars{SIZE}     = $size;
+				$sizes_vars{WIDTH}    = $size;
 				if ($width == $size) {
-					$tpl->parse(SIZES => '.scaleactive');
+					$tpl_vars{SIZES} .= fill_in_file($tpl_vars{scaleactive},
+						HASH => \%sizes_vars,
+					);
 				}
 				else {
-				$tpl->parse(SIZES => '.scale');
-				$scaleable = 1;
+					$tpl_vars{SIZES} .= fill_in_file($tpl_vars{scale},
+						HASH => \%sizes_vars,
+					);
+					$scaleable = 1;
 				}
 			}
 		}
 
 		unless ($scaleable) {
-				$tpl->assign(SIZE     => $original_size);
-				$tpl->assign(WIDTH    => $original_size);
-				$tpl->parse(SIZES => '.scaleactive');
+			my %sizes_vars;
+			$sizes_vars{IMAGEURI} = uri_escape($r->uri(), $escape_rule);
+			$sizes_vars{SIZE}     = $original_size;
+			$sizes_vars{WIDTH}    = $original_size;
+			$tpl_vars{SIZES} .= fill_in_file($tpl_vars{scaleactive},
+				HASH => \%sizes_vars,
+			);
 		}
 
 		if ($r->dir_config('GalleryAllowOriginal')) {
-			$tpl->assign(IMAGEURI => uri_escape($r->uri(), $escape_rule));
-			$tpl->parse(SIZES => '.orig');
+			$tpl_vars{IMAGEURI} = uri_escape($r->uri(), $escape_rule);
+			$tpl_vars{SIZES} .= fill_in_file($tpl_vars{orig},
+				HASH => \%tpl_vars,
+			);
 		}
 
 		my @slideshow_intervals = split (/ /, $r->dir_config('GallerySlideshowIntervals') ? $r->dir_config('GallerySlideshowIntervals') : '3 5 10 15 30');
 		foreach my $interval (@slideshow_intervals) {
-			$tpl->assign(IMAGEURI => uri_escape($r->uri(), $escape_rule));
-			$tpl->assign(SECONDS => $interval);
-			$tpl->assign(WIDTH => ($width > $height ? $width : $height));
+
+			my %slideshow_vars;
+			$slideshow_vars{IMAGEURI} = uri_escape($r->uri(), $escape_rule);
+			$slideshow_vars{SECONDS} = $interval;
+			$slideshow_vars{WIDTH} = ($width > $height ? $width : $height);
+
 			if ($cgi->param('slideshow') && $cgi->param('slideshow') == $interval and $nextpicture) {
-				$tpl->parse(SLIDESHOW => '.intervalactive');
+				$tpl_vars{SLIDESHOW} .= fill_in_file($tpl_vars{intervalactive},
+					HASH => \%slideshow_vars,
+				);
+
 			}
 			else {
-				$tpl->parse(SLIDESHOW => '.interval');
+
+				$tpl_vars{SLIDESHOW} .= fill_in_file($tpl_vars{interval},
+					HASH => \%slideshow_vars,
+				);
+
 			}
 		}
 
 		if ($cgi->param('slideshow') and $nextpicture) {
 
-			$tpl->parse(SLIDESHOW => '.slideshowoff');
+			$tpl_vars{SLIDESHOW} = fill_in_file($tpl_vars{slideshowoff},
+				HASH => \%tpl_vars,
+			);
 
 			unless ((grep $cgi->param('slideshow') == $_, @slideshow_intervals)) {
 				show_error($r, 200, "Invalid interval", "Invalid slideshow interval choosen");
 				return MP2 ? Apache::OK : Apache::Constants::OK;
 			}
 
-			$tpl->assign(INTERVAL => $cgi->param('slideshow'));
-			$tpl->parse(META => '.refresh');
+			$tpl_vars{INTERVAL} = $cgi->param('slideshow');
+			$tpl_vars{META} .=  fill_in_file($tpl_vars{refresh},
+				HASH => \%tpl_vars,
+			);
 
 		}
 		else {
-			$tpl->parse(SLIDESHOW => '.slideshowisoff');
+			$tpl_vars{META} .=  fill_in_file($tpl_vars{slideshowisoff},
+				HASH => \%tpl_vars,
+			);
 		}
 
-		$tpl->parse("MAIN", ["picture", "layout"]);
-		my $content = $tpl->fetch("MAIN");
+		$tpl_vars{MAIN} = fill_in_file($tpl_vars{picture},
+			HASH => \%tpl_vars,
+		);
+		$tpl_vars{MAIN} = fill_in_file($tpl_vars{layout},
+			HASH => \%tpl_vars,
+		);
 
 		$r->content_type('text/html');
-		$r->headers_out->{'Content-Length'} = length(${$content});
+		$r->headers_out->{'Content-Length'} = length($tpl_vars{MAIN});
 
 		if (!MP2) {
 			$r->send_http_header;
 		}
 
-		$r->print(${$content});
+		$r->print($tpl_vars{MAIN});
 		return MP2 ? Apache::OK : Apache::Constants::OK;
 
 	}
@@ -1155,7 +1191,7 @@ sub show_error {
 
 	my ($r, $statuscode, $errortitle, $error) = @_;
 
-	my $tpl = new CGI::FastTemplate($r->dir_config('GalleryTemplateDir'));
+	my $tpl = $r->dir_config('GalleryTemplateDir');
 
 	my %tpl_vars = (layout => "$tpl/layout.tpl",
 			error  => "$tpl/error.tpl",
