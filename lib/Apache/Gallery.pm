@@ -1673,7 +1673,7 @@ with the visible name of the folder.
 
 =item B<Image::Size>
 
-=item B<CGI::FastTemplate>
+=item B<Text::Template>
 
 =item B<Image::Imlib2>
 

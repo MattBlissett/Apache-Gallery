@@ -255,7 +255,7 @@ DEPENDENCIES
     URI::Escape
     Image::Info
     Image::Size
-    CGI::FastTemplate
+    Text::Template
     Image::Imlib2
     X11 libraries (ie, XFree86)
     Imlib2 Remember the -dev package when using rpm, deb or other package
