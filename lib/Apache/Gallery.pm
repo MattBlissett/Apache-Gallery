@@ -387,8 +387,7 @@ sub handler {
 		$tpl->define(
 			layout         => 'layout.tpl',
 			picture        => 'showpicture.tpl',
-			navprev        => 'navprev.tpl',
-			navnext        => 'navnext.tpl',
+			navpicture     => 'navpicture.tpl',
 			info           => 'info.tpl',
 			scale          => 'scale.tpl',
 			scaleactive    => 'scaleactive.tpl',
@@ -451,7 +450,8 @@ sub handler {
 					$tpl->assign(FILENAME  => $prevpicture);
 					$tpl->assign(WIDTH     => $width);
 					$tpl->assign(PICTURE   => uri_escape(".cache/$cached", $escape_rule));
-					$tpl->parse(BACK => "navprev");
+					$tpl->assign(DIRECTION => "&laquo; prev");
+					$tpl->parse(BACK => "navpicture");
 				}
 				else {
 					$tpl->assign(BACK => "&nbsp");
@@ -471,7 +471,8 @@ sub handler {
 					$tpl->assign(FILENAME  => $nextpicture);
 					$tpl->assign(WIDTH     => $width);
 					$tpl->assign(PICTURE   => uri_escape(".cache/$cached", $escape_rule));
-					$tpl->parse(NEXT => "navnext");
+					$tpl->assign(DIRECTION => "next &raquo;");
+					$tpl->parse(NEXT => "navpicture");
 				}
 				else {
 					$tpl->assign(NEXT => "&nbsp;");

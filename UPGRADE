@@ -6,11 +6,7 @@ For users upgrading from 0.6 to 0.7
 Copy htdocs/agfolder.png to your Apache
 icons directory.
 
-Copy htdocs/gallery.css to your DocumentRoot. And please try
-to update all your template files. There have been made quite
-alot of changes. navpicture.tpl has been replaced with navnext.tpl
-and navprev.tpl and the other templates has been updated with
-new layout.
+Copy htdocs/gallery.css to your DocumentRoot. 
 
 For users upgrading from 0.5.1 to 0.6
 
