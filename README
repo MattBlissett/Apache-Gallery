@@ -135,6 +135,10 @@ CONFIGURATION
         Change the name that appears as the root element in the menu. The
         default is "root:"
 
+    GalleryMaxThumbnailsPerPage
+        This options controls how many thumbnails should be displayed in a
+        page. It requires $BROWSELINKS to be in the index.tpl template file.
+
 FEATURES
     Rotate images
         Some cameras, like the Canon G3, detects the orientation of a
