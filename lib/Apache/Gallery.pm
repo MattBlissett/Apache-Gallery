@@ -115,7 +115,7 @@ sub handler {
 
 	unless (-f $filename or -d $filename) {
 	
-		show_error($r, "404!", "No such file or directory: ".uri_escape($r->uri, $escape_rule));
+		show_error($r, 404, "404!", "No such file or directory: ".uri_escape($r->uri, $escape_rule));
 		return OK;
 	}
 
@@ -148,7 +148,7 @@ sub handler {
 		$tpl->assign(META => " ");
 
 		unless (opendir (DIR, $filename)) {
-			show_error ($r, $!, "Unable to access directory $filename: $!");
+			show_error ($r, 500, $!, "Unable to access directory $filename: $!");
 			return OK;
 		}
 		
@@ -331,7 +331,7 @@ sub handler {
 		my @sizes = split (/ /, $r->dir_config('GallerySizes') ? $r->dir_config('GallerySizes') : '640 800 1024 1600');
 		if ($cgi->param('width')) {
 			unless ((grep $cgi->param('width') == $_, @sizes) or ($cgi->param('width') == $original_size)) {
-				show_error($r, "Invalid width", "The specified width is invalid");
+				show_error($r, 200, "Invalid width", "The specified width is invalid");
 				return OK;
 			}
 			$width = $cgi->param('width');
@@ -386,7 +386,7 @@ sub handler {
 		$tpl->assign(URI => $r->uri());
 
 		unless (opendir(DATADIR, $path)) {
-			show_error($r, "Unable to access directory", "Unable to access directory $path");
+			show_error($r, 500, "Unable to access directory", "Unable to access directory $path");
 			return OK;
 		}
 		my @pictures = grep { /^[^.].*\.(jpe?g|png|ppm|tiff?)$/i } readdir (DATADIR);
@@ -521,7 +521,7 @@ sub handler {
 			$tpl->parse(SLIDESHOW => '.slideshowoff');
 
 			unless ((grep $cgi->param('slideshow') == $_, @slideshow_intervals)) {
-				show_error($r, "Invalid interval", "Invalid slideshow interval choosen");
+				show_error($r, 200, "Invalid interval", "Invalid slideshow interval choosen");
 				return OK;
 			}
 
@@ -582,7 +582,7 @@ sub create_cache {
 	my ($r, $path) = @_;
 
 		unless (mkdirhier ($path)) {
-			show_error($r, $!, "Unable to create cache directory in $path: $!");
+			show_error($r, 500, $!, "Unable to create cache directory in $path: $!");
 			return 0;
 		}
 
@@ -941,7 +941,7 @@ sub get_comment {
 
 sub show_error {
 
-	my ($r, $errortitle, $error) = @_;
+	my ($r, $statuscode, $errortitle, $error) = @_;
 
 	my $tpl = new CGI::FastTemplate($r->dir_config('GalleryTemplateDir'));
 
@@ -959,7 +959,7 @@ sub show_error {
 
 	my $content = $tpl->fetch("MAIN");
 
-	$r->status(500);
+	$r->status($statuscode);
 	$r->content_type('text/html');
 
 	$r->print(${$content});
