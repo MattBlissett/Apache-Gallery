@@ -18,6 +18,12 @@ table {
 	text-align: left;
 	height: 30px;
 }
+#nav {
+	font-size: 11px;
+	text-align: left;
+	height: 30px;
+	text-align: right;
+}
 #directory {
 	background-color: #ffffff;
 	border: 1px solid #666666;

@@ -2,6 +2,7 @@
   <div id="title">
 $MENU
   </div>
+	<div id="menu">$BROWSELINKS</div>
   $FORM_BEGIN
   <table>
     <tr>

@@ -2,6 +2,9 @@
   <div id="menu">
 $MENU
   </div>
+	<div id="nav">
+		$BROWSELINKS
+	</div>
   <table>
     <tr>
       <td id="directory">

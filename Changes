@@ -24,6 +24,9 @@ Revision history for Perl extension Apache::Gallery.
 	- Added GalleryRootText option to allow changing the name of
 	  the root element in the menu (Christopher Knight)
 	- Use Image::Imlib2 instead of Inline::C (Andreas Plenser Jacobsen)
+	- New option GalleryMaxThumbnailsPerPage to limit the number
+	  of thumbnails displayed per page. Disabled by default
+	  and requires templates update. (Michael Legart)
 
 0.6 Tue Apr 22 10:24:40 CEST 2003
 

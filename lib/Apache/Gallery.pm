@@ -214,7 +214,56 @@ sub handler {
 
 			my $filelist;
 
+			my $file_counter = 0;
+			my $start_at = 1;
+			my $max_files = $r->dir_config('GalleryMaxThumbnailsPerPage');
+
+			if (defined($cgi->param('start'))) {
+				$start_at = $cgi->param('start');
+				if ($start_at < 1) {
+					$start_at = 1;
+				}
+			}
+
+			my $browse_links = "";
+			if (defined($max_files)) {
+			
+				for (my $i=1; $i<=scalar(@listing); $i++) {
+
+					my $from = $i;
+
+					my $to = $i+$max_files-1;
+					if ($to > scalar(@listing)) {
+						$to = scalar(@listing);
+					}
+
+					if ($start_at < $from || $start_at > $to) {
+						$browse_links .= "<a href=\"?start=$from\">$from - ".$to."</a> ";
+					}
+					else {
+						$browse_links .= "$from - $to ";
+					}
+
+					$i+=$max_files-1;
+
+				}
+
+			}
+
+			$tpl->assign(BROWSELINKS => $browse_links);
+
+			DIRLOOP:
 			foreach my $file (@listing) {
+
+				$file_counter++;
+
+				if ($file_counter < $start_at) {
+					next;
+				}
+
+				if (defined($max_files) && $file_counter > $max_files+$start_at-1) {
+					last DIRLOOP;
+				}
 
 				my $thumbfilename = $topdir."/".$file;
 
@@ -1295,6 +1344,11 @@ anywhere you want.
 
 Change the name that appears as the root element in the menu. The
 default is "root:"
+
+=item B<GalleryMaxThumbnailsPerPage>
+
+This options controls how many thumbnails should be displayed in a 
+page. It requires $BROWSELINKS to be in the index.tpl template file.
 
 =back
 
