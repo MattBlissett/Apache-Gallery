@@ -71,7 +71,7 @@ sub handler {
 
 	unless (-f $filename or -d $filename) {
 	
-		show_error($r, "404!", "No such file or directory: ".uri_escape($r->uri));
+		show_error($r, "404!", "No such file or directory: ".uri_escape($r->uri, $escape_rule));
 		return OK;
 	}
 
@@ -98,7 +98,7 @@ sub handler {
 			movie     => 'movie.tpl'
 		);
 
-		$tpl->assign(TITLE => "Index of: ".uri_escape($uri));
+		$tpl->assign(TITLE => "Index of: ".uri_escape($uri, $escape_rule));
 		$tpl->assign(META => " ");
 
 		unless (opendir (DIR, $filename)) {
