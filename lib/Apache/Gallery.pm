@@ -745,7 +745,7 @@ sub get_comment {
 	open(FH, $filename) or return $comment_ref;
 	my $title = <FH>;
 	if ($title =~ /^TITLE: (.*)$/) {
-		$comment_ref->{TITLE} = $1;
+		chomp($comment_ref->{TITLE} = $1);
 	} 
 	else {
 		$comment_ref->{COMMENT} = $title;
