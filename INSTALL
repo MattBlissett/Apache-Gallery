@@ -88,7 +88,7 @@ Apache will respond with the classic (and ugly) directory listing performed
 by mod_autoindex.
 
 Copy the files from templates/ to where you pointed GalleryTemplateDir to,
-copy htdocs/folder.png and htdocs/video-*.png to your Apache icons 
+copy htdocs/agfolder.png and htdocs/video-*.png to your Apache icons 
 directory and copy htdocs/gallery.css to the DocumentRoot of your gallery.
 
 It is possible to include a graphical copyright notice on each picture now.
