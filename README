@@ -19,7 +19,7 @@ CONFIGURATION
     The options are set in the httpd.conf/.htaccess file using the syntax:
     PerlSetVar OptionName 'value'
 
-    Example: PerlSetVar GallerCachedir '/var/tmp/Apache-Gallery/'
+    Example: PerlSetVar GallerCacheDir '/var/tmp/Apache-Gallery/'
 
     GalleryCacheDir
         Directory where Apache::Gallery should create its cache with scaled
@@ -113,6 +113,10 @@ FEATURES
                 And this is the comment.<br>
                 And this is line two of the comment.
 
+        The visible name of the folder is by default identical to the name
+        of the folder, but can be changed by creating a file
+        <directory>.folder with the visible name of the folder.
+
 DEPENDENCIES
     Perl 5
     Apache with mod_perl
@@ -125,8 +129,6 @@ DEPENDENCIES
     X11 libraries (ie, XFree86)
     Imlib2 Remember the -dev package when using rpm, deb or other package
     formats!
-    Test::MockObject If you want complete testing of Apache::Gallery
-
 BUGS
     Fatal errors are showed on a page with a HTTP OK return code. This is
     because Internet Explorer will show it's own error page otherwise. Is it
@@ -149,10 +151,11 @@ COPYRIGHT AND LICENSE
 
 THANKS
     Thanks to Thomas Kjaer for templates and design of
-    http://apachegallery.dk Thanks to Thomas Eibner and others for patches.
+    http://apachegallery.dk Thanks to Thomas Eibner and other for patches.
     (See the Changes file)
 
 SEE ALSO
-    perl, mod_perl, Apache::Request, Inline::C, CGI::FastTemplate,
-    Image::Info, and Image::Size.
+    the perl manpage, the mod_perl manpage, the Apache::Request manpage, the
+    Inline::C manpage, the CGI::FastTemplate manpage, the Image::Info
+    manpage, and the Image::Size manpage.
 
