@@ -1,6 +1,11 @@
 # $Author$ $Rev$
 # $Date$
 
+For users upgrading from X to 0.6.1
+
+Copy htdocs/agfolder.png to your Apache
+icons directory.
+
 For users upgrading from 0.5.1 to 0.6
 
 templates/movie.tpl has been removed and replaced by
