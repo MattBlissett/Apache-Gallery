@@ -27,8 +27,7 @@ my $escape_rule = "^A-Za-z0-9\-_.!~*'()\/";
 use Inline C => Config => 
 				LIBS => '-L/usr/X11R6/lib -lImlib2 -lm -ldl -lXext -lXext',
 				DIRECTORY => File::Spec->tmpdir(),
-				INC => '-I/usr/X11R6/include',
-				ENABLE    => 'UNTAINT';
+				INC => '-I/usr/X11R6/include';
 
 use Inline 'C';
 Inline->init;
