@@ -20,6 +20,7 @@ use File::stat;
 use POSIX qw(floor);
 use URI::Escape;
 
+# Regexp for escaping URI's
 my $escape_rule = "^A-Za-z0-9\-_.!~*'()\/";
 
 use Inline C => Config => 
@@ -38,6 +39,7 @@ sub handler {
 	$r->header_out("X-Powered-By","apachegallery.dk $VERSION - Hest design!");
 	$r->header_out("X-Gallery-Version", '$Rev$ $Date$');
 
+	# Just return the http headers if the client requested that
 	if ($r->header_only) {
 		$r->send_http_header;
 		return OK;
@@ -45,7 +47,8 @@ sub handler {
 
 	my $apr = Apache::Request->instance($r, DISABLE_UPLOADS => 1, POST_MAX => 1024);
 
-	# dirs we do not serve content from directly
+	# Let Apache serve icons and files from the cache without us
+	# modifying the request
 	if ($r->uri =~ m/(^\/icons|\.cache)/i) {
 		return DECLINED;
 	}
@@ -63,7 +66,7 @@ sub handler {
 		return OK;
 	}
 
-	# unless it is one of the filetypes we server with Apache::Gallery
+	# Let Apache serve files we don't know how to handle anyway
 	if (-f $filename && $filename !~ m/\.(?:jpe?g|png|tiff?|ppm)$/i) {
 		return DECLINED;
 	}
