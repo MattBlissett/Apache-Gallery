@@ -1,1 +1,1 @@
-<a href="$IMAGEURI?width=$WIDTH">$SIZE</a>
+<a href="{ $IMAGEURI }?width={ $WIDTH }">{ $SIZE }</a>

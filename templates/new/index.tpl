@@ -1,23 +1,23 @@
 <div>
   <div id="title">
-$MENU
+{ $MENU }
   </div>
-	<div id="menu">$BROWSELINKS</div>
-  $FORM_BEGIN
+	<div id="menu">{ $BROWSELINKS }</div>
+  { $FORM_BEGIN }
   <table>
     <tr>
       <td id="directory">
         <div>
-$FILES
+{ $FILES }
         </div>
       </td>
     </tr>
-    $DIRCOMMENT
+    { $DIRCOMMENT }
 		<tr>
 			<td>
     		Indexed by <a href="http://apachegallery.dk">Apache::Gallery</a> - Copyright &copy; 2001-2003 Michael Legart - <a href="http://www.hestdesign.com/">Hest Design!</a>
 			</td>
 		</tr>
   </table>
-  $FORM_END
+  { $FORM_END }
 </div>

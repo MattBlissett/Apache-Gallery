@@ -7,7 +7,13 @@ You need to create new directory called gallery in Apaches
 icons directory. Copy the png files from the htdocs dictory
 to this new directory.
 
-The directory.tpl and file.tpl templates needs to be updated.
+For those of you with pre-existing templates, a simple
+
+   cd templates; perl -pi -e 's/(?<!\\)(\$[\w\_\d]+)/\{ $1 \}/g'
+
+should get your templates but directory.tpl and file.tpl
+working correctly. The last two needs to be updated from
+the distribution.
 
 For users upgrading from 0.6 to 0.7
 

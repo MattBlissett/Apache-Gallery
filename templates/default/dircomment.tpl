@@ -3,7 +3,7 @@
 <table class="info">
   <tr>
     <td>
-    $COMMENT
+    { $COMMENT }
     </td>
   </tr>
 </table>

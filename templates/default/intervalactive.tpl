@@ -1,1 +1,1 @@
-$SECONDS
+{ $SECONDS }

@@ -1,10 +1,10 @@
 <td width="60%">
           <center>
             <table align="center" class="info">
-              <tr>
-                <td>
-									$COMMENT
-									$INFO
+									{ $COMMENT }
+									{ $INFO }
+									{ $COMMENT }
+									{ $INFO }
                 </td>
               </tr>
             </table>

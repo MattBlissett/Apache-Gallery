@@ -41,7 +41,7 @@ BEGIN {
 use Image::Info qw(image_info);
 use Image::Size qw(imgsize);
 use Image::Imlib2;
-use CGI::FastTemplate;
+use Text::Template qw(fill_in_file);
 use File::stat;
 use File::Spec;
 use POSIX qw(floor);
@@ -156,31 +156,31 @@ sub handler {
 			}
 		}
 
-		my $tpl = new CGI::FastTemplate($r->dir_config('GalleryTemplateDir'));
+		my %tpl_vars;
+		my $tpl_dir = $r->dir_config('GalleryTemplateDir');
 
-		$tpl->define(
-			layout    => 'layout.tpl',
-			index     => 'index.tpl',
-			directory => 'directory.tpl',
-			picture   => 'picture.tpl',
-			file      => 'file.tpl',
-			comment   => 'dircomment.tpl',
-			nocomment => 'nodircomment.tpl'
-		);
+		my %tpl_vars = (layout    => "$tpl_dir/layout.tpl",
+				index     => "$tpl_dir/index.tpl",
+				directory => "$tpl_dir/directory.tpl",
+				picture   => "$tpl_dir/picture.tpl",
+				file      => "$tpl_dir/file.tpl",
+				comment   => "$tpl_dir/dircomment.tpl",
+				nocomment => "$tpl_dir/nodircomment.tpl",
+			       );
 
-		$tpl->assign(TITLE => "Index of: $uri");
-		$tpl->assign(META => " ");
+		$tpl_vars{TITLE} = "Index of: $uri";
+		$tpl_vars{META} = " ";
 
 		unless (opendir (DIR, $filename)) {
 			show_error ($r, 500, $!, "Unable to access directory $filename: $!");
 			return MP2 ? Apache::OK : Apache::Constants::OK;
 		}
-		
-		$tpl->assign(MENU => generate_menu($r));
 
-		$tpl->assign(FORM_BEGIN => $select_mode?'<form method="post">':'');
-		$tpl->assign(FORM_END   => $select_mode?'</form>':'');
-	
+		$tpl_vars{MENU} = generate_menu($r);
+
+		$tpl_vars{FORM_BEGIN} = $select_mode?'<form method="post">':'';
+		$tpl_vars{FORM_END}   = $select_mode?'</form>':'';
+
 		# Read, sort, and filter files
 		my @files = grep { !/^\./ && -f "$filename/$_" } readdir (DIR);
 
@@ -265,7 +265,7 @@ sub handler {
 
 			}
 
-			$tpl->assign(BROWSELINKS => $browse_links);
+			$tpl_vars{BROWSELINKS} = $browse_links;
 
 			DIRLOOP:
 			foreach my $file (@listing) {
@@ -334,45 +334,52 @@ sub handler {
 					my $cached = scale_picture($r, $thumbfilename, $thumbnailwidth, $thumbnailheight, $imageinfo);
 
 					my $rotate = readfile_getnum($r, $imageinfo, $thumbfilename.".rotate");
-					$tpl->assign(FILEURL => uri_escape($fileurl, $escape_rule));
-					$tpl->assign(FILE    => $file);
-					$tpl->assign(DATE    => $imageinfo->{DateTimeOriginal} ? $imageinfo->{DateTimeOriginal} : ''); # should this really be a stat of the file instead of ''?
-					$tpl->assign(SRC     => uri_escape($uri."/.cache/$cached", $escape_rule));
-					$tpl->assign(HEIGHT => (grep($rotate==$_, (1, 3)) ? $thumbnailwidth : $thumbnailheight));
-					$tpl->assign(WIDTH => (grep($rotate==$_, (1, 3)) ? $thumbnailheight : $thumbnailwidth));
-					$tpl->assign(SELECT  => $select_mode?'<input type="checkbox" name="selection" value="'.$file.'">&nbsp;&nbsp;':'');
-
-					$tpl->parse(FILES => '.picture');
-
+					my %file_vars = (FILEURL => uri_escape($fileurl, $escape_rule),
+							 FILE    => $file,
+							 DATE    => $imageinfo->{DateTimeOriginal} ? $imageinfo->{DateTimeOriginal} : '', # should this really be a stat of the file instead of ''?
+							 SRC     => uri_escape($uri."/.cache/$cached", $escape_rule),
+							 HEIGHT => (grep($rotate==$_, (1, 3)) ? $thumbnailwidth : $thumbnailheight),
+							 WIDTH => (grep($rotate==$_, (1, 3)) ? $thumbnailheight : $thumbnailwidth),
+							 SELECT  => $select_mode?'<input type="checkbox" name="selection" value="'.$file.'">&nbsp;&nbsp;':'',);
+					$tpl_vars{FILES} .= fill_in_file($tpl_vars{picture},
+									 HASH => {%tpl_vars,
+										  %file_vars});
 				}
 			}
-		
 		}
 		else {
-			$tpl->assign(FILES => "No files found");
-			$tpl->assign(BROWSELINKS => "");
+			$tpl_vars{FILES} = "No files found";
+			$tpl_vars{BROWSELINKS} = "";
 		}
 
 		if (-f $topdir . '.comment') {
 			my $comment_ref = get_comment($topdir . '.comment');
-			$tpl->assign(COMMENT => $comment_ref->{COMMENT} . '<br>') if $comment_ref->{COMMENT};
-			$tpl->assign(TITLE => $comment_ref->{TITLE}) if $comment_ref->{TITLE};
-			$tpl->parse(DIRCOMMENT => 'comment');
+			my %comment_vars;
+			$comment_vars{COMMENT} = $comment_ref->{COMMENT} . '<br>' if $comment_ref->{COMMENT};
+			$comment_vars{TITLE} = $comment_ref->{TITLE} if $comment_ref->{TITLE};
+			$tpl_vars{DIRCOMMENT} = fill_in_file($tpl_vars{comment},
+							     HASH => \%comment_vars,
+							    );
 		} else {
-			$tpl->parse(DIRCOMMENT => 'nocomment');
+			$tpl_vars{DIRCOMMENT} = fill_in_file($tpl_vars{nocomment});
 		}
 
-		$tpl->parse("MAIN", ["index", "layout"]);
-		my $content = $tpl->fetch("MAIN");
+		$tpl_vars{MAIN} = fill_in_file($tpl_vars{index},
+					       HASH => \%tpl_vars,
+					      );
+		$tpl_vars{MAIN} = fill_in_file($tpl_vars{layout},
+					       HASH => \%tpl_vars,
+					      );
+
 
 		$r->content_type('text/html');
-		$r->headers_out->{'Content-Length'} = length(${$content});
+		$r->headers_out->{'Content-Length'} = length($tpl_vars{MAIN});
 
 		if (!MP2) {
 			$r->send_http_header;
 		}
 
-		$r->print(${$content});
+		$r->print($tpl_vars{MAIN});
 		return MP2 ? Apache::OK : Apache::Constants::OK;
 
 	}
@@ -452,34 +459,33 @@ sub handler {
 
 		my $cached = scale_picture($r, $filename, $image_width, $height, $imageinfo);
 		
-		my $tpl = new CGI::FastTemplate($r->dir_config('GalleryTemplateDir'));
+		my $tpl_dir = $r->dir_config('GalleryTemplateDir');
 
-		$tpl->define(
-			layout         => 'layout.tpl',
-			picture        => 'showpicture.tpl',
-			navpicture     => 'navpicture.tpl',
-			info           => 'info.tpl',
-			scale          => 'scale.tpl',
-			scaleactive    => 'scaleactive.tpl',
-			orig           => 'orig.tpl',
-			refresh        => 'refresh.tpl',
-			interval       => 'interval.tpl',
-			intervalactive => 'intervalactive.tpl',
-			slideshowisoff => 'slideshowisoff.tpl',
-			slideshowoff   => 'slideshowoff.tpl',
-			pictureinfo    => 'pictureinfo.tpl',
-			nopictureinfo  => 'nopictureinfo.tpl'
-		);
+		my %tpl_vars = (layout         => "$tpl_dir/layout.tpl",
+				picture        => "$tpl_dir/showpicture.tpl",
+				navpicture     => "$tpl_dir/navpicture.tpl",
+				info           => "$tpl_dir/info.tpl",
+				scale          => "$tpl_dir/scale.tpl",
+				scaleactive    => "$tpl_dir/scaleactive.tpl",
+				orig           => "$tpl_dir/orig.tpl",
+				refresh        => "$tpl_dir/refresh.tpl",
+				interval       => "$tpl_dir/interval.tpl",
+				intervalactive => "$tpl_dir/intervalactive.tpl",
+				slideshowisoff => "$tpl_dir/slideshowisoff.tpl",
+				slideshowoff   => "$tpl_dir/slideshowoff.tpl",
+				pictureinfo    => "$tpl_dir/pictureinfo.tpl",
+				nopictureinfo  => "$tpl_dir/nopictureinfo.tpl",
+			       );
 
 		my $resolution = (($image_width > $orig_width) && ($height > $orig_height)) ? 
 		    "$orig_width x $orig_height" : "$image_width x $height";
 
-		$tpl->assign(TITLE => "Viewing ".$r->uri()." at $image_width x $height");
-		$tpl->assign(META => " ");
-		$tpl->assign(RESOLUTION => $resolution);
-		$tpl->assign(MENU => generate_menu($r));
-		$tpl->assign(SRC => uri_escape(".cache/$cached", $escape_rule));
-		$tpl->assign(URI => $r->uri());
+		$tpl_vars{TITLE} = "Viewing ".$r->uri()." at $image_width x $height";
+		$tpl_vars{META} = " ";
+		$tpl_vars{RESOLUTION} = $resolution;
+		$tpl_vars{MENU} = generate_menu($r);
+		$tpl_vars{SRC} = uri_escape(".cache/$cached", $escape_rule);
+		$tpl_vars{URI} = $r->uri();
 	
 		my $exif_mode = $r->dir_config('GalleryEXIFMode');
 		unless ($exif_mode) {
@@ -494,7 +500,7 @@ sub handler {
 		closedir(DATADIR);
 		@pictures = sort @pictures;
 
-		$tpl->assign(TOTAL => scalar @pictures);
+		$tpl_vars{TOTAL} = scalar @pictures;
 
 		my $prevpicture;
 		my $nextpicture;
@@ -502,7 +508,7 @@ sub handler {
 		for (my $i=0; $i <= $#pictures; $i++) {
 			if ($pictures[$i] eq $picfilename) {
 
-				$tpl->assign(NUMBER => $i+1);
+				$tpl_vars{NUMBER} = $i+1;
 
 				$prevpicture = $pictures[$i-1];
 				my $displayprev = ($i>0 ? 1 : 0);
@@ -510,21 +516,24 @@ sub handler {
 				if ($r->dir_config("GalleryWrapNavigation")) {
 					$prevpicture = $pictures[$i>0 ? $i-1 : $#pictures];
 					$displayprev = 1;
-				}	
+				}
 				if ($prevpicture and $displayprev) {
 					my ($orig_width, $orig_height, $type) = imgsize($path.$prevpicture);
 					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $orig_width, $orig_height);	
 					my $imageinfo = get_imageinfo($r, $path.$prevpicture, $type, $orig_width, $orig_height);
 					my $cached = scale_picture($r, $path.$prevpicture, $thumbnailwidth, $thumbnailheight, $imageinfo);
-					$tpl->assign(URL       => uri_escape($prevpicture, $escape_rule));
-					$tpl->assign(FILENAME  => $prevpicture);
-					$tpl->assign(WIDTH     => $width);
-					$tpl->assign(PICTURE   => uri_escape(".cache/$cached", $escape_rule));
-					$tpl->assign(DIRECTION => "&laquo; prev");
-					$tpl->parse(BACK => "navpicture");
+					my %nav_vars;
+					$nav_vars{URL}       = uri_escape($prevpicture, $escape_rule);
+					$nav_vars{FILENAME}  = $prevpicture;
+					$nav_vars{WIDTH}     = $width;
+					$nav_vars{PICTURE}   = uri_escape(".cache/$cached", $escape_rule);
+					$nav_vars{DIRECTION} = "&laquo; prev";
+					$tpl_vars{BACK} = fill_in_file($tpl_vars{navpicture},
+								       HASH => \%nav_vars,
+								      );
 				}
 				else {
-					$tpl->assign(BACK => "&nbsp");
+					$tpl_vars{BACK} = "&nbsp";
 				}
 
 				$nextpicture = $pictures[$i+1];
@@ -537,27 +546,31 @@ sub handler {
 					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $orig_width, $orig_height);	
 					my $imageinfo = get_imageinfo($r, $path.$nextpicture, $type, $thumbnailwidth, $thumbnailheight);
 					my $cached = scale_picture($r, $path.$nextpicture, $thumbnailwidth, $thumbnailheight, $imageinfo);
-					$tpl->assign(URL       => uri_escape($nextpicture, $escape_rule));
-					$tpl->assign(FILENAME  => $nextpicture);
-					$tpl->assign(WIDTH     => $width);
-					$tpl->assign(PICTURE   => uri_escape(".cache/$cached", $escape_rule));
-					$tpl->assign(DIRECTION => "next &raquo;");
-					$tpl->parse(NEXT => "navpicture");
+					my %nav_vars;
+					$nav_vars{URL}       = uri_escape($nextpicture, $escape_rule);
+					$nav_vars{FILENAME}  = $nextpicture;
+					$nav_vars{WIDTH}     = $width;
+					$nav_vars{PICTURE}   = uri_escape(".cache/$cached", $escape_rule);
+					$nav_vars{DIRECTION} = "next &raquo;";
+
+					$tpl_vars{NEXT} = fill_in_file($tpl_vars{navpicture},
+								       HASH => \%nav_vars
+								      );
 				}
 				else {
-					$tpl->assign(NEXT => "&nbsp;");
+					$tpl_vars{NEXT} = "&nbsp;";
 				}
 			}
 		}
 
 		my $foundcomment = 0;
 		if (-f $path . '/' . $picfilename . '.comment') {
-		    my $comment_ref = get_comment($path . '/' . $picfilename . '.comment');
-				$foundcomment = 1;
-		    $tpl->assign(COMMENT => $comment_ref->{COMMENT} . '<br>') if $comment_ref->{COMMENT};
-		    $tpl->assign(TITLE => $comment_ref->{TITLE}) if $comment_ref->{TITLE};
+			my $comment_ref = get_comment($path . '/' . $picfilename . '.comment');
+			$foundcomment = 1;
+			$tpl_vars{COMMENT} = $comment_ref->{COMMENT} . '<br>' if $comment_ref->{COMMENT};
+			$tpl_vars{TITLE} = $comment_ref->{TITLE} if $comment_ref->{TITLE};
 		} else {
-		    $tpl->assign(COMMENT => '');
+			$tpl_vars{COMMENT} = '';
 		}
 
 		my @infos = split /, /, $r->dir_config('GalleryInfo') ? $r->dir_config('GalleryInfo') : 'Picture Taken => DateTimeOriginal, Flash => Flash';
@@ -572,13 +585,16 @@ sub handler {
 				$foundinfo = 1;
 
 				if ($exif_mode eq 'namevalue') {
-					$tpl->assign(KEY => $human_key);
-					$tpl->assign(VALUE => $value);
-					$tpl->parse(INFO => '.info');
+					my %info_vars;
+					$info_vars{KEY} = $human_key;
+					$info_vars{VALUE} = $value;
+					$tpl_vars{INFO} .=  fill_in_file($tpl_vars{info},
+									 HASH => \%info_vars,
+									);
 				}
 
 				if ($exif_mode eq 'variables') {
-					$tpl->assign("EXIF_".uc($exif_key) => $value);
+					$tpl_vars{"EXIF_".uc($exif_key)} = $value;
 				}
 
 				if ($exif_mode eq 'values') {
@@ -1141,24 +1157,25 @@ sub show_error {
 
 	my $tpl = new CGI::FastTemplate($r->dir_config('GalleryTemplateDir'));
 
-	$tpl->define(
-		layout => 'layout.tpl',
-		error  => 'error.tpl'
-	);
+	my %tpl_vars = (layout => "$tpl/layout.tpl",
+			error  => "$tpl/error.tpl",
+		       );
 
-	$tpl->assign(TITLE      => "Error! $errortitle");
-	$tpl->assign(META       => "");
-	$tpl->assign(ERRORTITLE => "Error! $errortitle");
-	$tpl->assign(ERROR      => $error);
+	$tpl_vars{TITLE}      = "Error! $errortitle";
+	$tpl_vars{META}       = "";
+	$tpl_vars{ERRORTITLE} = "Error! $errortitle";
+	$tpl_vars{ERROR}      = $error;
 
-	$tpl->parse("MAIN", ["error", "layout"]);
-
-	my $content = $tpl->fetch("MAIN");
-
+	$tpl_vars{MAIN} = fill_in_file($tpl_vars{layout},
+				       HASH => \%tpl_vars,
+				      );
+	$tpl_vars{MAIN} = fill_in_file($tpl_vars{error},
+				       HASH => \%tpl_vars,
+				      );
 	$r->status($statuscode);
 	$r->content_type('text/html');
 
-	$r->print(${$content});
+	$r->print($tpl_vars{MAIN});
 
 }
 

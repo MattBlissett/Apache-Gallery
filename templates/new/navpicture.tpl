@@ -1,1 +1,1 @@
-<a href="$URL?width=$WIDTH">$DIRECTION</a>
+<a href="{ $URL }?width={ $WIDTH }">{ $DIRECTION }</a>

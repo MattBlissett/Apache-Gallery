@@ -1,1 +1,1 @@
-<a href="$IMAGEURI?slideshow=$SECONDS;width=$WIDTH">$SECONDS</a>
+<a href="{ $IMAGEURI }?slideshow={ $SECONDS };width={ $WIDTH }">{ $SECONDS }</a>

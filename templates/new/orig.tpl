@@ -1,1 +1,1 @@
-<a href="$IMAGEURI?orig">Original</a>
+<a href="{ $IMAGEURI }?orig">Original</a>

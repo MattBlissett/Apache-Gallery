@@ -1,21 +1,21 @@
 <div id="page">
   <div id="title">
-    $MENU
+    { $MENU }
   </div>
 
   <div id="menu">
-$BACK - <a href="./">up</a> - $NEXT</div>
+{ $BACK } - <a href="./">up</a> - { $NEXT }</div>
   <div>
     <table>
       <tr>
 
         <td colspan="3" id="picture">
-          IMG $NUMBER of $TOTAL $EXIFVALUES <br><br>
-          <img src="$SRC" alt="* Image $NUMBER"><br><br>
-[ Size: $SIZES | Slideshow: $SLIDESHOW ]</td>
+          IMG { $NUMBER } of { $TOTAL } { $EXIFVALUES } <br><br>
+          <img src="{ $SRC }" alt="* Image { $NUMBER }"><br><br>
+[ Size: { $SIZES } | Slideshow: { $SLIDESHOW } ]</td>
 
               </tr>
-              $PICTUREINFO
+              { $PICTUREINFO }
       </tr>
 	  <tr>
 	  	<td colspan="3">

@@ -1,8 +1,8 @@
               <tr>
                  <td colspan="3">
                    <div id="comment">
-                      $INFO
-                      $COMMENT
+                      { $INFO }
+                      { $COMMENT }
                    </div>
                  </td>
               </tr>

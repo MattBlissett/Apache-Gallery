@@ -1,19 +1,19 @@
 <div>
   <div id="menu">
-$MENU
+{ $MENU }
   </div>
 	<div id="nav">
-		$BROWSELINKS
+		{ $BROWSELINKS }
 	</div>
   <table>
     <tr>
       <td id="directory">
         <div>
-$FILES
+{ $FILES }
         </div>
       </td>
     </tr>
-    $DIRCOMMENT
+    { $DIRCOMMENT }
 		<tr>
 			<td>
     		Indexed by <a href="http://apachegallery.dk">Apache::Gallery</a> - Copyright &copy; 2001-2003 Michael Legart - <a href="http://www.hestdesign.com/">Hest Design!</a>

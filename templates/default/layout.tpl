@@ -3,12 +3,12 @@
 
 <html>
 <head>
-	<title>$TITLE</title>
+	<title>{ $TITLE }</title>
 	<link rel="stylesheet" href="/gallery.css">
-	$META
+	{ $META }
 </head>
 
 <body>
-$MAIN
+{ $MAIN }
 </body>
 </html>

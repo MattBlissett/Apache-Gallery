@@ -1,25 +1,25 @@
 <div id="page">
   <div id="menu">
-$MENU
+{ $MENU }
   </div>
   <div>
     <table>
       <tr>
         <td colspan="3" id="picture">
 						<center class="nav">
-						Viewing picture $NUMBER of $TOTAL at $RESOLUTION pixels<br>
-            <img src="$SRC"><br>
-            Size [ $SIZES ]<br>
-						Slideshow [ $SLIDESHOW ]
+						Viewing picture { $NUMBER } of { $TOTAL } at { $RESOLUTION } pixels<br>
+            <img src="{ $SRC }"><br>
+            Size [ { $SIZES } ]<br>
+						Slideshow [ { $SLIDESHOW } ]
           </center>
         </td>
       </tr>
       <tr>
-        <td align="left" width="20%">$BACK</td>
+        <td align="left" width="20%">{ $BACK }</td>
 
-				$PICTUREINFO
+				{ $PICTUREINFO }
 
-        <td align="right" width="20%">$NEXT</td>
+        <td align="right" width="20%">{ $NEXT }</td>
       </tr>
 	  <tr>
 	  	<td colspan="3">
