@@ -12,6 +12,8 @@ templates/scaleactive.tpl
 templates/showpicture.tpl
 templates/slideshowisoff.tpl
 templates/slideshowoff.tpl
+templates/pictureinfo.tpl
+templates/nopictureinfo.tpl
 
 A new option has been added:
 
