@@ -13,8 +13,6 @@ README
 INSTALL
 test.pl
 lib/Apache/Gallery.pm
-src/gallery-buildcache.pl
-src/gallery-editcomments.pl
 templates/layout.tpl
 templates/showpicture.tpl
 templates/picture.tpl
