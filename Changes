@@ -21,6 +21,8 @@ Revision history for Perl extension Apache::Gallery.
 	- New option GalleryEXIFMode to control the way EXIF
 	  info is displayed. See docs for details (Michael Legart)
 	- Support for the FNumber EXIF value (Thomas Corell)
+	- Added GalleryRootText option to allow changing the name of
+	  the root element in the menu (Christopher Knight)
 
 0.6 Tue Apr 22 10:24:40 CEST 2003
 

@@ -131,6 +131,10 @@ CONFIGURATION
         the variables $EXIF_DATETIMEORIGINAL and $EXIF_FLASH avilable to
         your templates. You can place them anywhere you want.
 
+    GalleryRootText
+        Change the name that appears as the root element in the menu. The
+        default is "root:"
+
 FEATURES
     Rotate images
         Some cameras, like the Canon G3, detects the orientation of a

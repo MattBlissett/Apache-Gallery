@@ -1077,8 +1077,9 @@ sub generate_menu {
 		$picturename = pop(@links);	
 	}
 
+	my $root_text = (defined($r->dir_config('GalleryRootText')) ? $r->dir_config('GalleryRootText') : "root:" );
 	if ($r->uri eq '/') {
-		return qq{ <a href="/">root:</a> };
+		return qq{ <a href="/">$root_text</a> };
 	}
 
 	my $menu;
@@ -1088,7 +1089,7 @@ sub generate_menu {
 		$menuurl .= $link."/";
 		my $linktext = $link;
 		unless (length($link)) {
-			$linktext = "root: ";
+			$linktext = "$root_text ";
 		}
 		else {
 			
@@ -1339,6 +1340,11 @@ That means that with the default setting "Picture Taken => DateTimeOriginal,
 Flash => Flash" you will have the variables $EXIF_DATETIMEORIGINAL and 
 $EXIF_FLASH avilable to your templates. You can place them
 anywhere you want.
+
+=item B<GalleryRootText>
+
+Change the name that appears as the root element in the menu. The
+default is "root:"
 
 =back
 
