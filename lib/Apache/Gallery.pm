@@ -733,13 +733,61 @@ sub get_imageinfo {
 						"0"  => "No",
 						"1"  => "Yes",
 						"9"  => "Yes",
-						"16" => "No (Compulsory)",
+						"16" => "No (Compulsory) Should be External Flash",
 						"24" => "No",
 						"25" => "Yes (Auto)",
 						"73" => "Yes (Compulsory, Red Eye Reducing)",
 						"89" => "Yes (Auto, Red Eye Reducing)"
 					);
-					$exif_value = $flashmodes{$exif_value};
+					$exif_value = defined $flashmodes{$exif_value} ? $flashmodes{$exif_value} : 'unknown flash mode';
+				}
+				$value = $exif_value;
+			}
+			if ($exif_key eq 'MeteringMode') {
+				my $exif_value = $imageinfo->{$exif_key};
+				if ($exif_value =~ /^\d+$/) {
+					my %meteringmodes = (
+						'0' => 'unknown',
+						'1' => 'Average',
+						'2' => 'CenterWeightedAverage',
+						'3' => 'Spot',
+						'4' => 'MultiSpot',
+						'5' => 'Pattern',
+						'6' => 'Partial',
+						'255' => 'Other'
+					);
+					$exif_value = defined $meteringmodes{$exif_value} ? $meteringmodes{$exif_value} : 'unknown metering mode';
+				}
+				$value = $exif_value;
+				
+			}
+			if ($exif_key eq 'LightSource') {
+				my $exif_value = $imageinfo->{$exif_key};
+				if ($exif_value =~ /^\d+$/) {
+					my %lightsources = (
+						'0' => 'unknown',
+						'1' => 'Daylight',
+						'2' => 'Fluorescent',
+						'3' => 'Tungsten (incandescent light)',
+						'4' => 'Flash',
+						'9' => 'Fine weather',
+						'10' => 'Cloudy weather',
+						'11' => 'Shade',
+						'12' => 'Daylight fluorescent',
+						'13' => 'Day white fluorescent',
+						'14' => 'Cool white fluorescent',
+						'15' => 'White fluorescent',
+						'17' => 'Standard light A',
+						'18' => 'Standard light B',
+						'19' => 'Standard light C',
+						'20' => 'D55',
+						'21' => 'D65',
+						'22' => 'D75',
+						'23' => 'D50',
+						'24' => 'ISO studio tungsten',
+						'255' => 'other light source'
+					);
+					$exif_value = defined $lightsources{$exif_value} ? $lightsources{$exif_value} : 'unknown light source';
 				}
 				$value = $exif_value;
 			}
@@ -760,13 +808,19 @@ sub get_imageinfo {
 					if ($@) {
 						$value = $@;
 					} else {
-						$value = 1/(exp($value*log(2)));
-						if ($value < 1) {
-							$value = "1/" . (int((1/$value)));
+						eval {
+							$value = 1/(exp($value*log(2)));
+							if ($value < 1) {
+								$value = "1/" . (int((1/$value)));
+							} else {
+						  	 	$value = int($value*10)/10; 
+							}
+						};
+						if ($@) {
+							$value = $@;
 						} else {
-						   	$value = int($value*10)/10; 
+							$value = $value . " sec";
 						}
-						$value = $value . " sec";
 					}
 				}
 			}
