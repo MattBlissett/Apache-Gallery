@@ -13,6 +13,13 @@ templates/showpicture.tpl
 templates/slideshowisoff.tpl
 templates/slideshowoff.tpl
 
+A new option has been added:
+
+PerlSetVar	GalleryCacheDir '/var/tmp/Apache-Gallery/'
+
+GalleryCacheDir is optional but you can use it to decide
+where Apache::Gallery should place the scaled pictures.
+
 For users upgrading from 0.3 to 0.4:
 
 Two new options have been added, they are both optional:
