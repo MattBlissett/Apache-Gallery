@@ -3,6 +3,11 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
+Snapshot
+
+	- Handle .thm for all filetypes and not just tiff, gif and png
+		(Michael Legart)
+
 0.8 Sun Mar  7 11:22:00 CET 2004
 
 	- Remember choosen width by setting a cookie (Rene Joergensen)

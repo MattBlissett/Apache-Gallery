@@ -946,17 +946,21 @@ sub get_imageinfo {
 	if ($type eq 'Data stream is not a known image file format') {
 		# should never be reached, this is supposed to be handled outside of here
 		Apache->request->log_error("Something was fishy with the type of the file $file\n");
-	} elsif (grep $type eq $_, qw(PPM TIF PNG GIF)) {
-		# These files do not natively have EXIF info embedded in the file
+	} else { 
+		# Some files, like TIFF, PNG, GIF do not have EXIF info embedded but use .thm files
+		# instead.
 		my $tmpfilename = $file;
 		# We have a problem with Windows based file extensions here as they are often .THM
 		$tmpfilename =~ s/\.(\w+)$/.thm/;
 		if (-e $tmpfilename && -f $tmpfilename && -r $tmpfilename) {
 			$imageinfo = image_info($tmpfilename);
 		}
-	} elsif (grep $type eq $_, qw(JPG)) {
-		# Only for files that natively keep the EXIF info in the same file
-		$imageinfo = image_info($file);
+		# If there is no .thm file and our file is a JPEG file we try to extract the EXIf
+		# info using Image::Info
+		elsif (grep $type eq $_, qw(JPG)) {
+			# Only for files that natively keep the EXIF info in the same file
+			$imageinfo = image_info($file);
+		}
 	}
 
 	unless (defined($imageinfo->{width}) and defined($imageinfo->{height})) {
