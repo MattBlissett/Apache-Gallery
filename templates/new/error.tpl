@@ -3,7 +3,7 @@
 	  <td>
       <h1>{ $ERRORTITLE }</h1>
       <p>{ $ERROR }</p>
-      <p><a clas="nav" href="javascript:history.go(-1)">Back</a>
+      <p><a class="nav" href="javascript:history.go(-1)">Back</a></p>
     </td>
   </tr>
 </table>
