@@ -156,7 +156,6 @@ sub handler {
 			}
 		}
 
-		my %tpl_vars;
 		my $tpl_dir = $r->dir_config('GalleryTemplateDir');
 
 		my %tpl_vars = (layout    => "$tpl_dir/layout.tpl",
