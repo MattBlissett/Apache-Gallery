@@ -1412,6 +1412,11 @@ sub resizepicture {
 		}
 	}
 
+	my $quality=dir_config('GalleryQuality');
+	if (defined($quality) and ($quality =~ /^\d+$/)) {
+		$image->set_quality($quality);
+	}
+
 	$image->save($outfile);
 
 }
@@ -1677,6 +1682,22 @@ Blue:
 
 Transparent orange:
         PerlSetVar      GalleryCopyrightColor '255,127,0,127'
+
+=back
+
+=item B<GalleryQuality>
+
+The quality (0-100) of scaled images
+
+This setting affects the quality of the scaled images.
+Set this to a low number to reduce the size of the scaled
+images.
+Remember to clear out your cache if you change this setting.
+
+Examples:
+
+Quality at 50:
+        PerlSetVar      GalleryQuality '50'
 
 =back
 
