@@ -74,7 +74,7 @@ sub handler {
 	if (-d $filename) {
 
 		unless (-d $filename."/.cache") {
-			create_cache($filename);
+			create_cache($r, $filename);
 		}
 
 		my $tpl = new CGI::FastTemplate($r->dir_config('GalleryTemplateDir'));
@@ -217,11 +217,11 @@ sub handler {
 	
 		# Create cache dir if not existing
 		my @tmp = split (/\//, $filename);
-		pop @tmp;
+		my $picfilename = pop @tmp;
 		my $path = (join "/", @tmp)."/";
 
 		unless (-d $path."/.cache") {
-			create_cache($path);
+			create_cache($r, $path);
 		}
 
 		my ($orig_width, $orig_height, $type) = imgsize($filename);
@@ -398,7 +398,7 @@ sub handler {
 
 sub create_cache {
 
-	my $path = shift;
+	my ($r, $path) = @_;
 	unless (mkdir ($path."/.cache", 0777)) {
 		show_error($r, $!, "Unable to create cache directory in $path: $!");
 		return OK;
@@ -517,7 +517,7 @@ sub get_imageinfo {
 		$imageinfo = image_info($file);
 	}
 
-	unless (defined($imageinfo->{width}) and defined($imageinfo->{height}) {
+	unless (defined($imageinfo->{width}) and defined($imageinfo->{height})) {
 		$imageinfo->{width} = $width;
 		$imageinfo->{height} = $height;
 	}
@@ -546,7 +546,7 @@ sub get_imageinfo {
 			    		$value .= "} ";
 					} 
 					else {
-						$value .= $array_el;
+						$value .= $element;
 					}
 					$value .= ' ';
 				}
