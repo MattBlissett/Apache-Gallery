@@ -1,8 +1,15 @@
-$Id: Changes,v 1.2 2001/08/20 23:18:16 mil Exp $
+$Id: Changes,v 1.3 2001/09/29 23:22:06 mil Exp $
 
 Revision history for Perl extension Apache::Gallery.
 
-0.01  Mon Aug 20 19:38:31 2001
+0.0.1 Sat Sep 30 01:10:03 2001
+	- Added src/addcomments.pl script for editing picture
+	  comments.
+
+	- Templates have been updated by Erwin Lansing and 
+	  Thomas Kjaer and are now much nicer by default!
+
+0.1  Mon Aug 20 19:38:31 2001
 	- original version; created by h2xs 1.21 with options
 		-XA -n Apache::Gallery
 

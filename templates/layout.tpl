@@ -7,7 +7,7 @@
 	<link rel="stylesheet" href="/gallery.css">
 </head>
 
-<body>
+<body leftmargin="0" topmargin="0">
 $MAIN
 </body>
 </html>

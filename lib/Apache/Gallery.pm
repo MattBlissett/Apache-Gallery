@@ -1,6 +1,6 @@
 package Apache::Gallery;
 
-# $Id: Gallery.pm,v 1.10 2001/09/08 10:58:06 mil Exp $
+# $Id: Gallery.pm,v 1.15 2001/10/05 10:43:09 mil Exp $
 
 use 5.006;
 use strict;
@@ -8,7 +8,7 @@ use warnings;
 
 use vars qw($VERSION);
 
-$VERSION = "0.1";
+$VERSION = "0.1.1";
 
 use Apache();
 use Apache::Constants qw(:common);
@@ -18,7 +18,7 @@ use Image::Info qw(image_info);
 use DB_File;
 use CGI::FastTemplate;
 
-use Inline C => Config => LIBS => '-lgd',
+use Inline C => Config => LIBS => '-lgd -ljpeg -lpng -lz -lm',
 				DIRECTORY => '/usr/local/apache/Inline',
 				ENABLE    => 'UNTAINT';
 
@@ -158,7 +158,7 @@ sub handler {
 			$width = 640;
 		}
 
-		if ($apr->param('width')) {
+		if ($apr->param('width') && $apr->param('width') <= 2048) {
 			$width = $apr->param('width');
 		}
 
@@ -226,7 +226,7 @@ sub handler {
 		if (-f $path."/comments.db") {
 			dbmopen my %comments, $path."/comments.db", 0664;
 			if ($comments{$filename}) {
-				$tpl->assign(COMMENT => "Comment: ".$comments{$filename}."<br");
+				$tpl->assign(COMMENT => "Comment: ".$comments{$filename}."<br>");
 			}
 			else {
 				$tpl->assign(COMMENT => "");
@@ -322,7 +322,7 @@ sub generate_menu {
 	}
 
 	if ($r->uri eq '/') {
-		return qq{ <a href="/" class="path">root:</a> };
+		return qq{ <a href="/">root:</a> };
 	}
 
 	my $menu;
@@ -335,7 +335,7 @@ sub generate_menu {
 			$linktext = "root: ";
 		}
 
-		$menu .= qq{ <a href="$menuurl" class="path">$linktext</a> / };
+		$menu .= qq{ <a href="$menuurl">$linktext</a> / };
 
 	}
 

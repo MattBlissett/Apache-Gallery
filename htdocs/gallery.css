@@ -1,57 +1,83 @@
 body {
-	background-color: #ffffff;
+	background-color: #cccccc;
 	font-family: helvetica, arial, sans-serif;
 	font-size: 10px;
 	color: #333333;
 }
+#page {
+	position: absolute;
+	top: 0px;
+	width: auto;
+	height: auto;
+	visibility: visible;
+	background-color: #cccccc;
+	border: 0px;
+	padding: 20px;
+}
+#menu {
+	border: 0px;
+	padding: 10px;
 
+}
+#dir {
+	background-color: #FFFFFF;
+	border: 1px solid #000000;
+	padding: 10px;
+}
+#picture {
+	padding: 10px;
+}
+#gallery {
+	padding: 10px;
+	text-align: center;
+}
 td {
 	font-family: helvetica, arial, sans-serif;
 	font-size: 10px;
 }
-
 h1, h2, h3, h4, h5 {
 	text-transform: capitalize;
 	font-weight: bold;
 }
-
-a[href] {
-	color: #999999;
+a {
+	color: #555555;
 	text-decoration: none;
 }
-
-a[href]:hover {
+a:hover {
 	color: #5555aa;
 }
-
+#dir img {
+	border: 1px solid #000000;
+	width: 100px;
+	height: 75px;
+}
+#folder img {
+	border-width: 0px;
+	width: 48px;
+	height: 48px;
+}
+#folder {
+	width: 100px;
+	height: 75px;
+	text-align: center;
+}
 .info {
-	background-color: #f5f5f5;
+	background-color: #f0f0f0;
 	font-color: #333333;
 	padding: 5px;
 	margin: 5px;
-	border-top: 1px dashed #999999;
-	border-bottom: 1px dashed #999999;
-	border-left: 1px dashed #999999;
-	border-right: 1px dashed #999999;
+	border: 1px dashed #666666;
 }
-
-.nav {
-	color: #999999;
-	font-weight: bold;
-}
-
-.thumb {
-	border-width: 2px;
-}
-
 .hest {
 	border-top: 1px solid #000000;
 	border-bottom: 1px solid #000000;
 	border-left: 1px solid #000000;
 	border-right: 1px solid #000000;
 }
-
 .path {
 	font-size: 12px;
 	font-weight: bold;
+}
+.nav img {
+	border: 1px solid #000000;
 }

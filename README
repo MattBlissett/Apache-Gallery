@@ -1,7 +1,7 @@
 Apache/Gallery version 0.01
 ===========================
 
-$Id: README,v 1.4 2001/09/10 16:33:31 mil Exp $
+$Id: README,v 1.5 2001/10/01 09:23:10 tk Exp $
 
 INSTALLATION
 
@@ -47,6 +47,6 @@ COPYRIGHT AND LICENCE
 
 Copyright (C) 2001 Michael Legart <michael@legart.dk>
 
-Templates designed by Thomas Kjaer <thomas@lnx.dk>
+Templates designed by Thomas Kjaer <tk@lnx.dk>
 
 See LICENSE for details.
