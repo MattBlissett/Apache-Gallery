@@ -1,6 +1,22 @@
 # $Author$ $Rev$
 # $Date$
 
+For users upgrading from 0.5.1 to 0.6
+
+templates/movie.tpl has been removed and replaced by
+templates/file.tpl
+
+htdocs/video-wmv.png
+htdocs/application-doc.png
+htdocs/application-mp3.png
+htdocs/application-ogg.png
+htdocs/application-pdf.png
+htdocs/application-rtf.png
+htdocs/application-wav.png
+
+have been added and should be copied to our Apache icons
+directory.
+
 For users upgrading from 0.5 to 0.5.1
 
 InlineDir is no longer honored, File::Spec is used to find a temporary

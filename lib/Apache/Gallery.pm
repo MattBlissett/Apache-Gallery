@@ -96,7 +96,7 @@ sub handler {
 			index     => 'index.tpl',
 			directory => 'directory.tpl',
 			picture   => 'picture.tpl',
-			movie     => 'movie.tpl'
+			file      => 'file.tpl'
 		);
 
 		$tpl->assign(TITLE => "Index of: ".uri_escape($uri, $escape_rule));
@@ -113,17 +113,17 @@ sub handler {
 		my @files = grep { !/^\./ && -f "$filename/$_" } readdir (DIR);
 		@files = sort @files;
 
-		my @movies;
+		my @downloadable_files;
 
 		if (@files) {
-			# Remove unwanted files and movies from list
+			# Remove unwanted files from list
 			my @new_files = ();
 			foreach my $picture (@files) {
 
 				my $file = $topdir."/".$picture;
 
-				if ($file =~ m/\.(mpe?g|mov|avi|asf)$/i) {
-					push (@movies, $picture);
+				if ($file =~ m/\.(mpe?g|mov|avi|asf|wmv|wav|rtf|pdf|ogg|mp3|doc)$/i) {
+					push (@downloadable_files, $picture);
 				}
 
 				if ($file =~ m/\.(?:jpe?g|png|tiff?|ppm)$/i) {
@@ -144,7 +144,7 @@ sub handler {
 		my @listing;
 		push (@listing, @directories);
 		push (@listing, @files);
-		push (@listing, @movies);
+		push (@listing, @downloadable_files);
 		
 		if (@listing) {
 
@@ -166,16 +166,26 @@ sub handler {
 					$tpl->parse(FILES => '.directory');
 
 				}
-				elsif (-f $thumbfilename && $thumbfilename =~ m/\.(mpe?g|avi|mov|asf)$/i) {
+				elsif (-f $thumbfilename && $thumbfilename =~ m/\.(mpe?g|avi|mov|asf|wmv|doc|mp3|ogg|pdf|rtf|wav)$/i) {
 					my $type = lc($1);
 					my $stat = stat($thumbfilename);
 					my $size = $stat->size;
+					my $filetype;
+
+					if ($thumbfilename =~ m/\.(mpe?g|avi|mov|asf|wmv)$/i) {
+						$filetype = "video";
+					}
+					else {
+						$filetype = "application";
+					}
+
 					$tpl->assign(FILEURL => uri_escape($fileurl, $escape_rule), 
 					             ALT => "Size: $size Bytes", 
 					             FILE => $file, 
-					             TYPE => $type);
+					             TYPE => $type,
+					             FILETYPE => $filetype);
 
-					$tpl->parse(FILES => '.movie');						 
+					$tpl->parse(FILES => '.file');						 
 
 				}
 				elsif (-f $thumbfilename) {

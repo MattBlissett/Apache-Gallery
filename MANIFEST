@@ -5,6 +5,13 @@ htdocs/video-avi.png
 htdocs/video-mov.png
 htdocs/video-mpeg.png
 htdocs/video-mpg.png
+htdocs/video-wmv.png
+htdocs/application-doc.png
+htdocs/application-mp3.png
+htdocs/application-ogg.png
+htdocs/application-pdf.png
+htdocs/application-rtf.png
+htdocs/application-wav.png
 Changes
 LICENSE
 MANIFEST
@@ -29,7 +36,7 @@ templates/navpicture.tpl
 templates/scale.tpl
 templates/info.tpl
 templates/orig.tpl
-templates/movie.tpl
+templates/file.tpl
 templates/scaleactive.tpl
 templates/interval.tpl
 templates/refresh.tpl

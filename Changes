@@ -13,6 +13,8 @@ Revision history for Perl extension Apache::Gallery.
 	  if your camera supports that - like Canon G3. You can
 	  disable this by setting GalleryAutoRotate to 0 (Me)
 	- Works with Inline > 0.42 (Peter Andreasen)
+	- Show nice icons and allow downloads for doc,mp3,ogg,rtf,wav
+	  and wmv in addition to the current movie types (Me)
 
 0.5.1 Sat Nov  9 11:49:29 CET 2002
 
