@@ -1,3 +1,4 @@
+# http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         Apache-Gallery
 version:      0.7
@@ -7,7 +8,7 @@ requires:
     CGI:                           2.93
     CGI::FastTemplate:             0
     File::Spec:                    0
-    Image::Imlib2:                 0.12
+    Image::Imlib2:                 1
     Image::Info:                   0
     Image::Size:                   0
     mod_perl:                      0
@@ -15,4 +16,4 @@ requires:
     URI:                           1.23
 
 distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.13
+generated_by: ExtUtils::MakeMaker version 6.17

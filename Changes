@@ -8,6 +8,8 @@ snapshot
 	- Remember choosen width by setting a cookie (Rene Joergensen)
 	- Fixed a bug where $EXIFVALUES was left blank if a picture
 	  had a comment. (Me)
+	- Fixed a bug where one line comments was showed as $COMMENT
+	  (Jesper Skriver)
 
 0.7 Mon Sep  8 22:30:35 CEST 2003
 

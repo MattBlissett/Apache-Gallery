@@ -1086,7 +1086,6 @@ sub get_comment {
  	$comment_ref->{TITLE} = undef;
 	$comment_ref->{COMMENT} = '';
 
-	my $content = '';
 	open(FH, $filename) or return $comment_ref;
 	my $title = <FH>;
 	if ($title =~ m/^TITLE: (.*)$/) {
@@ -1095,9 +1094,10 @@ sub get_comment {
 	else {
 		$comment_ref->{COMMENT} = $title;
 	}
-	{
-		local $/;
-		$comment_ref->{COMMENT} .= <FH>;
+
+	while (<FH>) {
+		chomp;
+		$comment_ref->{COMMENT} .= $_;
 	}
 	close(FH);
 
