@@ -600,6 +600,7 @@ sub handler {
 			$tpl->parse(PICTUREINFO => 'nopictureinfo');
 		}	
 
+		my $scaleable = 0;
 		foreach my $size (@sizes) {
 			if ($size<=$original_size) {
 				$tpl->assign(IMAGEURI => uri_escape($r->uri(), $escape_rule));
@@ -610,8 +611,15 @@ sub handler {
 				}
 				else {
 				$tpl->parse(SIZES => '.scale');
+				$scaleable = 1;
 				}
 			}
+		}
+
+		unless ($scaleable) {
+				$tpl->assign(SIZE     => $original_size);
+				$tpl->assign(WIDTH    => $original_size);
+				$tpl->parse(SIZES => '.scaleactive');
 		}
 
 		if ($r->dir_config('GalleryAllowOriginal')) {
