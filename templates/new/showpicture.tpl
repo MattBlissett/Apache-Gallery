@@ -11,14 +11,11 @@ $BACK - <a href="./">up</a> - $NEXT</div>
 
         <td colspan="3" id="picture">
           IMG $NUMBER of $TOTAL $EXIFVALUES <br><br>
-          <img src="$SRC"><br><br>
+          <img src="$SRC" alt="* Image $NUMBER"><br><br>
 [ Size: $SIZES | Slideshow: $SLIDESHOW ]</td>
 
               </tr>
               $PICTUREINFO
-            </table>
-          </center>
-        </td>
       </tr>
 	  <tr>
 	  	<td colspan="3">
