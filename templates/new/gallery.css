@@ -1,9 +1,8 @@
 body {
 	background-color: #cccccc;
-    color: #666666;
+	color: #666666;
 	font-family: Verdana, Lucida, Arial;
 	font-size: 10px;
-//	font-weight: bold;
 	margin-left: 10px;
 	margin-top: 10px;
 	text-align: center;
@@ -16,9 +15,8 @@ table {
 	margin-right: auto;
 }
 #title {
-    font-size: 11px;
-    text-align: left;
-//    font-weight: bold;
+	font-size: 11px;
+	text-align: left;
 }
 #menu {
 	font-size: 13px;
@@ -69,12 +67,12 @@ a:hover img {
 	margin-top: 50px;
 }
 #comment {
-    background-color: #333333;
-    border: 3px solid #555555;
-    color: #999999;
-    width: 400px;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 20px;
-    padding: 5px;
+	background-color: #333333;
+	border: 3px solid #555555;
+	color: #999999;
+	width: 400px;
+	margin-left: auto;
+	margin-right: auto;
+	margin-top: 20px;
+	padding: 5px;
 }
