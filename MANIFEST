@@ -11,8 +11,11 @@ MANIFEST
 Makefile.PL
 README
 INSTALL
-test.pl
 lib/Apache/Gallery.pm
+t/001_use.t
+t/002_graphlibs.t
+t/injpg.jpg
+t/inpng.png
 templates/layout.tpl
 templates/showpicture.tpl
 templates/picture.tpl
