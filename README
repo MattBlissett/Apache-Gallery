@@ -1,4 +1,4 @@
-$Id: README,v 1.28 2002/06/15 19:58:14 mil Exp $
+$Date$
 
 NAME
     Apache::Gallery - mod_perl handler to create an image gallery
