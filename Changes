@@ -16,6 +16,8 @@ Snapshot
 	  before the index is displayed. (Michael Legart)
 	- Sort pictures the same way when viewing images as when viewing
 	  directories (Andreas Plesner)
+	- Make the "back" link on the error page work in IE (Michael Legart)
+	- Fixed the TITLE tag for folder comments (Ondra Kudlik)
 
 0.8 Sun Mar  7 11:22:00 CET 2004
 

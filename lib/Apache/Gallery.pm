@@ -391,6 +391,7 @@ sub handler {
 			$tpl_vars{DIRCOMMENT} = fill_in_file($tpl_vars{comment},
 							     HASH => \%comment_vars,
 							    );
+			$tpl_vars{TITLE} = $comment_ref->{TITLE} if $comment_ref->{TITLE};
 		} else {
 			$tpl_vars{DIRCOMMENT} = fill_in_file($tpl_vars{nocomment});
 		}
