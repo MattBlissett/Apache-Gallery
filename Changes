@@ -3,6 +3,8 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
+0.5.1 Tue Oct 22 22:53:40 CEST 2002
+
 	- InlineDir is no longer configurable using PerlSetVar, which
 	  fixes make test.
 	- Added test-suite
