@@ -53,8 +53,9 @@ sub handler {
 		return DECLINED;
 	}
 	if ($r->uri =~ m/\.cache\//i) {
-		my $file = cache_dir($r, 1);
+		my $file = cache_dir($r, 0);
 		$file =~ s/\/\.cache//;
+		$r->log_error("$file");
 		$r->filename($file);
 		return DECLINED;
 	}
@@ -206,7 +207,7 @@ sub handler {
 		my $content = $tpl->fetch("MAIN");
 
 		$r->content_type('text/html');
-		$r->headers_out('Content-Length', length(${$content}));
+		$r->header_out('Content-Length', length(${$content}));
 		$r->send_http_header;
 
 		$r->print(${$content});
@@ -455,7 +456,7 @@ sub handler {
 		my $content = $tpl->fetch("MAIN");
 
 		$r->content_type('text/html');
-		$r->headers_out('Content-Length', length(${$content}));
+		$r->header_out('Content-Length', length(${$content}));
 		$r->send_http_header;
 
 		$r->print(${$content});
