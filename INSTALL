@@ -39,7 +39,6 @@ Setup a virtualhostblock in httpd.conf, like this:
 	ErrorLog     logs/gallery-error_log
 	TransferLog  logs/gallery-access_log
 	PerlSetVar   GalleryTemplateDir '/usr/local/apache/gallery/templates'
-	PerlSetVar   InlineDir '/usr/local/apache/Inline'
 	PerlSetVar   GalleryInfo 'Picture Taken => DateTimeOriginal, Flash => Flash' 
 	PerlSetVar   GallerySizes '640 1024 1600 2272'
 	PerlSetVar   GalleryThumbnailSize '100x75'

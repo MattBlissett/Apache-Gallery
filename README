@@ -19,14 +19,7 @@ CONFIGURATION
     The options are set in the httpd.conf/.htaccess file using the syntax:
     PerlSetVar OptionName 'value'
 
-    Example: PerlSetVar InlineDir '/tmp/inline'
-
-    InlineDir
-        Full path to the directory Inline should compile the inline c-code
-        and store the shared objects. This is also where you can find debug
-        information if the c-code fails to compile.
-
-        Defaults to '/tmp'
+    Example: PerlSetVar GallerCachedir '/var/tmp/Apache-Gallery/'
 
     GalleryCacheDir
         Directory where Apache::Gallery should create its cache with scaled
@@ -132,6 +125,7 @@ DEPENDENCIES
     X11 libraries (ie, XFree86)
     Imlib2 Remember the -dev package when using rpm, deb or other package
     formats!
+
 BUGS
     Fatal errors are showed on a page with a HTTP OK return code. This is
     because Internet Explorer will show it's own error page otherwise. Is it
@@ -158,7 +152,6 @@ THANKS
     (See the Changes file)
 
 SEE ALSO
-    the perl manpage, the mod_perl manpage, the Apache::Request manpage, the
-    Inline::C manpage, the CGI::FastTemplate manpage, the Image::Info
-    manpage, and the Image::Size manpage.
+    perl, mod_perl, Apache::Request, Inline::C, CGI::FastTemplate,
+    Image::Info, and Image::Size.
 

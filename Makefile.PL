@@ -6,13 +6,14 @@ WriteMakefile(
     'NAME'		=> 'Apache::Gallery',
     'VERSION_FROM'	=> 'lib/Apache/Gallery.pm', # finds $VERSION
     'PREREQ_PM'		=> { 
-    				Image::Info  => 0,
+ 				Image::Info  => 0,
 				Image::Size => 0,
 				CGI::FastTemplate => 0, 
 				Inline => 0, 
 				mod_perl => 0,
 				URI::Escape => 0,
-				Apache::Request => 0
+				Apache::Request => 0,
+				Test::More => 0
 										 }, # e.g., Module::Name => 1.1
     ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM => 'lib/Apache/Gallery.pm', # retrieve abstract from module

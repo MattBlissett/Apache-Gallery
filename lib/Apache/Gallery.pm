@@ -25,7 +25,7 @@ my $escape_rule = "^A-Za-z0-9\-_.!~*'()\/";
 
 use Inline C => Config => 
 				LIBS => '-L/usr/X11R6/lib -lImlib2 -lm -ldl -lXext -lXext',
-				DIRECTORY => Apache->request()->dir_config('InlineDir') ?  Apache->request()->dir_config('InlineDir') : "/tmp/",
+				DIRECTORY => "/tmp/",
 				INC => '-I/usr/X11R6/include',
 				ENABLE    => 'UNTAINT';
 
@@ -922,17 +922,9 @@ directories.
 The options are set in the httpd.conf/.htaccess file using the syntax:
 B<PerlSetVar OptionName 'value'>
 
-Example: B<PerlSetVar InlineDir '/tmp/inline'>
+Example: B<PerlSetVar GallerCacheDir '/var/tmp/Apache-Gallery/'>
 
 =over 4
-
-=item B<InlineDir>
-
-Full path to the directory Inline should compile the inline c-code
-and store the shared objects. This is also where you can find debug
-information if the c-code fails to compile.
-
-Defaults to '/tmp'
 
 =item B<GalleryCacheDir>
 
