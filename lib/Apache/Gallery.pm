@@ -7,7 +7,7 @@ use strict;
 
 use vars qw($VERSION);
 
-$VERSION = "0.4";
+$VERSION = "0.4.1";
 
 use Apache ();
 use Apache::Constants qw(:common);
