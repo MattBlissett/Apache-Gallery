@@ -22,6 +22,7 @@ Snapshot
 	  spaces in the listing of directories. (Ondra Kudlik)
 	- Bugfix for when running outside a virtual host (Jeffrey Hartmann)
 	- Support Apache2 on FreeBSD (Jesper Dalberg)
+	- Avoid false 404 errors when running under mod_perl 2 (Tom Brown)
 
 0.8 Sun Mar  7 11:22:00 CET 2004
 

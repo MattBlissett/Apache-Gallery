@@ -141,14 +141,14 @@ sub handler {
 
 		if (MP2) {
 			$r->sendfile($file);
+			return Apache::OK;
 		}
 		else {
 			$r->path_info('');
 			$r->filename($file);
+			return Apache::Constants::DECLINED;
 		}
 		
-		return MP2 ? Apache::DECLINED : Apache::Constants::DECLINED;
-
 	}
 
 	my $uri = $r->uri;
