@@ -47,6 +47,29 @@ sub handler {
 
 	my $apr = Apache::Request->instance($r, DISABLE_UPLOADS => 1, POST_MAX => 1024);
 
+	# Is the file being fetched from the cache? Let's feed it from the cache outside the webscope.
+	if ($r->uri =~ m/\.cache/i) {
+
+		my $cached = cache_dir($r, 0);
+
+		$cached =~ s/\/\.cache//;
+
+		if ($r->uri =~ m/\.(jpe?g|png|tiff?|ppm)$/i) {
+
+			$r->content_type("image/$1");
+
+		}
+
+		$r->send_http_header;
+
+		open(FILE, "$cached");
+		$r->send_fd("FILE");
+		close(FILE);
+
+		return OK;
+
+	}
+
 	# Let Apache serve icons and files from the cache without us
 	# modifying the request
 	if ($r->uri =~ m/(^\/icons|\.cache)/i) {
@@ -58,7 +81,7 @@ sub handler {
 
 	my $filename = $r->filename;
 	$filename =~ s/\/$//;
-	my $topdir   = $filename;
+	my $topdir = $filename;
 
 	unless (-f $filename or -d $filename) {
 	
@@ -73,8 +96,8 @@ sub handler {
 
 	if (-d $filename) {
 
-		unless (-d $filename."/.cache") {
-			unless (create_cache($r, $filename)) {
+		unless (-d cache_dir($r, 0)) {
+			unless (create_cache($r, cache_dir($r, 0))) {
 				return OK;
 			}
 		}
@@ -222,9 +245,10 @@ sub handler {
 		my @tmp = split (/\//, $filename);
 		my $picfilename = pop @tmp;
 		my $path = (join "/", @tmp)."/";
+		my $cache_path = cache_dir($r, 1);
 
-		unless (-d $path."/.cache") {
-			unless (create_cache($r, $path)) {
+		unless (-d $cache_path) {
+			unless (create_cache($r, $cache_path)) {
 				return OK;
 			}
 		}
@@ -243,7 +267,7 @@ sub handler {
 		my @sizes = split (/ /, $r->dir_config('GallerySizes') ? $r->dir_config('GallerySizes') : '640 800 1024 1600');
 		if ($apr->param('width')) {
 			unless ((grep $apr->param('width') == $_, @sizes) or ($apr->param('width') == $original_size)) {
-				show_error($r, "Invalid width", $apr->param('width')." is not an allowed with.");
+				show_error($r, "Invalid width", $apr->param('width')." is not an allowed width.");
 				return OK;
 			}
 			$width = $apr->param('width');
@@ -445,14 +469,65 @@ sub handler {
 	return OK;
 }
 
+sub cache_dir {
+
+	my ($r, $strip_filename) = @_;
+
+	my $cache_root;
+
+	unless ($r->dir_config('GalleryCacheDir')) {
+
+		if ($r->server->is_virtual) {
+
+			$cache_root = "/var/tmp/Apache-Gallery/" . $r->server->server_hostname;
+
+		} else {
+
+			$cache_root = "/var/tmp/Apache-Gallery/" . $r->location;
+
+		}
+
+	} else {
+
+		$cache_root = $r->dir_config('GalleryCacheDir');
+
+	}
+
+	my @uri = split("/", $r->uri);
+
+	pop(@uri) if ($strip_filename);
+
+	return($cache_root . join("/", @uri));
+
+}
+
 sub create_cache {
 
 	my ($r, $path) = @_;
-	unless (mkdir ($path."/.cache", 0777)) {
-		show_error($r, $!, "Unable to create cache directory in $path: $!");
-		return 0;
-	}
+
+		unless (mkdirhier ($path, 0777)) {
+			show_error($r, $!, "Unable to create cache directory in $path: $!");
+			return 0;
+		}
+
 	return 1;
+}
+
+sub mkdirhier {
+
+	my ($dir) = @_;
+
+	unless (-d $dir) {
+
+		unless (mkdir($dir, 0755)) {
+			my $parent = $dir;
+			$parent =~ s/\/[^\/]*$//;
+
+			mkdirhier($parent);
+
+			mkdir($dir, 0755);
+		}
+	}
 }
 
 sub scale_picture {
@@ -464,7 +539,10 @@ sub scale_picture {
 
 	my ($orig_width, $orig_height, $type) = imgsize($fullpath);
 
-	my $cache = join ("/", @dirs) . "/.cache";
+	my @cachedir = split("/", cache_dir($r, 0));
+	pop(@cachedir) unless (-d join("/", @cachedir));
+
+	my $cache = join("/", @cachedir);
 
 	my ($thumbnailwidth, $thumbnailheight) = split(/x/, ($r->dir_config('GalleryThumbnailSize') ?  $r->dir_config('GalleryThumbnailSize') : "100x75"));
 
@@ -741,6 +819,7 @@ sub generate_menu {
 
 	return $menu;
 }
+
 
 1;
 __DATA__
