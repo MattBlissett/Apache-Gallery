@@ -533,6 +533,7 @@ sub handler {
 
 		if (($exif_mode eq 'namevalue' && $foundinfo) or $foundcomment) {
 			$tpl->parse(PICTUREINFO => 'pictureinfo');
+			$tpl->assign(EXIFVALUES => "");
 		}
 		else {
 			$tpl->parse(PICTUREINFO => 'nopictureinfo');
