@@ -337,7 +337,7 @@ sub handler {
 		$tpl->assign(META => " ");
 		$tpl->assign(RESOLUTION => "$image_width x $height");
 		$tpl->assign(MENU => generate_menu($r));
-		$tpl->assign(SRC => ".cache/".$cached);
+		$tpl->assign(SRC => uri_escape(".cache/$cached", $escape_rule));
 		$tpl->assign(URI => $r->uri());
 
 		unless (opendir(DATADIR, $path)) {
