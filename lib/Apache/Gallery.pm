@@ -821,7 +821,14 @@ sub scale_picture {
 sub get_thumbnailsize {
 	my ($r, $orig_width, $orig_height) = @_;
 
-	my ($thumbnailwidth, $thumbnailheight) = split(/x/, ($r->dir_config('GalleryThumbnailSize') ?  $r->dir_config('GalleryThumbnailSize') : "100x75"));
+	my $gallerythumbnailsize=$r->dir_config('GalleryThumbnailSize');
+
+	if (defined($gallerythumbnailsize)) {
+		warn("Invalid setting for GalleryThumbnailSize") unless
+			$gallerythumbnailsize =~ /^\s*\d+\s*x\s*\d+\s*$/i;
+	}
+
+	my ($thumbnailwidth, $thumbnailheight) = split(/x/i, ($gallerythumbnailsize) ?  $gallerythumbnailsize : "100x75");
 
 	my $width = $thumbnailwidth;
 	my $height = $thumbnailheight;
