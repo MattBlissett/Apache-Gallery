@@ -1219,12 +1219,13 @@ sub resizepicture {
 			my $logoy = $logo->get_height();
 			$image->blend($logo, 0, 0, 0, $logox, $logoy, $x-$logox, $y-$logoy, $logox, $logoy);
 		}
-	}
-	else {
-		Apache->request->log_error("GalleryCopyrightImage $copyrightfile was not found\n");
+		else {
+			Apache->request->log_error("GalleryCopyrightImage $copyrightfile was not found\n");
+		}
 	}
 
 	$image->save($outfile);
+
 }
 
 1;
