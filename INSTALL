@@ -15,7 +15,7 @@ that you have the following installed:
 - Image::Info
 - Image::Size
 - CGI::FastTemplate
-- Inline(::C)
+- Inline::C
 - X11 libraries (ie, XFree86)
 - Imlib2 (http://prdownloads.sourceforge.net/enlightenment/imlib2-1.0.3.tar.gz)
 
