@@ -58,7 +58,7 @@ sub handler {
 			$r->log_error("Error opening $cached: $!\n");
 			return SERVER_ERROR;
 		}
-	
+
 		if ($r->uri =~ m/\.(jpe?g|png|tiff?|ppm)$/i) {
 			$r->content_type("image/$1");
 		}
@@ -506,16 +506,11 @@ sub cache_dir {
 	my (undef, $dirs, $filename) = File::Spec->splitpath($r->uri);
 	# We don't need a volume as this is a relative path
 
-	my $cache_dir;
-
 	if ($strip_filename) {
-		$cache_dir = File::Spec->canonpath(File::Spec->catdir($cache_root, $dirs));
+		return(File::Spec->canonpath(File::Spec->catdir($cache_root, $dirs)));
 	} else {
-		$cache_dir = File::Spec->canonpath(File::Spec->catfile($cache_root, $dirs, $filename));
+		return(File::Spec->canonpath(File::Spec->catfile($cache_root, $dirs, $filename)));
 	}
-
-	return $cache_dir;
-
 }
 
 sub create_cache {
