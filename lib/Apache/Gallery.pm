@@ -744,7 +744,7 @@ sub get_imageinfo {
 				}
 			}
 			if ($exif_key eq 'ShutterSpeedValue') {
-				if ($value =~ /^(\d+)\/(\d+)$/) {
+				if ($value =~ /^((?:\-)?\d+)\/(\d+)$/) {
 					$value = eval { $1 / $2 };
 					if ($@) {
 						$value = $@;
@@ -752,6 +752,8 @@ sub get_imageinfo {
 						$value = 1/(exp($value*log(2)));
 						if ($value < 1) {
 							$value = "1/" . (int((1/$value)));
+						} else {
+						   	$value = int($value*10)/10; 
 						}
 						$value = $value . " sec";
 					}
