@@ -9,9 +9,30 @@ use vars qw($VERSION);
 
 $VERSION = "0.6.1";
 
-use Apache ();
-use Apache::Constants qw(:common);
-use Apache::Request();
+use mod_perl;
+use constant MP2 => ($mod_perl::VERSION >= 1.99);
+
+if (MP2) {
+	require Apache2;
+	require Apache::Server;
+	require Apache::RequestRec;
+	require Apache::Log;
+	require APR::Table;
+	require Apache::RequestIO;
+	require Apache::SubRequest;
+	require Apache::Const;
+
+	Apache::Const->import(-compile => 'OK','DECLINED','FORBIDDEN');
+
+}
+else {
+	require Apache;
+	require Apache::Constants;
+	require Apache::Request;
+
+	Apache::Constants->import('OK','DECLINED','FORBIDDEN');
+
+}
 
 use Image::Info qw(image_info);
 use Image::Size qw(imgsize);
@@ -20,14 +41,18 @@ use File::stat;
 use File::Spec;
 use POSIX qw(floor);
 use URI::Escape;
+use POSIX;
+use CGI;
+
+use Data::Dumper;
 
 # Regexp for escaping URI's
 my $escape_rule = "^A-Za-z0-9\-_.!~*'()\/";
 my $memoized;
 
 use Inline (C => Config => 
-				LIBS => '-L/usr/X11R6/lib -lImlib2 -lm -ldl -lXext -lXext',
-				INC => '-I/usr/X11R6/include',
+				LIBS => '-L/usr/X11R6/lib -lImlib2',
+				GLOBAL_LOAD => 1,
 				UNTAINT => 1,
 				DIRECTORY => File::Spec->tmpdir()
 			);
@@ -45,20 +70,33 @@ sub handler {
 		$memoized=1;
 	}
 
-	$r->header_out("X-Powered-By","apachegallery.dk $VERSION - Hest design!");
-	$r->header_out("X-Gallery-Version", '$Rev$ $Date$');
+	$r->headers_out->{"X-Powered-By"} = "apachegallery.dk $VERSION - Hest design!";
+	$r->headers_out->{"X-Gallery-Version"} = '$Rev$ $Date$';
 
 	# Just return the http headers if the client requested that
 	if ($r->header_only) {
-		$r->send_http_header;
-		return OK;
+		return MP2 ? Apache::OK : Apache::Constants::OK;
 	}
 
-	my $apr = Apache::Request->instance($r, DISABLE_UPLOADS => 1, POST_MAX => 10024);
+	my $cgi = new CGI;
 
 	# Handle selected images
-	if ($apr->param('selection')) {
-		my @selected = $apr->param('selection');
+	if ($cgi->param('selection')) {
+		my @selected = $cgi->param('selection');
+		my $content = "@selected";
+		$r->content_type('text/html');
+		$r->header_out('Content-Length', length($content));
+		$r->send_http_header;
+		$r->print($content);
+		return MP2 ? Apache::OK : Apache::Constants::OK;
+	}
+	
+	# Selectmode providing checkboxes beside all thumbnails
+	my $select_mode = $cgi->param('select');
+
+	# Handle selected images
+	if ($cgi->param('selection')) {
+		my @selected = $cgi->param('selection');
 		my $content = "@selected";
 		$r->content_type('text/html');
 		$r->header_out('Content-Length', length($content));
@@ -67,22 +105,27 @@ sub handler {
 		return OK;
 	}
 	
-	# Selectmode providing checkboxes beside all thumbnails
-	my $select_mode = $apr->param('select');
-
 	# Let Apache serve icons and files from the cache without us
 	# modifying the request
 	if ($r->uri =~ m/^\/icons/i) {
-		return DECLINED;
+		return MP2 ? Apache::DECLINED : Apache::Constants::DECLINED;
 	}
 	if ($r->uri =~ m/\.cache\//i) {
 		my $file = cache_dir($r, 0);
 		$file =~ s/\/\.cache//;
 		my $subr = $r->lookup_file($file);
 		$r->content_type($subr->content_type());
-		$r->path_info('');
-		$r->filename($file);
-		return DECLINED;
+
+		if (MP2) {
+			$r->sendfile($file);
+		}
+		else {
+			$r->path_info('');
+			$r->filename($file);
+		}
+		
+		return MP2 ? Apache::DECLINED : Apache::Constants::DECLINED;
+
 	}
 
 	my $uri = $r->uri;
@@ -95,19 +138,19 @@ sub handler {
 	unless (-f $filename or -d $filename) {
 	
 		show_error($r, 404, "404!", "No such file or directory: ".uri_escape($r->uri, $escape_rule));
-		return OK;
+		return MP2 ? Apache::OK : Apache::Constants::OK;
 	}
 
 	# Let Apache serve files we don't know how to handle anyway
 	if (-f $filename && $filename !~ m/\.(?:jpe?g|png|tiff?|ppm)$/i) {
-		return DECLINED;
+		return MP2 ? Apache::DECLINED : Apache::Constants::DECLINED;
 	}
 
 	if (-d $filename) {
 
 		unless (-d cache_dir($r, 0)) {
 			unless (create_cache($r, cache_dir($r, 0))) {
-				return OK;
+				return MP2 ? Apache::OK : Apache::Constants::OK;
 			}
 		}
 
@@ -128,7 +171,7 @@ sub handler {
 
 		unless (opendir (DIR, $filename)) {
 			show_error ($r, 500, $!, "Unable to access directory $filename: $!");
-			return OK;
+			return MP2 ? Apache::OK : Apache::Constants::OK;
 		}
 		
 		$tpl->assign(MENU => generate_menu($r));
@@ -266,11 +309,14 @@ sub handler {
 		my $content = $tpl->fetch("MAIN");
 
 		$r->content_type('text/html');
-		$r->header_out('Content-Length', length(${$content}));
-		$r->send_http_header;
+		$r->headers_out->{'Content-Length'} = length(${$content});
+
+		if (!MP2) {
+			$r->send_http_header;
+		}
 
 		$r->print(${$content});
-		return OK;
+		return MP2 ? Apache::OK : Apache::Constants::OK;
 
 	}
 	else {
@@ -279,9 +325,9 @@ sub handler {
 		if (defined($ENV{QUERY_STRING}) && $ENV{QUERY_STRING} eq 'orig') {
 			if ($r->dir_config('GalleryAllowOriginal') ? 1 : 0) {
 				$r->filename($filename);
-				return DECLINED;
+				return MP2 ? Apache::DECLINED : Apache::Constants::DECLINED;
 			} else {
-				return FORBIDDEN;
+				return MP2 ? Apache::FORBIDDEN : Apache::Constants::FORBIDDEN;
 			}
 		}
 	
@@ -293,7 +339,7 @@ sub handler {
 
 		unless (-d $cache_path) {
 			unless (create_cache($r, $cache_path)) {
-				return OK;
+				return MP2 ? Apache::OK : Apache::Constants::OK;
 			}
 		}
 
@@ -309,12 +355,12 @@ sub handler {
 
 		# Check if the selected width is allowed
 		my @sizes = split (/ /, $r->dir_config('GallerySizes') ? $r->dir_config('GallerySizes') : '640 800 1024 1600');
-		if ($apr->param('width')) {
-			unless ((grep $apr->param('width') == $_, @sizes) or ($apr->param('width') == $original_size)) {
+		if ($cgi->param('width')) {
+			unless ((grep $cgi->param('width') == $_, @sizes) or ($cgi->param('width') == $original_size)) {
 				show_error($r, 200, "Invalid width", "The specified width is invalid");
-				return OK;
+				return MP2 ? Apache::OK : Apache::Constants::OK;
 			}
-			$width = $apr->param('width');
+			$width = $cgi->param('width');
 		}
 		else {
 			$width = $sizes[0];
@@ -370,7 +416,7 @@ sub handler {
 
 		unless (opendir(DATADIR, $path)) {
 			show_error($r, 500, "Unable to access directory", "Unable to access directory $path");
-			return OK;
+			return MP2 ? Apache::OK : Apache::Constants::OK;
 		}
 		my @pictures = grep { /^[^.].*\.(jpe?g|png|ppm|tiff?)$/i } readdir (DATADIR);
 		closedir(DATADIR);
@@ -491,7 +537,7 @@ sub handler {
 			$tpl->assign(IMAGEURI => uri_escape($r->uri(), $escape_rule));
 			$tpl->assign(SECONDS => $interval);
 			$tpl->assign(WIDTH => ($width > $height ? $width : $height));
-			if ($apr->param('slideshow') && $apr->param('slideshow') == $interval and $nextpicture) {
+			if ($cgi->param('slideshow') && $cgi->param('slideshow') == $interval and $nextpicture) {
 				$tpl->parse(SLIDESHOW => '.intervalactive');
 			}
 			else {
@@ -499,16 +545,16 @@ sub handler {
 			}
 		}
 
-		if ($apr->param('slideshow') and $nextpicture) {
+		if ($cgi->param('slideshow') and $nextpicture) {
 
 			$tpl->parse(SLIDESHOW => '.slideshowoff');
 
-			unless ((grep $apr->param('slideshow') == $_, @slideshow_intervals)) {
+			unless ((grep $cgi->param('slideshow') == $_, @slideshow_intervals)) {
 				show_error($r, 200, "Invalid interval", "Invalid slideshow interval choosen");
-				return OK;
+				return MP2 ? Apache::OK : Apache::Constants::OK;
 			}
 
-			$tpl->assign(INTERVAL => $apr->param('slideshow'));
+			$tpl->assign(INTERVAL => $cgi->param('slideshow'));
 			$tpl->parse(META => '.refresh');
 
 		}
@@ -520,15 +566,17 @@ sub handler {
 		my $content = $tpl->fetch("MAIN");
 
 		$r->content_type('text/html');
-		$r->header_out('Content-Length', length(${$content}));
-		$r->send_http_header;
+		$r->headers_out->{'Content-Length'} = length(${$content});
+
+		if (!MP2) {
+			$r->send_http_header;
+		}
 
 		$r->print(${$content});
-		return OK;
+		return MP2 ? Apache::OK : Apache::Constants::OK;
 
 	}
 
-	return OK;
 }
 
 sub cache_dir {
@@ -965,7 +1013,6 @@ sub show_error {
 
 	$r->status($statuscode);
 	$r->content_type('text/html');
-	$r->send_http_header;
 
 	$r->print(${$content});
 
@@ -1289,8 +1336,6 @@ with the visible name of the folder.
 
 =item B<Apache with mod_perl>
 
-=item B<Apache::Request>
-
 =item B<URI::Escape>
 
 =item B<Image::Info>
@@ -1331,7 +1376,7 @@ Thanks to Thomas Eibner and other for patches. (See the Changes file)
 
 =head1 SEE ALSO
 
-L<perl>, L<mod_perl>, L<Apache::Request>, L<Inline::C>, L<CGI::FastTemplate>,
+L<perl>, L<mod_perl>, L<Inline::C>, L<CGI::FastTemplate>,
 L<Image::Info>, and L<Image::Size>.
 
 =cut
