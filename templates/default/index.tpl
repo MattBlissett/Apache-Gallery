@@ -16,7 +16,7 @@
     { $DIRCOMMENT }
 		<tr>
 			<td>
-    		Indexed by <a href="http://apachegallery.dk">Apache::Gallery</a> - Copyright &copy; 2001-2003 Michael Legart - <a href="http://www.hestdesign.com/">Hest Design!</a>
+    		Indexed by <a href="http://apachegallery.dk">Apache::Gallery</a> - Copyright &copy; 2001-2004 Michael Legart - <a href="http://www.hestdesign.com/">Hest Design!</a>
 			</td>
 		</tr>
   </table>

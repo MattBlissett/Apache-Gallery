@@ -20,7 +20,7 @@
 	  <tr>
 	  	<td colspan="3">
 		  <div id="gallery">
-		  <a href="http://apachegallery.dk/">Apache::Gallery</a> &copy; 2001-2003 Michael Legart, <a href="http://www.hestdesign.com/">Hest Design</a>
+		  <a href="http://apachegallery.dk/">Apache::Gallery</a> &copy; 2001-2004 Michael Legart, <a href="http://www.hestdesign.com/">Hest Design</a>
 
 		  </div>
 		</td>
