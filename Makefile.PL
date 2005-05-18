@@ -10,9 +10,9 @@ WriteMakefile(
 				Image::Size => 0,
 				Image::Imlib2 => 1.02,
 				Text::Template => 0, 
-				mod_perl => 0,
+				mod_perl2 => 0,
 				URI => 1.23,
-				CGI => 2.93,
+				CGI => 3.08,
 				Test::More => 0,
 				File::Spec => 0
 										 }, # e.g., Module::Name => 1.1

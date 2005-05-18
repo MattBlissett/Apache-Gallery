@@ -7,28 +7,28 @@ use strict;
 
 use vars qw($VERSION);
 
-$VERSION = "0.9.1";
+$VERSION = "0.9.2";
 
 BEGIN {
 
 	eval('require mod_perl;');
 	if ( $@ ) {
-		require Apache2::mod_perl;
+		require mod_perl2;
 	}
 
+	print STDERR $mod_perl::VERSION."\n";
 	$::MP2 = ($mod_perl::VERSION >= 1.99);
 	
 	if ($::MP2) {
-		require Apache2;
-		require Apache::Server;
-		require Apache::RequestRec;
-		require Apache::Log;
+		require Apache2::ServerRec;
+		require Apache2::RequestRec;
+		require Apache2::Log;
 		require APR::Table;
-		require Apache::RequestIO;
-		require Apache::SubRequest;
-		require Apache::Const;
+		require Apache2::RequestIO;
+		require Apache2::SubRequest;
+		require Apache2::Const;
 	
-		Apache::Const->import(-compile => 'OK','DECLINED','FORBIDDEN','NOT_FOUND');
+		Apache2::Const->import(-compile => 'OK','DECLINED','FORBIDDEN','NOT_FOUND');
 	
 	}
 	else {
@@ -61,7 +61,7 @@ my $memoized;
 
 sub handler {
 
-	my $r = shift or Apache->request();
+	my $r = shift or Apache2::RequestUtil->request();
 
 	if ((not $memoized) and ($r->dir_config('GalleryMemoize'))) {
 		require Memoize;
@@ -84,10 +84,10 @@ sub handler {
 		}
 
   	if (-f $filename or -d $filename) {
-			return $::MP2 ? Apache::OK() : Apache::Constants::OK();
+			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 		}
 		else {
-			return $::MP2 ? Apache::NOT_FOUND() : Apache::Constants::NOT_FOUND();
+			return $::MP2 ? Apache2::Const::NOT_FOUND() : Apache::Constants::NOT_FOUND();
 		}
 	}
 
@@ -105,7 +105,7 @@ sub handler {
 		}
 
 		$r->print($content);
-		return $::MP2 ? Apache::OK() : Apache::Constants::OK();
+		return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 	}
 	
 	# Selectmode providing checkboxes beside all thumbnails
@@ -113,7 +113,7 @@ sub handler {
 	
 	# Let Apache serve icons without us modifying the request
 	if ($r->uri =~ m/^\/icons/i) {
-		return $::MP2 ? Apache::DECLINED() : Apache::Constants::DECLINED();
+		return $::MP2 ? Apache2::Const::DECLINED() : Apache::Constants::DECLINED();
 	}
 	# Lookup the file in the cache and scale the image if the cached
 	# image does not exist
@@ -142,7 +142,7 @@ sub handler {
 
 		if ($::MP2) {
 			$r->sendfile($file);
-			return Apache::OK();
+			return Apache2::Const::OK();
 		}
 		else {
 			$r->path_info('');
@@ -157,7 +157,7 @@ sub handler {
 
 	unless (-f $filename or -d $filename) {
 		show_error($r, 404, "404!", "No such file or directory: ".uri_escape($r->uri, $escape_rule));
-		return $::MP2 ? Apache::OK() : Apache::Constants::OK();
+		return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 	}
 
 	my $doc_pattern = $r->dir_config('GalleryDocFile');
@@ -171,14 +171,14 @@ sub handler {
 
 	# Let Apache serve files we don't know how to handle anyway
 	if (-f $filename && $filename !~ m/$img_pattern/i) {
-		return $::MP2 ? Apache::DECLINED() : Apache::Constants::DECLINED();
+		return $::MP2 ? Apache2::Const::DECLINED() : Apache::Constants::DECLINED();
 	}
 
 	if (-d $filename) {
 
 		unless (-d cache_dir($r, 0)) {
 			unless (create_cache($r, cache_dir($r, 0))) {
-				return $::MP2 ? Apache::OK() : Apache::Constants::OK();
+				return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 			}
 		}
 
@@ -206,7 +206,7 @@ sub handler {
 
 		unless (opendir (DIR, $filename)) {
 			show_error ($r, 500, $!, "Unable to access directory $filename: $!");
-			return $::MP2 ? Apache::OK() : Apache::Constants::OK();
+			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 		}
 
 		$tpl_vars{MENU} = generate_menu($r);
@@ -422,7 +422,7 @@ sub handler {
 		}
 
 		$r->print($tpl_vars{MAIN});
-		return $::MP2 ? Apache::OK() : Apache::Constants::OK();
+		return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 
 	}
 	else {
@@ -431,9 +431,9 @@ sub handler {
 		if (defined($ENV{QUERY_STRING}) && $ENV{QUERY_STRING} eq 'orig') {
 			if ($r->dir_config('GalleryAllowOriginal') ? 1 : 0) {
 				$r->filename($filename);
-				return $::MP2 ? Apache::DECLINED() : Apache::Constants::DECLINED();
+				return $::MP2 ? Apache2::Const::DECLINED() : Apache::Constants::DECLINED();
 			} else {
-				return $::MP2 ? Apache::FORBIDDEN() : Apache::Constants::FORBIDDEN();
+				return $::MP2 ? Apache2::Const::FORBIDDEN() : Apache::Constants::FORBIDDEN();
 			}
 		}
 	
@@ -445,7 +445,7 @@ sub handler {
 
 		unless (-d $cache_path) {
 			unless (create_cache($r, $cache_path)) {
-				return $::MP2 ? Apache::OK() : Apache::Constants::OK();
+				return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 			}
 		}
 
@@ -467,7 +467,7 @@ sub handler {
 		if ($cgi->param('width')) {
 			unless ((grep $cgi->param('width') == $_, @sizes) or ($cgi->param('width') == $original_size)) {
 				show_error($r, 200, "Invalid width", "The specified width is invalid");
-				return $::MP2 ? Apache::OK() : Apache::Constants::OK();
+				return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 			}
 
 			$width = $cgi->param('width');
@@ -538,7 +538,7 @@ sub handler {
 
 		unless (opendir(DATADIR, $path)) {
 			show_error($r, 500, "Unable to access directory", "Unable to access directory $path");
-			return $::MP2 ? Apache::OK() : Apache::Constants::OK();
+			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 		}
 		my @pictures = grep { /$img_pattern/i } readdir (DATADIR);
 		closedir(DATADIR);
@@ -730,7 +730,7 @@ sub handler {
 
 			unless ((grep $cgi->param('slideshow') == $_, @slideshow_intervals)) {
 				show_error($r, 200, "Invalid interval", "Invalid slideshow interval choosen");
-				return $::MP2 ? Apache::OK() : Apache::Constants::OK();
+				return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 			}
 
 			$tpl_vars{URL} = uri_escape($nextpicture, $escape_rule);
@@ -754,7 +754,7 @@ sub handler {
 		}
 
 		$r->print($tpl_vars{MAIN});
-		return $::MP2 ? Apache::OK() : Apache::Constants::OK();
+		return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 
 	}
 
@@ -973,7 +973,7 @@ sub get_imageinfo {
 	my $imageinfo = {};
 	if ($type eq 'Data stream is not a known image file format') {
 		# should never be reached, this is supposed to be handled outside of here
-		Apache->request->log_error("Something was fishy with the type of the file $file\n");
+		Apache2::RequestUtil->request->log_error("Something was fishy with the type of the file $file\n");
 	} else { 
 		# Some files, like TIFF, PNG, GIF do not have EXIF info embedded but use .thm files
 		# instead.
@@ -1362,22 +1362,22 @@ sub resizepicture {
 			$image->blend($logo, 0, 0, 0, $logox, $logoy, $x-$logox, $y-$logoy, $logox, $logoy);
 		}
 		else {
-			Apache->request->log_error("GalleryCopyrightImage $copyrightfile was not found\n");
+			Apache2::RequestUtil->request->log_error("GalleryCopyrightImage $copyrightfile was not found\n");
 		}
 	}
 
 	if ($GalleryTTFDir && $GalleryCopyrightText && $GalleryTTFFile && $text_color) {
 		if (!-d $GalleryTTFDir) {
 
-			Apache->request->log_error("GalleryTTFDir $GalleryTTFDir is not a dir\n");
+			Apache2::RequestUtil->request->log_error("GalleryTTFDir $GalleryTTFDir is not a dir\n");
 
 		} elsif ($GalleryCopyrightText eq '') {
 
-			Apache->request->log_error("GalleryCopyrightText is empty. No text inserted to picture\n");
+			Apache2::RequestUtil->request->log_error("GalleryCopyrightText is empty. No text inserted to picture\n");
 
 		} elsif (!-e "$GalleryTTFDir/$GalleryTTFFile") {
 
-			Apache->request->log_error("GalleryTTFFile $GalleryTTFFile was not found\n");
+			Apache2::RequestUtil->request->log_error("GalleryTTFFile $GalleryTTFFile was not found\n");
 
 		} else {
  
@@ -1398,7 +1398,7 @@ sub resizepicture {
 			if (($text_x < $x - $offset) && ($text_y < $y - $offset)) {
 				$image->draw_text($x-$text_x-$offset, $y-$text_y-$offset, "$GalleryCopyrightText");
 			} else {
-				Apache->request->log_error("Text is to big for the picture.\n");
+				Apache2::RequestUtil->request->log_error("Text is to big for the picture.\n");
 			}
 		}
 	}
