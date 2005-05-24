@@ -1,7 +1,13 @@
 # $Author$ $Rev$
 # $Date$
 
-For users upgrading from 0.7 to snapshot
+For users upgrading to 1.0
+
+If you are using mod_perl2 version mod_perl-1.999_22 is now required.
+
+Also, CGI 3.08 is required if using mod_perl2.
+
+For users upgrading from 0.7 to 0.8
 
 You need to create new directory called gallery in Apaches
 icons directory. Copy the png files from the htdocs dictory
