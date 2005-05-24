@@ -1818,7 +1818,7 @@ Michael Legart <michael@legart.dk>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2001-2004 Michael Legart <michael@legart.dk>
+Copyright (C) 2001-2005 Michael Legart <michael@legart.dk>
 
 Templates designed by Thomas Kjaer <tk@lnx.dk>
 
