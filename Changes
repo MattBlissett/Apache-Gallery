@@ -3,7 +3,7 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
-1.0 Tue May 24 13:31:50 CEST 2005
+1.0RC1 Tue May 24 13:31:50 CEST 2005
 
 	- Added submit button to form in selection mode (Vlad Marchenko)
 	- Added new option GalleryRootPath for use when the gallery
