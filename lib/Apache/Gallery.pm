@@ -16,8 +16,11 @@ BEGIN {
 		require mod_perl2;
 	}
 
-	print STDERR $mod_perl::VERSION."\n";
-	$::MP2 = ($mod_perl::VERSION >= 1.99);
+	if ($mod_perl::VERSION >= 1.99 && $mod_perl::VERSION < 2.0) {
+		"die mod_perl 2.0.0 or later is now required";
+	}
+
+	$::MP2 = ($mod_perl::VERSION >= 2.0);
 	
 	if ($::MP2) {
 		require Apache2::ServerRec;
