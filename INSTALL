@@ -8,7 +8,7 @@ that you have the following installed:
 
 - Perl 5 (http://www.cpan.org/src/README.html)
 - Apache (http://httpd.apache.org/) - 1.3.x or 2.x
-- mod_perl (http://perl.apache.org/) - 1.x or 2.x (1.999_22 or newer)
+- mod_perl (http://perl.apache.org/) - 1.x or 2.x (2.0.0 or newer)
 - X11 libraries (ie, XFree86)
 - Imlib2 (http://prdownloads.sourceforge.net/enlightenment/imlib2-1.0.3.tar.gz)
 
