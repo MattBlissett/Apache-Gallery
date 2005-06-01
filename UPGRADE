@@ -7,6 +7,9 @@ If you are using mod_perl2 version mod_perl-2.0 is now required.
 
 Also, CGI 3.08 is required if using mod_perl2.
 
+To enable access keys for navigation update the navpicture.tpl and
+showpicture.tpl templates.
+
 For users upgrading from 0.7 to 0.8
 
 You need to create new directory called gallery in Apaches

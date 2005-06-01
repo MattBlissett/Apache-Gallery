@@ -7,7 +7,7 @@ use strict;
 
 use vars qw($VERSION);
 
-$VERSION = "1.0RC1";
+$VERSION = "1.0RC2";
 
 BEGIN {
 
@@ -574,7 +574,8 @@ sub handler {
 					$nav_vars{FILENAME}  = $prevpicture;
 					$nav_vars{WIDTH}     = $width;
 					$nav_vars{PICTURE}   = uri_escape(".cache/$cached", $escape_rule);
-					$nav_vars{DIRECTION} = "&laquo; prev";
+					$nav_vars{DIRECTION} = "&laquo; <u>p</u>rev";
+					$nav_vars{ACCESSKEY} = "P";
 					$tpl_vars{BACK} = $templates{navpicture}->fill_in(HASH => \%nav_vars);
 				}
 				else {
@@ -596,7 +597,8 @@ sub handler {
 					$nav_vars{FILENAME}  = $nextpicture;
 					$nav_vars{WIDTH}     = $width;
 					$nav_vars{PICTURE}   = uri_escape(".cache/$cached", $escape_rule);
-					$nav_vars{DIRECTION} = "next &raquo;";
+					$nav_vars{DIRECTION} = "<u>n</u>ext &raquo;";
+					$nav_vars{ACCESSKEY} = "N";
 
 					$tpl_vars{NEXT} = $templates{navpicture}->fill_in(HASH => \%nav_vars);
 					$tpl_vars{NEXTURL}   = uri_escape($nextpicture, $escape_rule);

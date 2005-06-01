@@ -3,6 +3,10 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
+1.0RC2 Wed Jun  1 09:11:50 CEST 2005
+
+	- Added access keys for navigation (Michael Knudsen)
+
 1.0RC1 Tue May 24 13:31:50 CEST 2005
 
 	- Added submit button to form in selection mode (Vlad Marchenko)
