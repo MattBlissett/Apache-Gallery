@@ -1281,7 +1281,7 @@ sub generate_menu {
 	my $uri = $r->uri;
 	$uri =~ s/^$root_path//g;
 
-	my @links = split (/\//, $uri);
+	@links = split (/\//, $uri);
 
 	# Get the full path of the base directory
 	my $dirname;
