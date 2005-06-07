@@ -18,7 +18,7 @@ to this new directory.
 
 For those of you with pre-existing templates, a simple
 
-   cd templates; perl -pi -e 's/(?<!\\)(\$[\w\_\d]+)/\{ $1 \}/g'
+   cd templates; perl -pi -e 's/(?<!\\)(\$[\w\_\d]+)/\{ $1 \}/g' *.tpl
 
 should get your templates but directory.tpl and file.tpl
 working correctly. The last two needs to be updated from
