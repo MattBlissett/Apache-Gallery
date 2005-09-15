@@ -978,7 +978,7 @@ sub get_imageinfo {
 	my $imageinfo = {};
 	if ($type eq 'Data stream is not a known image file format') {
 		# should never be reached, this is supposed to be handled outside of here
-		Apache2::RequestUtil->request->log_error("Something was fishy with the type of the file $file\n");
+		log_error("Something was fishy with the type of the file $file\n");
 	} else { 
 		# Some files, like TIFF, PNG, GIF do not have EXIF info embedded but use .thm files
 		# instead.
@@ -1367,22 +1367,22 @@ sub resizepicture {
 			$image->blend($logo, 0, 0, 0, $logox, $logoy, $x-$logox, $y-$logoy, $logox, $logoy);
 		}
 		else {
-			Apache2::RequestUtil->request->log_error("GalleryCopyrightImage $copyrightfile was not found\n");
+			log_error("GalleryCopyrightImage $copyrightfile was not found");
 		}
 	}
 
 	if ($GalleryTTFDir && $GalleryCopyrightText && $GalleryTTFFile && $text_color) {
 		if (!-d $GalleryTTFDir) {
 
-			Apache2::RequestUtil->request->log_error("GalleryTTFDir $GalleryTTFDir is not a dir\n");
+			log_error("GalleryTTFDir $GalleryTTFDir is not a dir\n");
 
 		} elsif ($GalleryCopyrightText eq '') {
 
-			Apache2::RequestUtil->request->log_error("GalleryCopyrightText is empty. No text inserted to picture\n");
+			log_error("GalleryCopyrightText is empty. No text inserted to picture\n");
 
 		} elsif (!-e "$GalleryTTFDir/$GalleryTTFFile") {
 
-			Apache2::RequestUtil->request->log_error("GalleryTTFFile $GalleryTTFFile was not found\n");
+			log_error("GalleryTTFFile $GalleryTTFFile was not found\n");
 
 		} else {
  
@@ -1403,7 +1403,7 @@ sub resizepicture {
 			if (($text_x < $x - $offset) && ($text_y < $y - $offset)) {
 				$image->draw_text($x-$text_x-$offset, $y-$text_y-$offset, "$GalleryCopyrightText");
 			} else {
-				Apache2::RequestUtil->request->log_error("Text is to big for the picture.\n");
+				log_error("Text is to big for the picture.\n");
 			}
 		}
 	}
@@ -1462,6 +1462,14 @@ sub create_templates {
 	  $texttemplate_objects{$template_name} = $tt_obj;
      }
      return %texttemplate_objects;
+}
+
+sub log_error {
+	if ($::MP2) {
+		Apache2::RequestUtil->request->log_error(shift());
+	} else {
+		Apache->request->log_error(shift());
+	}
 }
 
 1;
