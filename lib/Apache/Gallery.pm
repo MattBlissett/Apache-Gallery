@@ -680,6 +680,8 @@ sub handler {
 			$tpl_vars{PICTUREINFO} = $templates{nopictureinfo}->fill_in(HASH => \%tpl_vars);
 		}
 
+		# Fill in sizes and determine if any are smaller than the
+		# actual image. If they are, $scaleable=1
 		my $scaleable = 0;
 		foreach my $size (@sizes) {
 			if ($size<=$original_size) {
@@ -692,8 +694,8 @@ sub handler {
 				}
 				else {
 					$tpl_vars{SIZES} .= $templates{scale}->fill_in(HASH => \%sizes_vars);
-					$scaleable = 1;
 				}
+				$scaleable = 1;
 			}
 		}
 
