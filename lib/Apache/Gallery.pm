@@ -909,7 +909,7 @@ sub scale_picture {
 
 		if ($width == $thumbnailwidth or $width == $thumbnailheight) {
 
-			resizepicture($r, $fullpath, $newpath, $width, $height, $rotate, '', '', '', '', '');
+			resizepicture($r, $fullpath, $newpath, $width, $height, $rotate, '', '', '', '', '', '');
 
 		} else {
 
@@ -920,6 +920,7 @@ sub scale_picture {
 				($r->dir_config('GalleryCopyrightColor') ? $r->dir_config('GalleryCopyrightColor') : ''), 
 				($r->dir_config('GalleryTTFFile') ? $r->dir_config('GalleryTTFFile') : ''), 
 				($r->dir_config('GalleryTTFSize') ?  $r->dir_config('GalleryTTFSize') : ''),
+				($r->dir_config('GalleryCopyrightBackgroundColor') ?  $r->dir_config('GalleryCopyrightBackgroundColor') : ''),
 				$quality);
 
 		}
@@ -1341,7 +1342,7 @@ sub generate_menu {
 }
 
 sub resizepicture {
-	my ($r, $infile, $outfile, $x, $y, $rotate, $copyrightfile, $GalleryTTFDir, $GalleryCopyrightText, $text_color, $GalleryTTFFile, $GalleryTTFSize, $quality) = @_;
+	my ($r, $infile, $outfile, $x, $y, $rotate, $copyrightfile, $GalleryTTFDir, $GalleryCopyrightText, $text_color, $GalleryTTFFile, $GalleryTTFSize, $GalleryCopyrightBackgroundColor, $quality) = @_;
 
 	# Load image
 	my $image = Image::Imlib2->load($infile) or warn("Unable to open file $infile, $!");
@@ -1386,10 +1387,6 @@ sub resizepicture {
 			$GalleryTTFFile =~ s/\.TTF$//i;
 			$image->add_font_path("$GalleryTTFDir");
 
-			my ($r_val, $g_val, $b_val, $a_val) = split (/,/, $text_color);
-
-			$image->set_colour($r_val, $g_val, $b_val, $a_val);
-
 			$image->load_font("$GalleryTTFFile/$GalleryTTFSize");
 			my($text_x, $text_y) = $image->get_text_size("$GalleryCopyrightText");
 			my $x = $image->get_width();
@@ -1398,6 +1395,13 @@ sub resizepicture {
 			my $offset = 3;
 
 			if (($text_x < $x - $offset) && ($text_y < $y - $offset)) {
+				if ($GalleryCopyrightBackgroundColor =~ /^\d+,\d+,\d+,\d+$/) {
+					my ($br_val, $bg_val, $bb_val, $ba_val) = split (/,/, $GalleryCopyrightBackgroundColor);
+					$image->set_colour($br_val, $bg_val, $bb_val, $ba_val);
+					$image->fill_rectangle ($x-$text_x-$offset, $y-$text_y-$offset, $text_x, $text_y);
+				}
+				my ($r_val, $g_val, $b_val, $a_val) = split (/,/, $text_color);
+				$image->set_colour($r_val, $g_val, $b_val, $a_val);
 				$image->draw_text($x-$text_x-$offset, $y-$text_y-$offset, "$GalleryCopyrightText");
 			} else {
 				log_error("Text is to big for the picture.\n");
@@ -1720,6 +1724,12 @@ Blue:
 
 Transparent orange:
         PerlSetVar      GalleryCopyrightColor '255,127,0,127'
+
+=item B<GalleryCopyrightBackgroundColor>
+
+The background-color of a GalleryCopyrightText
+
+r,g,b,a - for examples, see GalleryCopyrightColor
 
 =item B<GalleryQuality>
 
