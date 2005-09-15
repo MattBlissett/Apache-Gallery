@@ -17,7 +17,7 @@ BEGIN {
 	}
 
 	if ($mod_perl::VERSION >= 1.99 && $mod_perl::VERSION < 2.0) {
-		"die mod_perl 2.0.0 or later is now required";
+		die "mod_perl 2.0.0 or later is now required";
 	}
 
 	$::MP2 = ($mod_perl::VERSION >= 2.0);
