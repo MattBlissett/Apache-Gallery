@@ -3,6 +3,10 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
+X.X Thu Sep 15 14:47:51 CEST 2005
+
+	- Add watermark even when picture doesn't need to be rescaled
+
 1.0RC2 Wed Jun  1 09:11:50 CEST 2005
 
 	- Added access keys for navigation (Michael Knudsen)

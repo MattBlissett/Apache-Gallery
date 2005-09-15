@@ -865,9 +865,9 @@ sub scale_picture {
 	my $newfilename = get_scaled_picture_name($fullpath, $width, $height);
 
 	if (($width > $orig_width) && ($height > $orig_height)) {
-		require File::Copy;
-		File::Copy::copy($fullpath,$cache."/".$newfilename);
-		return $newfilename;
+		# Run it through the resize code anyway to get watermarks
+		$width = $orig_width;
+		$height = $orig_height;
 	}
 
 	my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $orig_width, $orig_height);
