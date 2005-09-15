@@ -11,18 +11,12 @@ $VERSION = "1.0RC2";
 
 BEGIN {
 
-	eval('require mod_perl;');
-	if ( $@ ) {
+	if (exists($ENV{MOD_PERL_API_VERSION})
+		and ($ENV{MOD_PERL_API_VERSION}==2)) {
 		require mod_perl2;
-	}
-
-	if ($mod_perl::VERSION >= 1.99 && $mod_perl::VERSION < 2.0) {
-		die "mod_perl 2.0.0 or later is now required";
-	}
-
-	$::MP2 = ($mod_perl::VERSION >= 2.0);
-	
-	if ($::MP2) {
+		if ($mod_perl::VERSION >= 1.99 && $mod_perl::VERSION < 2.0) {
+			die "mod_perl 2.0.0 or later is now required";
+		}
 		require Apache2::ServerRec;
 		require Apache2::RequestRec;
 		require Apache2::Log;
@@ -32,17 +26,18 @@ BEGIN {
 		require Apache2::Const;
 	
 		Apache2::Const->import(-compile => 'OK','DECLINED','FORBIDDEN','NOT_FOUND');
-	
-	}
-	else {
+
+		$::MP2 = 1;
+	} else {
+		require mod_perl;
+
 		require Apache;
 		require Apache::Constants;
 		require Apache::Request;
 	
 		Apache::Constants->import('OK','DECLINED','FORBIDDEN','NOT_FOUND');
-
+		$::MP2 = 0;
 	}
-
 }
 
 use Image::Info qw(image_info);
