@@ -982,7 +982,7 @@ sub get_imageinfo {
 		# instead.
 		my $tmpfilename = $file;
 		# We have a problem with Windows based file extensions here as they are often .THM
-		$tmpfilename =~ s/\.(\w+)$/.thm/;
+		$tmpfilename =~ s/\.(\w+)$/.thm/i;
 		if (-e $tmpfilename && -f $tmpfilename && -r $tmpfilename) {
 			$imageinfo = image_info($tmpfilename);
 			$imageinfo->{width} = $width;
