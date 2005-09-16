@@ -226,13 +226,12 @@ sub handler {
 
 				my $file = $topdir."/".$picture;
 
-				if ($file =~ /$doc_pattern/i) {
-					push (@downloadable_files, $picture);
-					
-				}
-
 				if ($file =~ /$img_pattern/i) {
 					push (@new_files, $picture);
+				}
+
+				if ($file =~ /$doc_pattern/i) {
+					push (@downloadable_files, $picture);
 				}
 
 			}
@@ -337,7 +336,7 @@ sub handler {
 										   }
 									   );
 				}
-				elsif (-f $thumbfilename && $thumbfilename =~ /$doc_pattern/i) {
+				elsif (-f $thumbfilename && $thumbfilename =~ /$doc_pattern/i && $thumbfilename !~ /$img_pattern/i) {
 					my $type = lc($1);
 					my $stat = stat($thumbfilename);
 					my $size = $stat->size;

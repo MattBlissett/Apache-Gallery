@@ -3,6 +3,9 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
+	- Handle files that match both GalleryDocFile and GalleryImgFile
+	  correctly. (Claus Faerber)
+
 1.0RC3 Fri Sep 16 10:27:48 CEST 2005
 
 	- Add watermark even when picture doesn't need to be rescaled
