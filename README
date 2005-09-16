@@ -215,6 +215,11 @@ CONFIGURATION
 
         Transparent orange: PerlSetVar GalleryCopyrightColor '255,127,0,127'
 
+    GalleryCopyrightBackgroundColor
+        The background-color of a GalleryCopyrightText
+
+        r,g,b,a - for examples, see GalleryCopyrightColor
+
     GalleryQuality
         The quality (1-100) of scaled images
 
