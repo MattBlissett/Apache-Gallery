@@ -31,6 +31,7 @@ Then, to install Apache::Gallery run the following commands:
 
    perl Makefile.PL
    make
+   export MOD_PERL_API_VERSION=2 # Only if you run mod_perl 2.0
    make test (optional)
    make install
 
