@@ -3,7 +3,7 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
-X.X Thu Sep 15 14:47:51 CEST 2005
+1.0RC3 Fri Sep 16 10:27:48 CEST 2005
 
 	- Add watermark even when picture doesn't need to be rescaled
 	  (Andreas Plesner)
@@ -11,6 +11,8 @@ X.X Thu Sep 15 14:47:51 CEST 2005
 	- Bugfix: If only one GallerySize was specified, the image's
 	  max width was autmatically added to GallerySizes
 	  (Andreas Plesner)
+	- Bugfix: Locate thm files if they are called .thm or .THM 
+		(Michael Legart)
 
 1.0RC2 Wed Jun  1 09:11:50 CEST 2005
 

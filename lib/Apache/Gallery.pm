@@ -7,7 +7,7 @@ use strict;
 
 use vars qw($VERSION);
 
-$VERSION = "1.0RC2";
+$VERSION = "1.0RC3";
 
 BEGIN {
 
@@ -978,19 +978,14 @@ sub get_imageinfo {
 		# should never be reached, this is supposed to be handled outside of here
 		log_error("Something was fishy with the type of the file $file\n");
 	} else { 
-		# Some files, like TIFF, PNG, GIF do not have EXIF info embedded but use .thm files
-		# instead.
-		my $tmpfilename = $file;
-		# We have a problem with Windows based file extensions here as they are often .THM
-		$tmpfilename =~ s/\.(\w+)$/.thm/i;
-		if (-e $tmpfilename && -f $tmpfilename && -r $tmpfilename) {
-			$imageinfo = image_info($tmpfilename);
-			$imageinfo->{width} = $width;
-			$imageinfo->{height} = $height;
-		}
+
+		# Some files, like TIFF, PNG, GIF do not have EXIF info 
+		# embedded but use .thm files instead.
+		$imageinfo = get_imageinfo_from_thm_file($file, $width, $height);
+
 		# If there is no .thm file and our file is a JPEG file we try to extract the EXIf
 		# info using Image::Info
-		elsif (grep $type eq $_, qw(JPG)) {
+		unless (defined($imageinfo) && (grep $type eq $_, qw(JPG))) {
 			# Only for files that natively keep the EXIF info in the same file
 			$imageinfo = image_info($file);
 		}
@@ -1166,6 +1161,33 @@ sub get_imageinfo {
 
 	return $imageinfo;
 }
+
+sub get_imageinfo_from_thm_file {
+
+	my ($file, $width, $height) = @_;
+
+	my $imageinfo = undef;
+	# Windows based file extensions are often .THM, so check 
+	# for both .thm and .THM
+	my $unix_file = $file;
+	my $windows_file = $file;
+	$unix_file =~ s/\.(\w+)$/.thm/;
+	$windows_file =~ s/\.(\w+)$/.THM/;
+
+	if (-e $unix_file && -f $unix_file && -r $unix_file) {
+		$imageinfo = image_info($unix_file);
+		$imageinfo->{width} = $width;
+		$imageinfo->{height} = $height;
+	}
+	elsif (-e $windows_file && -f $windows_file && -r $windows_file) {
+		$imageinfo = image_info($windows_file);
+		$imageinfo->{width} = $width;
+		$imageinfo->{height} = $height;
+	}
+
+	return $imageinfo;
+}
+
 
 sub readfile_getnum {
 	my ($r, $imageinfo, $filename) = @_;
