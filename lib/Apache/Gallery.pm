@@ -573,7 +573,7 @@ sub handler {
 					$tpl_vars{BACK} = $templates{navpicture}->fill_in(HASH => \%nav_vars);
 				}
 				else {
-					$tpl_vars{BACK} = "&nbsp";
+					$tpl_vars{BACK} = "&nbsp;";
 				}
 
 				$nextpicture = $pictures[$i+1];
