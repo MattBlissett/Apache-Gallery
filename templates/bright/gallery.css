@@ -1,6 +1,6 @@
 body {
-	background-color: #cccccc;
-	color: #666666;
+	background-color: #ccc;
+	color: #666;
 	font-family: Verdana, Lucida, Arial, serif;
 	font-size: 10px;
 	margin-left: 10px;
@@ -25,8 +25,8 @@ table {
 	margin-right: 20px;
 }
 #directory {
-	background-color: #ffffff;
-	border: 6px solid #aaaaaa;
+	background-color: #fff;
+	border: 6px solid #aaa;
 	padding: 20px;
 	text-align: left;
 	top: 0px;
@@ -42,7 +42,7 @@ table {
 	text-align: center;
 }
 #picture img {
-	border: 6px solid #777777;
+	border: 6px solid #777;
 }
 a {
 	color: #5555aa;
@@ -67,9 +67,9 @@ a:hover img {
 	margin-top: 50px;
 }
 #comment {
-	background-color: #333333;
-	border: 3px solid #555555;
-	color: #999999;
+	background-color: #333;
+	border: 3px solid #555;
+	color: #999;
 	width: 400px;
 	margin-left: auto;
 	margin-right: auto;
