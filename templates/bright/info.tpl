@@ -1,1 +1,1 @@
-{ $KEY }: { $VALUE }<br>
+{ $KEY }: { $VALUE }<br />

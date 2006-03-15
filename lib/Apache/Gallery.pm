@@ -94,7 +94,7 @@ sub handler {
 	# Handle selected images
 	if ($cgi->param('selection')) {
 		my @selected = $cgi->param('selection');
-		my $content = join "<br>\n",@selected;
+		my $content = join "<br />\n",@selected;
 		$r->content_type('text/html');
 		$r->headers_out->{'Content-Length'} = length($content);
 
@@ -399,7 +399,7 @@ sub handler {
 		if (-f $topdir . '.comment') {
 			my $comment_ref = get_comment($topdir . '.comment');
 			my %comment_vars;
-			$comment_vars{COMMENT} = $comment_ref->{COMMENT} . '<br>' if $comment_ref->{COMMENT};
+			$comment_vars{COMMENT} = $comment_ref->{COMMENT} . '<br />' if $comment_ref->{COMMENT};
 			$comment_vars{TITLE} = $comment_ref->{TITLE} if $comment_ref->{TITLE};
 			$tpl_vars{DIRCOMMENT} = $templates{comment}->fill_in(HASH => \%comment_vars);
 			$tpl_vars{TITLE} = $comment_ref->{TITLE} if $comment_ref->{TITLE};
@@ -608,7 +608,7 @@ sub handler {
 		if (-f $path . '/' . $picfilename . '.comment') {
 			my $comment_ref = get_comment($path . '/' . $picfilename . '.comment');
 			$foundcomment = 1;
-			$tpl_vars{COMMENT} = $comment_ref->{COMMENT} . '<br>' if $comment_ref->{COMMENT};
+			$tpl_vars{COMMENT} = $comment_ref->{COMMENT} . '<br />' if $comment_ref->{COMMENT};
 			$tpl_vars{TITLE} = $comment_ref->{TITLE} if $comment_ref->{TITLE};
 		} else {
 			$tpl_vars{COMMENT} = '';
@@ -1012,7 +1012,7 @@ sub get_imageinfo {
 						}
 					} 
 					elsif (ref($element) eq 'HASH') {
-						$value .= "<br>{ ";
+						$value .= "<br />{ ";
 			    		foreach (sort keys %{$element}) {
 							$value .= "$_ = " . $element->{$_} . ' ';
 						}
@@ -1815,7 +1815,7 @@ following lines.
 Example:
 
 	TITLE: This is the new title of the page
-	And this is the comment.<br>
+	And this is the comment.<br />
 	And this is line two of the comment.
 
 The visible name of the folder is by default identical to the name of
