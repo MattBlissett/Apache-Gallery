@@ -877,7 +877,7 @@ sub scale_picture {
 		# Check to see if the image has changed
 		my $filestat = stat($fullpath);
 		my $cachestat = stat($cache."/".$newfilename);
-		if ($filestat->mtime > $cachestat->mtime) {
+		if ($filestat->mtime >= $cachestat->mtime) {
 			$scale = 1;
 		}	
 
