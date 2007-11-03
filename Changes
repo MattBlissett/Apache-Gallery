@@ -5,6 +5,8 @@ Revision history for Perl extension Apache::Gallery.
 
 	- Handle files that match both GalleryDocFile and GalleryImgFile
 	  correctly. (Claus Faerber)
+	- Only respond to HEAD and GET requests, enabling users to use
+	  WebDAV for upload (Andreas Plesner)
 
 1.0RC3 Fri Sep 16 10:27:48 CEST 2005
 
