@@ -61,6 +61,10 @@ sub handler {
 
 	my $r = shift or Apache2::RequestUtil->request();
 
+	unless (($r->method eq 'HEAD') or ($r->method eq 'GET')) {
+		return $::MP2 ? Apache2::Const::DECLINED() : Apache::Constants::DECLINED();
+	}
+
 	if ((not $memoized) and ($r->dir_config('GalleryMemoize'))) {
 		require Memoize;
 		Memoize::memoize('get_imageinfo');
@@ -348,7 +352,7 @@ sub handler {
 						$filetype = "text-$type";
 					} elsif ($thumbfilename =~ m/\.(mp3|ogg|wav)$/i) {
 						$filetype = "sound-$type";
-					} elsif ($thumbfilename =~ m/\.(doc|pdf|rtf|csv|eps)$/i) {
+					} elsif ($thumbfilename =~ m/$doc_pattern/i) {
 						$filetype = "application-$type";
 					} else {
 						$filetype = "unknown";
