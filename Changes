@@ -7,6 +7,8 @@ Revision history for Perl extension Apache::Gallery.
 	  correctly. (Claus Faerber)
 	- Only respond to HEAD and GET requests, enabling users to use
 	  WebDAV for upload (Andreas Plesner)
+	- Added new option GalleryCommentExifKey to get comments from
+	  EXIF data (Michael Legart)
 
 1.0RC3 Fri Sep 16 10:27:48 CEST 2005
 

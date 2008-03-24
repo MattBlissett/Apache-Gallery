@@ -50,6 +50,7 @@ use POSIX qw(floor);
 use URI::Escape;
 use CGI;
 use CGI::Cookie;
+use Encode;
 
 use Data::Dumper;
 
@@ -614,6 +615,9 @@ sub handler {
 			$foundcomment = 1;
 			$tpl_vars{COMMENT} = $comment_ref->{COMMENT} . '<br />' if $comment_ref->{COMMENT};
 			$tpl_vars{TITLE} = $comment_ref->{TITLE} if $comment_ref->{TITLE};
+		} elsif ($r->dir_config('GalleryCommentExifKey')) {
+			my $comment = decode("utf8", $imageinfo->{$r->dir_config('GalleryCommentExifKey')});
+			$tpl_vars{COMMENT} = encode("iso-8859-1", $comment);
 		} else {
 			$tpl_vars{COMMENT} = '';
 		}
@@ -1197,11 +1201,13 @@ sub readfile_getnum {
 
 	my $rotate = 0;
 
+	print STDERR "orientation: ".$imageinfo->{Orientation}."\n";
 	# Check to see if the image contains the Orientation EXIF key,
 	# but allow user to override using rotate
 	if (!defined($r->dir_config("GalleryAutoRotate")) 
 		|| $r->dir_config("GalleryAutoRotate") eq "1") {
 		if (defined($imageinfo->{Orientation})) {
+			print STDERR $imageinfo->{Orientation}."\n";
 			if ($imageinfo->{Orientation} eq 'right_top') {
 				$rotate=1;
 			}	
@@ -1778,6 +1784,11 @@ of directory names.
 
 =back
 
+=item B<GalleryCommentExifKey>
+
+Set this option to e.g. ImageDescription to use this field as comments
+for images.
+
 =head1 FEATURES
 
 =over 4
@@ -1825,6 +1836,10 @@ Example:
 The visible name of the folder is by default identical to the name of
 the folder, but can be changed by creating a file <directory>.folder
 with the visible name of the folder.
+
+It is also possible to set GalleryCommentExifKey to the name of an EXIF
+field containing the comment, e.g. ImageDescription. The EXIF comment is
+overridden by the .comment file if it exists.
 
 =back
 

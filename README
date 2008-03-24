@@ -237,6 +237,10 @@ CONFIGURATION
         Set this option to 1 to convert underscores to spaces in the listing
         of directory names.
 
+    GalleryCommentExifKey
+    Set this option to e.g. ImageDescription to use this field as comments
+    for images.
+
 FEATURES
     Rotate images
         Some cameras, like the Canon G3, detects the orientation of a
@@ -272,12 +276,16 @@ FEATURES
         Example:
 
                 TITLE: This is the new title of the page
-                And this is the comment.<br>
+                And this is the comment.<br />
                 And this is line two of the comment.
 
         The visible name of the folder is by default identical to the name
         of the folder, but can be changed by creating a file
         <directory>.folder with the visible name of the folder.
+
+        It is also possible to set GalleryCommentExifKey to the name of an
+        EXIF field containing the comment, e.g. ImageDescription. The EXIF
+        comment is overridden by the .comment file if it exists.
 
 DEPENDENCIES
     Perl 5
