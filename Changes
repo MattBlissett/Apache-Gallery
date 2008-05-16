@@ -9,6 +9,10 @@ Revision history for Perl extension Apache::Gallery.
 	  WebDAV for upload (Andreas Plesner)
 	- Added new option GalleryCommentExifKey to get comments from
 	  EXIF data (Michael Legart)
+	- Added new option GalleryEnableMediaRss to enable generation of
+	  a media RSS feed for each directory listing. This works with
+	  e.g. the plugin from http://piclens.com to enable 3D viewing
+	  of your gallery.
 
 1.0RC3 Fri Sep 16 10:27:48 CEST 2005
 

@@ -79,6 +79,8 @@ sub handler {
 	$filename =~ s/\/$//;
 	my $topdir = $filename;
 
+	my $media_rss_enabled = $r->dir_config('GalleryEnableMediaRss');
+
 	# Just return the http headers if the client requested that
 	if ($r->header_only) {
 
@@ -86,7 +88,7 @@ sub handler {
 			$r->send_http_header;
 		}
 
-  	if (-f $filename or -d $filename) {
+		if (-f $filename or -d $filename) {
 			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 		}
 		else {
@@ -197,6 +199,8 @@ sub handler {
 						  file      => "$tpl_dir/file.tpl",
 						  comment   => "$tpl_dir/dircomment.tpl",
 						  nocomment => "$tpl_dir/nodircomment.tpl",
+						  rss       => "$tpl_dir/rss.tpl",
+						  rss_item  => "$tpl_dir/rss_item.tpl",
 						 });
 
 
@@ -205,7 +209,11 @@ sub handler {
 		my %tpl_vars;
 
 		$tpl_vars{TITLE} = "Index of: $uri";
-		$tpl_vars{META} = " ";
+
+		if ($media_rss_enabled) {
+			# Put the RSS feed on all directory listings
+			$tpl_vars{META} = '<link rel="alternate" href="?rss=1" type="application/rss+xml" title="" id="gallery" />';
+		}
 
 		unless (opendir (DIR, $filename)) {
 			show_error ($r, 500, $!, "Unable to access directory $filename: $!");
@@ -393,6 +401,19 @@ sub handler {
 												 %file_vars,
 												},
 										       );
+
+					if ($media_rss_enabled) {
+						my ($content_image_width, undef, $content_image_height) = get_image_display_size($cgi, $r, $width, $height);
+						my %item_vars = ( 
+							THUMBNAIL => uri_escape($uri."/.cache/$cached", $escape_rule),
+							LINK      => uri_escape($fileurl, $escape_rule),
+							TITLE     => $file,
+							CONTENT   => uri_escape($uri."/.cache/".$content_image_width."x".$content_image_height."-".$file, $escape_rule)
+						);
+						$tpl_vars{ITEMS} .= $templates{rss_item}->fill_in(HASH => { 
+							%item_vars
+						});
+					}
 				}
 			}
 		}
@@ -412,11 +433,15 @@ sub handler {
 			$tpl_vars{DIRCOMMENT} = $templates{nocomment}->fill_in(HASH=>\%tpl_vars);
 		}
 
-		$tpl_vars{MAIN} = $templates{index}->fill_in(HASH => \%tpl_vars);
+		if ($cgi->param('rss')) {
+			$tpl_vars{MAIN} = $templates{rss}->fill_in(HASH => \%tpl_vars);
+			$r->content_type('application/rss+xml');
+		} else {
+			$tpl_vars{MAIN} = $templates{index}->fill_in(HASH => \%tpl_vars);
+			$tpl_vars{MAIN} = $templates{layout}->fill_in(HASH => \%tpl_vars);
+			$r->content_type('text/html');
+		}
 
-		$tpl_vars{MAIN} = $templates{layout}->fill_in(HASH => \%tpl_vars);
-
-		$r->content_type('text/html');
 		$r->headers_out->{'Content-Length'} = length($tpl_vars{MAIN});
 
 		if (!$::MP2) {
@@ -452,54 +477,10 @@ sub handler {
 		}
 
 		my ($orig_width, $orig_height, $type) = imgsize($filename);
-		my $width = $orig_width;
 
 		my $imageinfo = get_imageinfo($r, $filename, $type, $orig_width, $orig_height);
 
-		my $original_size=$orig_height;
- 		if ($orig_width>$orig_height) {
-			$original_size=$orig_width;
- 		}
-
-		# Check if the selected width is allowed
-		my @sizes = split (/ /, $r->dir_config('GallerySizes') ? $r->dir_config('GallerySizes') : '640 800 1024 1600');
-
-		my %cookies = fetch CGI::Cookie;
-
-		if ($cgi->param('width')) {
-			unless ((grep $cgi->param('width') == $_, @sizes) or ($cgi->param('width') == $original_size)) {
-				show_error($r, 200, "Invalid width", "The specified width is invalid");
-				return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
-			}
-
-			$width = $cgi->param('width');
-			my $cookie = new CGI::Cookie(-name => 'GallerySize', -value => $width, -expires => '+6M');
-			$r->headers_out->{'Set-Cookie'} = $cookie;
-
-		} elsif ($cookies{'GallerySize'} && (grep $cookies{'GallerySize'}->value == $_, @sizes)) {
-
-			$width = $cookies{'GallerySize'}->value;
-
-		} else {
-			$width = $sizes[0];
-		}	
-
-		my $scale;
-		my $image_width;
-		if ($orig_width<$orig_height) {
-			$scale = ($orig_height ? $width/$orig_height: 1);
-			$image_width=$width*$orig_width/$orig_height;
-		}
-		else {
-			$scale = ($orig_width ? $width/$orig_width : 1);
-			$image_width = $width;
-		}
-
-		my $height = $orig_height * $scale;
-
-		$image_width = floor($image_width);
-		$width       = floor($width);
-		$height      = floor($height);
+		my ($image_width, $width, $height, $original_size) = get_image_display_size($cgi, $r, $orig_width, $orig_height);
 
 		my $cached = get_scaled_picture_name($filename, $image_width, $height);
 		
@@ -685,6 +666,7 @@ sub handler {
 		# Fill in sizes and determine if any are smaller than the
 		# actual image. If they are, $scaleable=1
 		my $scaleable = 0;
+		my @sizes = split (/ /, $r->dir_config('GallerySizes') ? $r->dir_config('GallerySizes') : '640 800 1024 1600');
 		foreach my $size (@sizes) {
 			if ($size<=$original_size) {
 				my %sizes_vars;
@@ -976,6 +958,59 @@ sub get_thumbnailsize {
 	$width  = floor($width);
 
 	return ($width, $height);
+}
+
+sub get_image_display_size {
+	my ($cgi, $r, $orig_width, $orig_height) = @_;
+
+	my $width = $orig_width;
+
+	my $original_size=$orig_height;
+	if ($orig_width>$orig_height) {
+		$original_size=$orig_width;
+	}
+
+	# Check if the selected width is allowed
+	my @sizes = split (/ /, $r->dir_config('GallerySizes') ? $r->dir_config('GallerySizes') : '640 800 1024 1600');
+
+	my %cookies = fetch CGI::Cookie;
+
+	if ($cgi->param('width')) {
+		unless ((grep $cgi->param('width') == $_, @sizes) or ($cgi->param('width') == $original_size)) {
+			show_error($r, 200, "Invalid width", "The specified width is invalid");
+			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
+		}
+
+		$width = $cgi->param('width');
+		my $cookie = new CGI::Cookie(-name => 'GallerySize', -value => $width, -expires => '+6M');
+		$r->headers_out->{'Set-Cookie'} = $cookie;
+
+	} elsif ($cookies{'GallerySize'} && (grep $cookies{'GallerySize'}->value == $_, @sizes)) {
+
+		$width = $cookies{'GallerySize'}->value;
+
+	} else {
+		$width = $sizes[0];
+	}	
+
+	my $scale;
+	my $image_width;
+	if ($orig_width<$orig_height) {
+		$scale = ($orig_height ? $width/$orig_height: 1);
+		$image_width=$width*$orig_width/$orig_height;
+	}
+	else {
+		$scale = ($orig_width ? $width/$orig_width : 1);
+		$image_width = $width;
+	}
+
+	my $height = $orig_height * $scale;
+
+	$image_width = floor($image_width);
+	$width       = floor($width);
+	$height      = floor($height);
+
+	return ($image_width, $width, $height, $original_size);
 }
 
 sub get_imageinfo {
@@ -1788,6 +1823,11 @@ of directory names.
 
 Set this option to e.g. ImageDescription to use this field as comments
 for images.
+
+=item B<GalleryEnableMediaRss>
+
+Set this option to 1 to enable generation of a media RSS feed. This
+can be used e.g. together with the PicLens plugin from http://piclens.com
 
 =head1 FEATURES
 
