@@ -12,7 +12,10 @@ Revision history for Perl extension Apache::Gallery.
 	- Added new option GalleryEnableMediaRss to enable generation of
 	  a media RSS feed for each directory listing. This works with
 	  e.g. the plugin from http://piclens.com to enable 3D viewing
-	  of your gallery.
+	  of your gallery. (Michael Legart)
+	- Make browser-caching work with mod_perl 2. Supports If-None-Match
+	  and If-Modified-Since headers. Sets Last-Modified-Date and
+	  ETag headers. (Michael Legart)
 
 1.0RC3 Fri Sep 16 10:27:48 CEST 2005
 

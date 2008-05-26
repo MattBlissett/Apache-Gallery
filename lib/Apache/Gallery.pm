@@ -7,7 +7,7 @@ use strict;
 
 use vars qw($VERSION);
 
-$VERSION = "1.0RC3";
+$VERSION = "1.0RC4";
 
 BEGIN {
 
@@ -25,7 +25,7 @@ BEGIN {
 		require Apache2::SubRequest;
 		require Apache2::Const;
 	
-		Apache2::Const->import(-compile => 'OK','DECLINED','FORBIDDEN','NOT_FOUND');
+		Apache2::Const->import(-compile => 'OK','DECLINED','FORBIDDEN','NOT_FOUND','HTTP_NOT_MODIFIED');
 
 		$::MP2 = 1;
 	} else {
@@ -51,6 +51,8 @@ use URI::Escape;
 use CGI;
 use CGI::Cookie;
 use Encode;
+use HTTP::Date;
+use Digest::MD5 qw(md5_base64);
 
 use Data::Dumper;
 
@@ -146,6 +148,20 @@ sub handler {
 		$r->content_type($subr->content_type());
 
 		if ($::MP2) {
+			my $fileinfo = stat($file);
+
+			my $nonce = md5_base64($fileinfo->ino.$fileinfo->mtime);
+			if ($r->headers_in->{"If-None-Match"} eq $nonce) {
+				return Apache2::Const::HTTP_NOT_MODIFIED();
+			}
+
+			if ($r->headers_in->{"If-Modified-Since"} && str2time($r->headers_in->{"If-Modified-Since"}) < $fileinfo->mtime) {
+				return Apache2::Const::HTTP_NOT_MODIFIED();
+			}
+
+			$r->headers_out->{"Content-Length"} = $fileinfo->size; 
+			$r->headers_out->{"Last-Modified-Date"} = time2str($fileinfo->mtime); 
+			$r->headers_out->{"ETag"} = $nonce;
 			$r->sendfile($file);
 			return Apache2::Const::OK();
 		}
@@ -348,6 +364,7 @@ sub handler {
 										    FILE    => $dirtitle,
 										   }
 									   );
+
 				}
 				elsif (-f $thumbfilename && $thumbfilename =~ /$doc_pattern/i && $thumbfilename !~ /$img_pattern/i) {
 					my $type = lc($1);
