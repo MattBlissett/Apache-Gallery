@@ -75,8 +75,16 @@ div.gallery-info:hover a {
 .img-info:hover {
 	color: #000;
 }
+.comment {
+	margin-bottom: 5px;
+	font-size: 18px;
+}
+.comment:hover {
+	color: #000;
+	font-size: 18px;
+}
 .img-options {
-	margin-top: 5px;
+	margin-top: 10px;
 	margin-bottom: 100px;
 }
 .img-options:hover {
@@ -98,6 +106,15 @@ div.gallery-info:hover a {
     text-align: left;
     top: 0px;
 	width: 620px;
+}
+.directory-preview {
+    background-color: #fff;
+    border: 4px solid #ddd;
+    padding: 20px;
+    text-align: left;
+    top: 0px;
+    width: 200px;
+    height: 50px;
 }
 .thumb {
 	float: left;

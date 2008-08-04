@@ -208,15 +208,16 @@ sub handler {
 		# Instead of reading the templates every single time
 		# we need them, create a hash of template names and
 		# the associated Text::Template objects.
-		my %templates = create_templates({layout    => "$tpl_dir/layout.tpl",
-						  index     => "$tpl_dir/index.tpl",
-						  directory => "$tpl_dir/directory.tpl",
-						  picture   => "$tpl_dir/picture.tpl",
-						  file      => "$tpl_dir/file.tpl",
-						  comment   => "$tpl_dir/dircomment.tpl",
-						  nocomment => "$tpl_dir/nodircomment.tpl",
-						  rss       => "$tpl_dir/rss.tpl",
-						  rss_item  => "$tpl_dir/rss_item.tpl",
+		my %templates = create_templates({layout       => "$tpl_dir/layout.tpl",
+						  index        => "$tpl_dir/index.tpl",
+						  directory    => "$tpl_dir/directory.tpl",
+						  picture      => "$tpl_dir/picture.tpl",
+						  file         => "$tpl_dir/file.tpl",
+						  comment      => "$tpl_dir/dircomment.tpl",
+						  nocomment    => "$tpl_dir/nodircomment.tpl",
+						  rss          => "$tpl_dir/rss.tpl",
+						  rss_item     => "$tpl_dir/rss_item.tpl",
+						  navdirectory => "$tpl_dir/navdirectory.tpl",
 						 });
 
 
@@ -437,6 +438,70 @@ sub handler {
 		else {
 			$tpl_vars{FILES} = "No files found";
 			$tpl_vars{BROWSELINKS} = "";
+		}
+
+		# Generate prev and next directory menu items
+		$filename =~ m/(.*)\/.*?$/;
+		my $parent_filename = $1;
+
+		$r->document_root =~ m/(.*)\/$/;
+		my $root_path = $1;
+		print STDERR "$filename vs $root_path\n";
+		if ($filename ne $root_path) {
+			unless (opendir (PARENT_DIR, $parent_filename)) {
+				show_error ($r, 500, $!, "Unable to access parent directory $parent_filename: $!");
+				return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
+			}
+	
+			my @neighbour_directories = grep { !/^\./ && -d "$parent_filename/$_" } readdir (PARENT_DIR);
+			my $dirsortby;
+			if (defined($r->dir_config('GalleryDirSortBy'))) {
+				$dirsortby=$r->dir_config('GalleryDirSortBy');
+			} else {
+				$dirsortby=$r->dir_config('GallerySortBy');
+			}
+			if ($dirsortby && $dirsortby =~ m/^(size|atime|mtime|ctime)$/) {
+				@neighbour_directories = map(/^\d+ (.*)/, sort map(stat("$parent_filename/$_")->$dirsortby()." $_", @neighbour_directories));
+			} else {
+				@neighbour_directories = sort @neighbour_directories;
+			}
+
+			closedir(PARENT_DIR);
+
+			my $neightbour_counter = 0;
+			foreach my $neighbour_directory (@neighbour_directories) {
+				if ($parent_filename.'/'.$neighbour_directory eq $filename) {
+					if ($neightbour_counter > 0) {
+						print STDERR "prev directory is " .$neighbour_directories[$neightbour_counter-1] ."\n";
+						my $linktext = $neighbour_directories[$neightbour_counter-1];
+						if (-e $parent_filename.'/'.$neighbour_directories[$neightbour_counter-1] . ".folder") {
+							$linktext = get_filecontent($parent_filename.'/'.$neighbour_directories[$neightbour_counter-1] . ".folder");
+						}
+						my %info = (
+						URL => "../".$neighbour_directories[$neightbour_counter-1],
+						LINK_NAME => "<<< $linktext",
+						DIR_FILES => "",
+						);
+  						$tpl_vars{PREV_DIR_FILES} = $templates{navdirectory}->fill_in(HASH=> {%info});
+						print STDERR $tpl_vars{PREV_DIR_FILES} ."\n";
+
+					}
+					if ($neightbour_counter < scalar @neighbour_directories - 1) {
+						my $linktext = $neighbour_directories[$neightbour_counter+1];
+						if (-e $parent_filename.'/'.$neighbour_directories[$neightbour_counter-1] . ".folder") {
+							$linktext = get_filecontent($parent_filename.'/'.$neighbour_directories[$neightbour_counter+1] . ".folder");
+						}
+						my %info = (
+						URL => "../".$neighbour_directories[$neightbour_counter+1],
+						LINK_NAME => "$linktext >>>",
+						DIR_FILES => "",
+						);
+  						$tpl_vars{NEXT_DIR_FILES} = $templates{navdirectory}->fill_in(HASH=> {%info});
+						print STDERR "next directory is " .$neighbour_directories[$neightbour_counter+1] ."\n";
+					}
+				}
+				$neightbour_counter++;
+			}
 		}
 
 		if (-f $topdir . '.comment') {

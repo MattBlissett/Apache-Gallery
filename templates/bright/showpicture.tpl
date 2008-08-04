@@ -34,5 +34,5 @@
 </div>
 
 <div class="aginfo">
-		  <a href="http://apachegallery.dk/">Apache::Gallery</a> &copy; 2001-2006 Michael Legart, <a href="http://www.hestdesign.com/">Hest Design</a>!
+		  <a href="http://apachegallery.dk/">Apache::Gallery</a> &copy; 2001-2008 Michael Legart, <a href="http://www.hestdesign.com/">Hest Design</a>!
 </div>
