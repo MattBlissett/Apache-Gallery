@@ -3,6 +3,10 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
+1.0.1 Wed Feb 23 20:45:38 CET 2011
+
+	- Added missing template files to MANIFEST
+
 1.0 Tue Feb 22 21:54:31 CET 2011
 
 	- Handle files that match both GalleryDocFile and GalleryImgFile
