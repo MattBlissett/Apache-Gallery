@@ -165,8 +165,8 @@ CONFIGURATION
         Apache::Gallery but are not visible in the index.
 
         The default is
-        '\.(mpe?g|avi|mov|asf|wmv|doc|mp3|ogg|pdf|rtf|wav|dlt|txt|html?|csv|eps)
-        $'
+        '\.(mpe?g|avi|mov|asf|wmv|doc|mp3|ogg|pdf|rtf|wav|dlt|txt|html?|csv|
+        eps)$'
 
     GalleryTTFDir
         To use the GalleryCopyrightText feature you must set this option to
@@ -270,6 +270,10 @@ FEATURES
         would create a file in the same directory called
         "Picture1234.jpg.rotate" with the number 1 inside of it.
 
+    Ignore directories/files
+        To ignore a directory or a file (of any kind, not only images) you
+        create a <directory|file>.ignore file.
+
     Comments
         To include comments for a directory you create a <directory>.comment
         file where the first line can contain "TITLE: New title" which will
@@ -327,14 +331,4 @@ THANKS
 SEE ALSO
     perl, mod_perl, Image::Imlib2, CGI::FastTemplate, Image::Info, and
     Image::Size.
-
-POD ERRORS
-    Hey! The above document had some coding errors, which are explained
-    below:
-
-    Around line 1916:
-        '=item' outside of any '=over'
-
-    Around line 1926:
-        You forgot a '=back' before '=head1'
 

@@ -351,7 +351,8 @@ sub handler {
 
 				my $fileurl = $uri."/".$file;
 
-				if (-d $thumbfilename) {
+				# Debian bug #619625 <http://bugs.debian.org/619625>
+				if (-d $thumbfilename && ! -e $thumbfilename . ".ignore") {
 					my $dirtitle = '';
 					if (-e $thumbfilename . ".folder") {
 						$dirtitle = get_filecontent($thumbfilename . ".folder");
@@ -367,7 +368,8 @@ sub handler {
 									   );
 
 				}
-				elsif (-f $thumbfilename && $thumbfilename =~ /$doc_pattern/i && $thumbfilename !~ /$img_pattern/i) {
+				# Debian bug #619625 <http://bugs.debian.org/619625>
+				elsif (-f $thumbfilename && $thumbfilename =~ /$doc_pattern/i && $thumbfilename !~ /$img_pattern/i && ! -e $thumbfilename . ".ignore") {
 					my $type = lc($1);
 					my $stat = stat($thumbfilename);
 					my $size = $stat->size;
@@ -400,7 +402,8 @@ sub handler {
 									       }
 								      );
 				}
-				elsif (-f $thumbfilename) {
+				# Debian bug #619625 <http://bugs.debian.org/619625>
+				elsif (-f $thumbfilename && ! -e $thumbfilename . ".ignore") {
 
 					my ($width, $height, $type) = imgsize($thumbfilename);
 					next if $type eq 'Data stream is not a known image file format';
@@ -464,7 +467,8 @@ sub handler {
 				return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 			}
 	
-			my @neighbour_directories = grep { !/^\./ && -d "$parent_filename/$_" } readdir (PARENT_DIR);
+			# Debian bug #619625 <http://bugs.debian.org/619625>
+			my @neighbour_directories = grep { !/^\./ && -d "$parent_filename/$_" && ! -e "$parent_filename/$_" . ".ignore" } readdir (PARENT_DIR);
 			my $dirsortby;
 			if (defined($r->dir_config('GalleryDirSortBy'))) {
 				$dirsortby=$r->dir_config('GalleryDirSortBy');
@@ -616,7 +620,7 @@ sub handler {
 			show_error($r, 500, "Unable to access directory", "Unable to access directory $path");
 			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 		}
-		my @pictures = grep { /$img_pattern/i } readdir (DATADIR);
+		my @pictures = grep { /$img_pattern/i && ! -e "$path/$_" . ".ignore" } readdir (DATADIR);
 		closedir(DATADIR);
 		@pictures = gallerysort($r, @pictures);
 
@@ -1949,6 +1953,11 @@ a number where these numbers are supported:
 So if we want to rotate "Picture1234.jpg" 90 degrees clockwise we would
 create a file in the same directory called "Picture1234.jpg.rotate" with
 the number 1 inside of it.
+
+=item B<Ignore directories/files>
+
+To ignore a directory or a file (of any kind, not only images) you
+create a <directory|file>.ignore file.
 
 =item B<Comments>
 
