@@ -1917,6 +1917,8 @@ of directory and file names, as well as in the alt attribute for HTML
 
 =back
 
+=over 4
+
 =item B<GalleryCommentExifKey>
 
 Set this option to e.g. ImageDescription to use this field as comments
@@ -1926,6 +1928,8 @@ for images.
 
 Set this option to 1 to enable generation of a media RSS feed. This
 can be used e.g. together with the PicLens plugin from http://piclens.com
+
+=back
 
 =head1 FEATURES
 

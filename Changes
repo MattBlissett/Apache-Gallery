@@ -18,6 +18,7 @@ Revision history for Perl extension Apache::Gallery.
 	- Fixed spelling typos in Gallery.pm and README.  (Luca Capello)
 	- GalleryCacheDir defaults to /var/cache/www/ per the FHS-2.3.
 	  (Debian bug #337197, Luca Capello)
+	- Fixed two minor POD errors (Michael Legart)
 
 1.0.1 Wed Feb 23 20:45:38 CET 2011
 
