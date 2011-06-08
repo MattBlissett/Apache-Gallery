@@ -499,7 +499,7 @@ sub handler {
 					}
 					if ($neightbour_counter < scalar @neighbour_directories - 1) {
 						my $linktext = $neighbour_directories[$neightbour_counter+1];
-						if (-e $parent_filename.'/'.$neighbour_directories[$neightbour_counter-1] . ".folder") {
+						if (-e $parent_filename.'/'.$neighbour_directories[$neightbour_counter+1] . ".folder") {
 							$linktext = get_filecontent($parent_filename.'/'.$neighbour_directories[$neightbour_counter+1] . ".folder");
 						}
 						my %info = (
