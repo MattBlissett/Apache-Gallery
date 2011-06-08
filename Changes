@@ -3,7 +3,7 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
-1.0.2
+1.0.2 Wed Jun  8 20:47:16 CEST 2011
 
 	- Extended GalleryUnderscoresToSpaces to filenames as well.
 	  (Debian bug #348724, Francesco Potortì)
