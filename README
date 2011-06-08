@@ -165,7 +165,7 @@ CONFIGURATION
         Apache::Gallery but are not visible in the index.
 
         The default is
-        '\.(mpe?g|avi|mov|asf|wmv|doc|mp3|ogg|pdf|rtf|wav|dlt|html?|csv|eps)
+        '\.(mpe?g|avi|mov|asf|wmv|doc|mp3|ogg|pdf|rtf|wav|dlt|txt|html?|csv|eps)
         $'
 
     GalleryTTFDir
