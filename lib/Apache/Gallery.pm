@@ -385,11 +385,16 @@ sub handler {
 						$filetype = "unknown";
 					}
 
+					# Debian bug #348724 <http://bugs.debian.org/348724>
+					# not images
+					my $filetitle = $file;
+					$filetitle =~ s/_/ /g if $r->dir_config('GalleryUnderscoresToSpaces');
+
 					$tpl_vars{FILES} .=
 					     $templates{file}->fill_in(HASH => {%tpl_vars,
 										FILEURL => uri_escape($fileurl, $escape_rule),
 										ALT => "Size: $size Bytes",
-										FILE => $file,
+										FILE => $filetitle,
 										TYPE => $type,
 										FILETYPE => $filetype,
 									       }
@@ -408,8 +413,14 @@ sub handler {
 					my $cached = get_scaled_picture_name($thumbfilename, $thumbnailwidth, $thumbnailheight);
 
 					my $rotate = readfile_getnum($r, $imageinfo, $thumbfilename.".rotate");
+
+					# Debian bug #348724 <http://bugs.debian.org/348724>
+					# HTML <img> tag, alt attribute
+					my $filetitle = $file;
+					$filetitle =~ s/_/ /g if $r->dir_config('GalleryUnderscoresToSpaces');
+
 					my %file_vars = (FILEURL => uri_escape($fileurl, $escape_rule),
-							 FILE    => $file,
+							 FILE    => $filetitle,
 							 DATE    => $imageinfo->{DateTimeOriginal} ? $imageinfo->{DateTimeOriginal} : '', # should this really be a stat of the file instead of ''?
 							 SRC     => uri_escape($uri."/.cache/$cached", $escape_rule),
 							 HEIGHT => (grep($rotate==$_, (1, 3)) ? $thumbnailwidth : $thumbnailheight),
@@ -1897,7 +1908,8 @@ Quality at 50:
 =item B<GalleryUnderscoresToSpaces>
 
 Set this option to 1 to convert underscores to spaces in the listing
-of directory names.
+of directory and file names, as well as in the alt attribute for HTML
+<img> tags.
 
 =back
 

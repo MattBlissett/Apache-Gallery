@@ -3,6 +3,11 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
+1.0.2
+
+	- Extended GalleryUnderscoresToSpaces to filenames as well.
+	  (Debian bug #348724, Francesco Potortì)
+
 1.0.1 Wed Feb 23 20:45:38 CET 2011
 
 	- Added missing template files to MANIFEST
