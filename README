@@ -235,16 +235,17 @@ CONFIGURATION
 
     GalleryUnderscoresToSpaces
         Set this option to 1 to convert underscores to spaces in the listing
-        of directory and file names, as well as in the alt attribute for HTML
-        <img> tags.
+        of directory and file names, as well as in the alt attribute for
+        HTML <img> tags.
 
     GalleryCommentExifKey
-    Set this option to e.g. ImageDescription to use this field as comments
-    for images.
+        Set this option to e.g. ImageDescription to use this field as
+        comments for images.
 
     GalleryEnableMediaRss
-    Set this option to 1 to enable generation of a media RSS feed. This can
-    be used e.g. together with the PicLens plugin from http://piclens.com
+        Set this option to 1 to enable generation of a media RSS feed. This
+        can be used e.g. together with the PicLens plugin from
+        http://piclens.com
 
 FEATURES
     Rotate images
@@ -308,7 +309,7 @@ AUTHOR
     Michael Legart <michael@legart.dk>
 
 COPYRIGHT AND LICENSE
-    Copyright (C) 2001-2005 Michael Legart <michael@legart.dk>
+    Copyright (C) 2001-2011 Michael Legart <michael@legart.dk>
 
     Templates designed by Thomas Kjaer <tk@lnx.dk>
 
@@ -326,4 +327,14 @@ THANKS
 SEE ALSO
     perl, mod_perl, Image::Imlib2, CGI::FastTemplate, Image::Info, and
     Image::Size.
+
+POD ERRORS
+    Hey! The above document had some coding errors, which are explained
+    below:
+
+    Around line 1916:
+        '=item' outside of any '=over'
+
+    Around line 1926:
+        You forgot a '=back' before '=head1'
 
