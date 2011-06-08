@@ -1681,7 +1681,7 @@ to 0.
 
 Directory where Apache::Gallery should create its cache with scaled
 pictures. The default is /var/tmp/Apache-Gallery/ . Here, a directory
-for each virtualhost or location will be created automaticly. Make
+for each virtualhost or location will be created automatically. Make
 sure your webserver has write access to the CacheDir.
 
 =item B<GalleryTemplateDir>
@@ -1799,7 +1799,7 @@ If you set this option to 'variables' the items you configure in GalleryInfo
 will be available to your templates as $EXIF_<KEYNAME> (in all uppercase). 
 That means that with the default setting "Picture Taken => DateTimeOriginal, 
 Flash => Flash" you will have the variables $EXIF_DATETIMEORIGINAL and 
-$EXIF_FLASH avilable to your templates. You can place them
+$EXIF_FLASH available to your templates. You can place them
 anywhere you want.
 
 =item B<GalleryRootPath>
@@ -1935,7 +1935,7 @@ can be used e.g. together with the PicLens plugin from http://piclens.com
 
 Some cameras, like the Canon G3, detects the orientation of a picture
 and adds this info to the EXIF header. Apache::Gallery detects this
-and automaticly rotates images with this info.
+and automatically rotates images with this info.
 
 If your camera does not support this, you can rotate the images 
 manually, This can also be used to override the rotate information
@@ -1943,7 +1943,7 @@ from a camera that supports that. You can also disable this behavior
 with the GalleryAutoRotate option.
 
 To use this functionality you have to create file with the name of the 
-picture you want rotated appened with ".rotate". The file should include 
+picture you want rotated appended with ".rotate". The file should include 
 a number where these numbers are supported:
 
 	"1", rotates clockwise by 90 degree

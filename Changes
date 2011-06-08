@@ -14,7 +14,8 @@ Revision history for Perl extension Apache::Gallery.
 	- Fixed counter typo for <directory>.folder in next directory
 	  menu item.  (Luca Capello)
 	- Added support to ignore items through <directory|file>.ignore.
-	 (Debian bug #619625, Luca Capello)
+ 	  (Debian bug #619625, Luca Capello)
+	- Fixed spelling typos in Gallery.pm and README.  (Luca Capello)
 
 1.0.1 Wed Feb 23 20:45:38 CET 2011
 
