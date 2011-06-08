@@ -9,6 +9,9 @@ Revision history for Perl extension Apache::Gallery.
 	  (Debian bug #348724, Francesco Potortì)
 	- Added txt to GalleryDocFile, the code in Gallery.pm already
 	  allowed it.  (Luca Capello)
+	- Added text-html.png and text-txt.png icons.
+	  (Debian bug #423004, Luca Capello)
+
 
 1.0.1 Wed Feb 23 20:45:38 CET 2011
 
