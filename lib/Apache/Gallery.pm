@@ -856,7 +856,7 @@ sub cache_dir {
 
 	unless ($r->dir_config('GalleryCacheDir')) {
 
-		$cache_root = '/var/tmp/Apache-Gallery/';
+		$cache_root = '/var/cache/www/';
 		if ($r->server->is_virtual) {
 			$cache_root = File::Spec->catdir($cache_root, $r->server->server_hostname);
 		} else {
@@ -1663,7 +1663,7 @@ directories.
 The options are set in the httpd.conf/.htaccess file using the syntax:
 B<PerlSetVar OptionName 'value'>
 
-Example: B<PerlSetVar GalleryCacheDir '/var/tmp/Apache-Gallery/'>
+Example: B<PerlSetVar GalleryCacheDir '/var/cache/www/'>
 
 =over 4
 
@@ -1680,9 +1680,9 @@ to 0.
 =item B<GalleryCacheDir>
 
 Directory where Apache::Gallery should create its cache with scaled
-pictures. The default is /var/tmp/Apache-Gallery/ . Here, a directory
-for each virtualhost or location will be created automatically. Make
-sure your webserver has write access to the CacheDir.
+pictures. The default is /var/cache/www/ . Here, a directory for each
+virtualhost or location will be created automatically. Make sure your
+webserver has write access to the CacheDir.
 
 =item B<GalleryTemplateDir>
 

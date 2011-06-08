@@ -16,6 +16,8 @@ Revision history for Perl extension Apache::Gallery.
 	- Added support to ignore items through <directory|file>.ignore.
  	  (Debian bug #619625, Luca Capello)
 	- Fixed spelling typos in Gallery.pm and README.  (Luca Capello)
+	- GalleryCacheDir defaults to /var/cache/www/ per the FHS-2.3.
+	  (Debian bug #337197, Luca Capello)
 
 1.0.1 Wed Feb 23 20:45:38 CET 2011
 
