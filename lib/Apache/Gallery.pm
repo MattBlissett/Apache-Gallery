@@ -132,12 +132,17 @@ sub handler {
 
 	# Addition by Matt Blissett, June 2011.
 	# FOLDER ICONS
-	if ($r->uri =~ m/\.cache\/\.bg\.jpg$/i || $r->uri =~ m/\.cache\/\.bigbg\.jpg$/i) {
+	if ($r->uri =~ m/\.cache\/\.bg-/i) {
 		log_info("Folder background picture " . $r->filename().$r->path_info());
 
 		my $dirname = $r->filename().$r->path_info();
-		$dirname =~ s!/.cache/.b?i?g?bg.jpg!!;
-		log_debug("dirname: $dirname");
+
+		$dirname =~ m/\/\.bg-(\d+)/;
+		my $image_size = $1;
+		log_debug("BG Pic size $image_size");
+
+		$dirname =~ s!/.cache/.bg.*!!;
+		log_debug("BG Dirname: $dirname");
 
 		unless (opendir (DIR, $dirname)) {
 			show_error ($r, 500, $!, "Unable to access directory $dirname: $!");
@@ -153,6 +158,7 @@ sub handler {
 		my $subr = $r->lookup_file($file);
 		$r->content_type($subr->content_type());
 
+		log_debug("Look for $file in cache");
 		if (-f $file) {
 			# file already in cache
 			log_info("Background picture already in cache: $cache");
@@ -173,19 +179,19 @@ sub handler {
 				}
 			}
 
-			my $newfilename = ".bg.jpg";
+			my $newfilename = ".bg-$image_size.jpg";
 
-			my @bgsizes = split (/ /, $r->dir_config('GalleryFolderCoverSize') ? $r->dir_config('GalleryFolderCoverSize') : '180 116');
+			#my @bgsizes = split (/ /, $r->dir_config('GalleryFolderCoverSize') ? $r->dir_config('GalleryFolderCoverSize') : '180 116');
 
-			my $image_width = $bgsizes[1];
-			my $image_height = $bgsizes[1];
-			log_debug("Making folder cover $image_width x $image_height");
+			#my $image_width = $bgsizes[1];
+			#my $image_height = $bgsizes[1];
+			#log_debug("Making folder cover $image_width x $image_height");
 
-			if ($r->uri =~ m/\.cache\/\.bigbg\.jpg$/i) {
-				$newfilename = ".bigbg.jpg";
-				$image_width = $bgsizes[0];
-				$image_height = $bgsizes[0];
-			}
+			#if ($r->uri =~ m/\.cache\/\.bigbg\.jpg$/i) {
+			#	$newfilename = ".bigbg.jpg";
+			#	$image_width = $bgsizes[0];
+			#	$image_height = $bgsizes[0];
+			#}
 
 			my ($width, $height, $type) = imgsize($dirname."/".$files[0]);
 
@@ -194,7 +200,7 @@ sub handler {
 			log_debug("Making folder bg image from filees: " . join(', ', @files));
 			log_debug("Making folder bg image with: $imageinfo");
 
-			my $cached = album_cover_picture($r, $image_width, $image_height, $imageinfo, $dirname, $newfilename, @files);
+			my $cached = album_cover_picture($r, $image_size, $image_size, $imageinfo, $dirname, $newfilename, @files);
 
 			log_debug("Made folder bg image $cached, $r");
 		}
