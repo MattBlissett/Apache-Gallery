@@ -64,6 +64,8 @@ sub handler {
 
 	my $r = shift or Apache2::RequestUtil->request();
 
+	log_info("Apache Gallery request for " . $r->uri);
+
 	unless (($r->method eq 'HEAD') or ($r->method eq 'GET')) {
 		return $::MP2 ? Apache2::Const::DECLINED() : Apache::Constants::DECLINED();
 	}
@@ -122,6 +124,93 @@ sub handler {
 	if ($r->uri =~ m/^\/icons/i) {
 		return $::MP2 ? Apache2::Const::DECLINED() : Apache::Constants::DECLINED();
 	}
+
+	my $img_pattern = $r->dir_config('GalleryImgFile');
+	unless ($img_pattern) {
+		$img_pattern = '\.(jpe?g|png|tiff?|ppm)$'
+	}
+
+	# Addition by Matt Blissett, June 2011.
+	# FOLDER ICONS
+	if ($r->uri =~ m/\.cache\/\.bg\.jpg$/i || $r->uri =~ m/\.cache\/\.bigbg\.jpg$/i) {
+		log_info("Folder background picture " . $r->filename().$r->path_info());
+
+		my $dirname = $r->filename().$r->path_info();
+		$dirname =~ s!/.cache/.b?i?g?bg.jpg!!;
+		log_debug("dirname: $dirname");
+
+		unless (opendir (DIR, $dirname)) {
+			show_error ($r, 500, $!, "Unable to access directory $dirname: $!");
+			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
+		}
+
+		my $cache = cache_dir($r, 1);
+		log_debug("cache $cache");
+
+		my $file = cache_dir($r, 0);
+		$file =~ s/\.cache//;
+
+		my $subr = $r->lookup_file($file);
+		$r->content_type($subr->content_type());
+
+		if (-f $file) {
+			# file already in cache
+			log_info("Background picture already in cache: $cache");
+		}
+		else {
+			my @files = sort grep { !/^\./ && /$img_pattern/i && -f "$dirname/$_" && -r "$dirname/$_" } readdir (DIR);
+
+			if ($#files+1 <= 0) {
+				return $::MP2 ? Apache2::Const::HTTP_NO_CONTENT() : Apache::Constants::NOT_FOUND();
+			}
+
+			log_debug(($#files+1) . " files " . $files[0]);
+
+			unless (-d cache_dir($r, 1)) {
+				log_info("Creating cache directori $cache");
+				unless (create_cache($r, cache_dir($r, 1))) {
+					return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
+				}
+			}
+
+			my $newfilename = ".bg.jpg";
+
+			my @bgsizes = split (/ /, $r->dir_config('GalleryFolderCoverSize') ? $r->dir_config('GalleryFolderCoverSize') : '180 116');
+
+			my $image_width = $bgsizes[1];
+			my $image_height = $bgsizes[1];
+			log_debug("Making folder cover $image_width x $image_height");
+
+			if ($r->uri =~ m/\.cache\/\.bigbg\.jpg$/i) {
+				$newfilename = ".bigbg.jpg";
+				$image_width = $bgsizes[0];
+				$image_height = $bgsizes[0];
+			}
+
+			my ($width, $height, $type) = imgsize($dirname."/".$files[0]);
+
+			my $imageinfo = get_imageinfo($r, $dirname."/".$files[0], $type, $width, $height);
+
+			log_debug("Making folder bg image from filees: " . join(', ', @files));
+			log_debug("Making folder bg image with: $imageinfo");
+
+			my $cached = album_cover_picture($r, $image_width, $image_height, $imageinfo, $dirname, $newfilename, @files);
+
+			log_debug("Made folder bg image $cached, $r");
+		}
+
+		if ($::MP2) {
+			$r->sendfile($file);
+			return Apache2::Const::OK();
+		}
+		else {
+			$r->path_info('');
+			$r->filename($file);
+			return Apache::Constants::DECLINED();
+		}
+	}
+	# END FOLDER ICONS
+
 	# Lookup the file in the cache and scale the image if the cached
 	# image does not exist
 	if ($r->uri =~ m/\.cache\//i) {
@@ -184,10 +273,6 @@ sub handler {
 	my $doc_pattern = $r->dir_config('GalleryDocFile');
 	unless ($doc_pattern) {
 		$doc_pattern = '\.(mpe?g|avi|mov|asf|wmv|doc|mp3|ogg|pdf|rtf|wav|dlt|txt|html?|csv|eps)$'
-	}
-	my $img_pattern = $r->dir_config('GalleryImgFile');
-	unless ($img_pattern) {
-		$img_pattern = '\.(jpe?g|png|tiff?|ppm)$'
 	}
 
 	# Let Apache serve files we don't know how to handle anyway
@@ -1016,6 +1101,93 @@ sub scale_picture {
 
 }
 
+# Addition by Matt Blissett, June 2011
+sub album_cover_picture {
+	my ($r, $width, $height, $imageinfo, $dirname, $newfilename, @allfiles) = @_;
+
+	my @fullpath;
+	log_debug("Have $#allfiles files to select from");
+
+	my $inc = floor($#allfiles/4);
+	$inc++ if ($inc == 0);
+	for (my $i = 0; $i <= $#allfiles; $i += $inc) {
+		my $j = floor($i);
+		$r-log_debug("$i choosing ${j}th: $allfiles[$j]");
+		push @fullpath, "$dirname/" . $allfiles[$j];
+	}
+
+	my @dirs = split(/\//, $fullpath[0]);
+	my $filename = pop(@dirs);
+
+	log_debug("filename = $filename");
+	log_debug("fullpath0 $fullpath[0]");
+	log_debug("fullpath1 $fullpath[1]");
+	log_debug("fullpath2 $fullpath[2]");
+	log_debug("fullpath3 $fullpath[3]");
+
+	my $cache = cache_dir($r, 1);
+
+#	log_debug("cache $cache");
+#	#unless (-d cache_dir($r, 1)) {
+#		log_error("Creating cache directorycache needed! $cache");
+#		unless (create_cache($r, cache_dir($r, 1))) {
+#			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
+#		}
+#	}
+
+	# Do we want to generate a new file in the cache?
+	my $scale = 1;
+
+	if (-f $cache."/".$newfilename) {
+		$scale = 0;
+
+		# Check to see if the image has changed
+		my $filestat = stat($fullpath[0]);
+		my $cachestat = stat($cache."/".$newfilename);
+		if ($filestat->mtime >= $cachestat->mtime) {
+			$scale = 1;
+		}
+
+		# Check to see if the .rotate file has been added or changed
+		# Rotation is ignored
+		#if (-f $fullpath[0] . ".rotate") {
+		#	my $rotatestat = stat($fullpath[0] . ".rotate");
+		#	if ($rotatestat->mtime > $cachestat->mtime) {
+		#		$scale = 1;
+		#	}
+		#}
+
+		# Check to see if the copyrightimage has been added or changed
+		if ($r->dir_config('GalleryCopyrightImage') && -f $r->dir_config('GalleryCopyrightImage')) {
+			my $copyrightstat = stat($r->dir_config('GalleryCopyrightImage'));
+			if ($copyrightstat->mtime > $cachestat->mtime) {
+				$scale = 1;
+			}
+		}
+	}
+
+	if ($scale) {
+		my $newpath = $cache."/".$newfilename;
+		my $rotate = 0;
+		my $quality = $r->dir_config('GalleryQuality');
+
+		albumcoverpicture($r, $newpath, $width, $height,
+			($r->dir_config('GalleryCopyrightImage') ? $r->dir_config('GalleryCopyrightImage') : ''),
+			($r->dir_config('GalleryTTFDir') ? $r->dir_config('GalleryTTFDir') : ''),
+			($r->dir_config('GalleryCopyrightText') ? $r->dir_config('GalleryCopyrightText') : ''),
+			($r->dir_config('GalleryCopyrightColor') ? $r->dir_config('GalleryCopyrightColor') : ''),
+			($r->dir_config('GalleryTTFFile') ? $r->dir_config('GalleryTTFFile') : ''),
+			($r->dir_config('GalleryTTFSize') ?  $r->dir_config('GalleryTTFSize') : ''),
+			($r->dir_config('GalleryCopyrightBackgroundColor') ?  $r->dir_config('GalleryCopyrightBackgroundColor') : ''),
+			$quality,
+			@fullpath);
+	}
+
+	return $newfilename;
+
+}
+# END album_cover_picture
+
 sub get_thumbnailsize {
 	my ($r, $orig_width, $orig_height) = @_;
 
@@ -1580,6 +1752,135 @@ sub resizepicture {
 
 }
 
+# Addition by Matt Blissett, June 2011
+sub albumcoverpicture {
+	my ($r, $outfile, $x, $y, $copyrightfile, $GalleryTTFDir, $GalleryCopyrightText, $text_color, $GalleryTTFFile, $GalleryTTFSize, $GalleryCopyrightBackgroundColor, $quality, @infile) = @_;
+
+	# Load images
+	my @image;
+	my $i;
+	for ($i = 0; $i < 4 && $i <= $#infile; $i++) {
+		$image[$i] = Image::Imlib2->load($infile[$i]) or warn("Unable to open file $infile[$i], $!");
+		log_debug("Album cover picture: loaded file $i : $infile[$i]");
+	}
+	my $pictures = $i;
+
+	my $image = Image::Imlib2->new($x, $y);
+	$image->image_set_format("jpeg");
+
+	# Find a square from the central 3/5 of the image.
+	# ··g····
+	# f·###··
+	# ··###··
+	# ··###··
+	# ·······
+
+	my @f, my @g, my @d;
+	for (my $i = 0; $i < $pictures; $i++) {
+		if ($image[$i]->width() > $image[$i]->height()) {
+		$d[$i] = $image[$i]->height() / 5 * 3;
+		$g[$i] = $image[$i]->height() / 5;
+		$f[$i] = $g[$i] + ($image[$i]->width()-$image[$i]->height())/2;
+		}
+		else {
+		$d[$i] = $image[$i]->width() / 5 * 3;
+		$f[$i] = $image[$i]->width() / 5;
+		$g[$i] = $f[$i] + ($image[$i]->height()-$image[$i]->width())/2;
+		}
+	}
+
+	log_debug("ACP: f $f[0], g $g[0], d $d[0], x $x, y $y, w " . $image[0]->width() . ", h " . $image[0]->height());
+
+	if ($pictures == 4) {
+		$image->blend($image[0], 1, $f[0], $g[0], $d[0], $d[0], 0, 0, $x/2, $y/2);
+		$image->blend($image[1], 1, $f[1], $g[1], $d[1], $d[1], $x/2, 0, $x/2, $y/2);
+		$image->blend($image[2], 1, $f[2], $g[2], $d[2], $d[2], 0, $y/2, $x/2, $y/2);
+		$image->blend($image[3], 1, $f[3], $g[3], $d[3], $d[3], $x/2, $y/2, $x/2, $y/2);
+	}
+	elsif ($pictures == 3) {
+		$image->blend($image[2], 1, $f[2], $g[2], $d[2], $d[2], $x/4, 0, $x, $y);
+		$image->blend($image[1], 1, $f[1], $g[1], $d[1], $d[1], 0, 3*$y/4, $x, $y);
+		$image->blend($image[0], 1, $f[0], $g[0], $d[0], $d[0], 0, 0, 3*$x/4, 3*$y/4);
+	}
+	elsif ($pictures == 2) {
+		$image->blend($image[1], 1, $f[1], $g[1], $d[1], $d[1], 0, 0, $x, $y);
+		$image->blend($image[0], 1, $f[0], $g[0], $d[0], $d[0], 0, 0, 3*$x/4, 3*$y/4);
+	}
+	else {
+		$image->blend($image[0], 1, $f[0], $g[0], $d[0], $d[0], 0, 0, $x, $y);
+	}
+
+	# blend copyright image onto image
+	if ($copyrightfile ne '') {
+		if (-f $copyrightfile and (my $logo=Image::Imlib2->load($copyrightfile))) {
+			my $x = $image->get_width();
+			my $y = $image->get_height();
+			my $logox = $logo->get_width();
+			my $logoy = $logo->get_height();
+			$image->blend($logo, 0, 0, 0, $logox, $logoy, $x-$logox, $y-$logoy, $logox, $logoy);
+		}
+		else {
+			log_error("GalleryCopyrightImage $copyrightfile was not found");
+		}
+	}
+
+	if ($GalleryTTFDir && $GalleryCopyrightText && $GalleryTTFFile && $text_color) {
+		if (!-d $GalleryTTFDir) {
+
+			log_error("GalleryTTFDir $GalleryTTFDir is not a dir\n");
+
+		} elsif ($GalleryCopyrightText eq '') {
+
+			log_error("GalleryCopyrightText is empty. No text inserted to picture\n");
+
+		} elsif (!-e "$GalleryTTFDir/$GalleryTTFFile") {
+
+			log_error("GalleryTTFFile $GalleryTTFFile was not found\n");
+
+		} else {
+
+			$GalleryTTFFile =~ s/\.TTF$//i;
+			$image->add_font_path("$GalleryTTFDir");
+
+			$image->load_font("$GalleryTTFFile/$GalleryTTFSize");
+			my($text_x, $text_y) = $image->get_text_size("$GalleryCopyrightText");
+			my $x = $image->get_width();
+			my $y = $image->get_height();
+
+			my $offset = 3;
+
+			if (($text_x < $x - $offset) && ($text_y < $y - $offset)) {
+				if ($GalleryCopyrightBackgroundColor =~ /^\d+,\d+,\d+,\d+$/) {
+					my ($br_val, $bg_val, $bb_val, $ba_val) = split (/,/, $GalleryCopyrightBackgroundColor);
+					$image->set_colour($br_val, $bg_val, $bb_val, $ba_val);
+					$image->fill_rectangle ($x-$text_x-$offset, $y-$text_y-$offset, $text_x, $text_y);
+				}
+				my ($r_val, $g_val, $b_val, $a_val) = split (/,/, $text_color);
+				$image->set_colour($r_val, $g_val, $b_val, $a_val);
+				$image->draw_text($x-$text_x-$offset, $y-$text_y-$offset, "$GalleryCopyrightText");
+			} else {
+				log_error("Text is to big for the picture.\n");
+			}
+		}
+	}
+
+	if ($quality && $quality =~ m/^\d+$/) {
+		$image->set_quality($quality);
+	}
+
+	# Force file type for THM files to JPEG
+	if ($outfile =~ m/\.thm$/) {
+		$image->image_set_format("jpeg");
+	}
+
+	if ($r->dir_config("GalleryForceJPEG")) {
+		$image->image_set_format("jpeg");
+	}
+
+	$image->save($outfile);
+}
+# End albumcoverpicture
+
 sub gallerysort {
 	my $r=shift;
 	my @files=@_;
@@ -1630,9 +1931,25 @@ sub create_templates {
 
 sub log_error {
 	if ($::MP2) {
-		Apache2::RequestUtil->request->log_error(shift());
+		Apache2::RequestUtil->request->log->error(shift());
 	} else {
 		Apache->request->log_error(shift());
+	}
+}
+
+sub log_info {
+	if ($::MP2) {
+		Apache2::RequestUtil->request->log->info(shift());
+	} else {
+		Apache->request->log_info(shift());
+	}
+}
+
+sub log_debug {
+	if ($::MP2) {
+		Apache2::RequestUtil->request->log->debug(shift());
+	} else {
+		Apache->request->log_debug(shift());
 	}
 }
 
