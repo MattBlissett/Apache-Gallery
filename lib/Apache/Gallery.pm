@@ -181,18 +181,6 @@ sub handler {
 
 			my $newfilename = ".bg-$image_size.jpg";
 
-			#my @bgsizes = split (/ /, $r->dir_config('GalleryFolderCoverSize') ? $r->dir_config('GalleryFolderCoverSize') : '180 116');
-
-			#my $image_width = $bgsizes[1];
-			#my $image_height = $bgsizes[1];
-			#log_debug("Making folder cover $image_width x $image_height");
-
-			#if ($r->uri =~ m/\.cache\/\.bigbg\.jpg$/i) {
-			#	$newfilename = ".bigbg.jpg";
-			#	$image_width = $bgsizes[0];
-			#	$image_height = $bgsizes[0];
-			#}
-
 			my ($width, $height, $type) = imgsize($dirname."/".$files[0]);
 
 			my $imageinfo = get_imageinfo($r, $dirname."/".$files[0], $type, $width, $height);
@@ -551,7 +539,7 @@ sub handler {
 
 		$r->document_root =~ m/(.*)\/$/;
 		my $root_path = $1;
-		print STDERR "$filename vs $root_path\n";
+		log_debug("$filename vs $root_path");
 		if ($filename ne $root_path) {
 			unless (opendir (PARENT_DIR, $parent_filename)) {
 				show_error ($r, 500, $!, "Unable to access parent directory $parent_filename: $!");
@@ -578,7 +566,7 @@ sub handler {
 			foreach my $neighbour_directory (@neighbour_directories) {
 				if ($parent_filename.'/'.$neighbour_directory eq $filename) {
 					if ($neightbour_counter > 0) {
-						print STDERR "prev directory is " .$neighbour_directories[$neightbour_counter-1] ."\n";
+						log_debug("prev directory is " .$neighbour_directories[$neightbour_counter-1]);
 						my $linktext = $neighbour_directories[$neightbour_counter-1];
 						if (-e $parent_filename.'/'.$neighbour_directories[$neightbour_counter-1] . ".folder") {
 							$linktext = get_filecontent($parent_filename.'/'.$neighbour_directories[$neightbour_counter-1] . ".folder");
@@ -589,7 +577,7 @@ sub handler {
 						DIR_FILES => "",
 						);
   						$tpl_vars{PREV_DIR_FILES} = $templates{navdirectory}->fill_in(HASH=> {%info});
-						print STDERR $tpl_vars{PREV_DIR_FILES} ."\n";
+						log_debug($tpl_vars{PREV_DIR_FILES});
 
 					}
 					if ($neightbour_counter < scalar @neighbour_directories - 1) {
@@ -603,7 +591,7 @@ sub handler {
 						DIR_FILES => "",
 						);
   						$tpl_vars{NEXT_DIR_FILES} = $templates{navdirectory}->fill_in(HASH=> {%info});
-						print STDERR "next directory is " .$neighbour_directories[$neightbour_counter+1] ."\n";
+						log_debug("next directory is " .$neighbour_directories[$neightbour_counter+1]);
 					}
 				}
 				$neightbour_counter++;
@@ -1511,13 +1499,13 @@ sub readfile_getnum {
 
 	my $rotate = 0;
 
-	print STDERR "orientation: ".$imageinfo->{Orientation}."\n";
+	log_debug("orientation: ".$imageinfo->{Orientation});
 	# Check to see if the image contains the Orientation EXIF key,
 	# but allow user to override using rotate
 	if (!defined($r->dir_config("GalleryAutoRotate")) 
 		|| $r->dir_config("GalleryAutoRotate") eq "1") {
 		if (defined($imageinfo->{Orientation})) {
-			print STDERR $imageinfo->{Orientation}."\n";
+			log_debug($imageinfo->{Orientation});
 			if ($imageinfo->{Orientation} eq 'right_top') {
 				$rotate=1;
 			}	
@@ -1908,13 +1896,13 @@ sub create_templates {
      my $templates = shift;
 
      # This routine is called whenever a template has an error. Prints
-     # the error to STDERR and sticks the error in the output
+     # the error to the log and sticks the error in the output
      sub tt_broken {
 	  my %args = @_;
 	  # Pull out the name and filename from the arg option [see
 	  # Text::Template for details]
 	  @args{qw(name file)} = @{$args{arg}};
-	  print STDERR qq(Template $args{name} ("$args{file}") is broken: $args{error});
+	  log_error(qq(Template $args{name} ("$args{file}") is broken: $args{error}));
 	  # Don't include the file name in the output, as the user can see this.
 	  return qq(<!-- Template $args{name} is broken: $args{error} -->);
      }
