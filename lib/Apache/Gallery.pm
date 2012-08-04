@@ -205,6 +205,146 @@ sub handler {
 	}
 	# END FOLDER ICONS
 
+	# Addition by Matt Blissett, May 2011.
+	# XML GEOREFERENCES file for a map
+	if ($r->uri =~ m/\.cache\/\.points\.xml$/i) {
+		log_info("Points: " . $r->filename().$r->path_info());
+
+		my $dirname = $r->filename().$r->path_info();
+		$dirname =~ s!/.cache/.points.xml!!;
+		log_debug("Points: dirname: $dirname");
+
+		unless (opendir (DIR, $dirname)) {
+			show_error ($r, 500, $!, "Unable to access directory $dirname: $!");
+			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
+		}
+
+		my @files = sort grep { !/^\./ && /$img_pattern/i && -f "$dirname/$_" && -r "$dirname/$_" } readdir (DIR);
+
+		if ($#files <= 0) {
+			return $::MP2 ? Apache2::Const::HTTP_NO_CONTENT() : Apache::Constants::NOT_FOUND();
+		}
+
+		log_debug("Points: $#files files, first called" . $files[0]);
+
+		my $cache = cache_dir($r, 1);
+		unless (-d cache_dir($r, 1)) {
+			log_debug("Points: cache needed! $cache");
+			unless (create_cache($r, cache_dir($r, 1))) {
+				return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
+			}
+		}
+
+		my $file = cache_dir($r, 0);
+		$r->content_type('application/xml');
+
+		if (-f $file) {
+			# file already in cache
+			log_debug("Points: file already in cache: $cache");
+		}
+		else {
+			my %tpl_vars;
+
+			my $tpl_dir = $r->dir_config('GalleryTemplateDir');
+
+			# Could check for these being in the template.
+			my %templates = create_templates({
+				point     => "$tpl_dir/point.tpl",
+				points    => "$tpl_dir/points.tpl"
+			});
+
+			if (@files) {
+				my $filelist;
+
+				my $file_counter = 0;
+
+				foreach my $file (@files) {
+					log_debug("Points: scanning file $file_counter " . $file);
+					$file_counter++;
+					my $filename = $dirname."/".$file;
+					log_debug("Points: filename " . $filename);
+
+					my $dirurl = $r->uri;
+					$dirurl =~ s!.cache/.points.xml!!;
+					#$fileurl .= $file;
+					log_debug("Points: dirurl " . $dirurl);
+
+					if (-f $filename) { # image
+						# Check it's an image
+						my ($width, $height, $type) = imgsize($filename);
+						next if $type eq 'Data stream is not a known image file format';
+
+						my @filetypes = qw(JPG TIF PNG PPM GIF);
+
+						next unless (grep $type eq $_, @filetypes);
+
+						# Thumbnail dimensions needed for URL to thumbnail
+						my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $width, $height);
+						my $cached = get_scaled_picture_name($filename, $thumbnailwidth, $thumbnailheight);
+						log_debug("Points: thumbnail name $cached");
+
+						# Read EXIF info
+						my $imageinfo = get_imageinfo($r, $filename, $type, $width, $height);
+
+						my %point_vars = (
+							FILE => $file,
+							STATUS => $imageinfo->{GPSStatus} ? $imageinfo->{GPSStatus} : '',
+							LATR => $imageinfo->{GPSLatitudeRef} ? $imageinfo->{GPSLatitudeRef} : '',
+							LONGR => $imageinfo->{GPSLongitudeRef} ? $imageinfo->{GPSLongitudeRef} : '',
+							LAT => $imageinfo->{GPSLatitude} ? $imageinfo->{GPSLatitude} : '',
+							LONG => $imageinfo->{GPSLongitude} ? $imageinfo->{GPSLongitude} : '',
+							THUMB => uri_escape($dirurl.".cache/$cached", $escape_rule),
+						);
+
+						my $foundcomment = 0;
+						if (-f $filename . '.comment') {
+							log_debug("found" . $filename . '.comment');
+							my $comment_ref = get_comment($filename . '.comment');
+							$foundcomment = 1;
+							$tpl_vars{COMMENT} = $comment_ref->{COMMENT} . "\n" if $comment_ref->{COMMENT};
+							$tpl_vars{TITLE} = $comment_ref->{TITLE} if $comment_ref->{TITLE};
+						} elsif ($r->dir_config('GalleryCommentExifKey')) {
+							my $comment = decode("utf8", $imageinfo->{$r->dir_config('GalleryCommentExifKey')});
+							$tpl_vars{COMMENT} = encode("iso-8859-1", $comment);
+						} else {
+							$tpl_vars{COMMENT} = undef;
+						}
+						log_debug("Points: Title: ".$tpl_vars{TITLE});
+						log_debug("Points: Comment: ".$tpl_vars{COMMENT});
+
+						$tpl_vars{POINTS} .= $templates{point}->fill_in(
+							HASH => {%tpl_vars, %point_vars},
+						);
+					}
+				}
+			}
+			else {
+				$tpl_vars{FILES} = "No files found";
+				$tpl_vars{BROWSELINKS} = "";
+				$tpl_vars{POINTS} = "";
+			}
+
+			$tpl_vars{MAIN} = $templates{points}->fill_in(HASH => \%tpl_vars);
+
+			# put $tpl_vars{MAIN} into the file.
+			if (open(P, ">$file")) {
+				print P $tpl_vars{MAIN};
+				close(P);
+			}
+		}
+
+		if ($::MP2) {
+			$r->sendfile($file);
+			return Apache2::Const::OK();
+		}
+		else {
+			$r->path_info('');
+			$r->filename($file);
+			return Apache::Constants::DECLINED();
+		}
+	}
+	# End XML GEOREFERENCES
+
 	# Lookup the file in the cache and scale the image if the cached
 	# image does not exist
 	if ($r->uri =~ m/\.cache\//i) {
@@ -1308,7 +1448,14 @@ sub get_imageinfo {
 		if (defined($exif_key) && defined($imageinfo->{$exif_key})) {
 			my $value = "";
 			if (ref($imageinfo->{$exif_key}) eq 'Image::TIFF::Rational') { 
-				$value = $imageinfo->{$exif_key}->as_string;
+				if ($exif_key eq 'GPSLatitude' or $exif_key eq 'GPSLongitude') {
+					$value = $imageinfo->{$exif_key}[0] / $imageinfo->{$exif_key}[1];
+					$value += $imageinfo->{$exif_key}[2] / $imageinfo->{$exif_key}[3] / 60.0;
+					$value += $imageinfo->{$exif_key}[4] / $imageinfo->{$exif_key}[5] / 60.0 / 60.0;
+				}
+				else {
+					$value = $imageinfo->{$exif_key}->as_string;
+				}
 			} 
 			elsif (ref($imageinfo->{$exif_key}) eq 'ARRAY') {
 				foreach my $element (@{$imageinfo->{$exif_key}}) {
