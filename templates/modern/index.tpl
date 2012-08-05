@@ -1,7 +1,5 @@
 <div>
-	<div id="menu">
-		{ $MENU }
-	</div>
+	<div id="menu">{ $MENU }</div>
 	<div id="nav">
 		{ $BROWSELINKS }
 	</div>

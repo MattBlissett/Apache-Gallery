@@ -1,7 +1,5 @@
 <div id="page">
-	<div id="menu">
-		{ $MENU }
-	</div>
+	<div id="menu">{ $MENU }</div>
 
 	<div id="directory">
 		<div id="picture">
@@ -62,7 +60,7 @@
 				<li>FNumber => {$EXIF_FNUMBER}</li>
 			</ul>
 		</div>
-		<div id="clear"></div>
+		<div class="clear"></div>
 	</div>
 </div>
 
