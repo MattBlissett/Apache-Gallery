@@ -212,6 +212,14 @@ footer:hover {
 	transform: scale(1.5);
 }
 
+#files a.dimmed {
+	opacity: 0.25;
+}
+
+#files:hover a.dimmed {
+	opacity: 1.0;
+}
+
 #files a.folder,
 #files a.file {
 	width: 112px;
@@ -395,18 +403,6 @@ a img {
 #slider:hover {
 	border-color: yellow;
 	background: rgba(32, 32, 32, 0.5);
-}
-
-#files {
-	margin-right: 0;
-}
-
-.dimmed {
-	opacity: 0.25;
-}
-
-#files:hover .dimmed {
-	opacity: 1.0;
 }
 
 /* Small map */

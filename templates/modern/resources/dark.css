@@ -1,0 +1,49 @@
+@import url("gallery.css");
+
+html {
+	background-color: #121212;
+	color: #eee;
+}
+
+#menu {
+	color: #33b033;
+	background-color: #121212;
+	text-shadow: 0 0 0.25em #008;
+}
+
+footer {
+	background-color: #121212;
+	color: #666;
+}
+footer a {
+	color: #aaa;
+}
+
+#directory {
+	background: #121212;
+}
+
+#files a {
+	color: #eee;
+	background-color: #444;
+	text-shadow: 0 0 2px #121212, 0 0 4px #121212, 0 0 6px #121212, 0 0 8px #121212;
+	box-shadow: 0 0 0.8em #212121;
+}
+
+#files a span {
+	background: rgba(0, 0, 0, 0.333);
+}
+
+#files a:hover span {
+	background: rgba(0, 0, 0, 0.5);
+}
+
+a {
+	color: #33b033;
+}
+
+a:hover {
+	color: #33b033;
+}
+
+/* kate: indent-mode normal; indent-width 1; space-indent off; tab-width 8; hl css; */
