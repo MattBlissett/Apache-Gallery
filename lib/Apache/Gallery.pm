@@ -408,9 +408,13 @@ sub handler {
 	unless ($doc_pattern) {
 		$doc_pattern = '\.(mpe?g|avi|mov|asf|wmv|doc|mp3|ogg|pdf|rtf|wav|dlt|txt|html?|csv|eps)$'
 	}
+	my $vid_pattern = $r->dir_config('GalleryVidFile');
+	unless ($vid_pattern) {
+		$vid_pattern = '\.(ogv|webm|mp4)$'
+	}
 
 	# Let Apache serve files we don't know how to handle anyway
-	if (-f $filename && $filename !~ m/$img_pattern/i) {
+	if (-f $filename && $filename !~ m/$img_pattern/i && $filename !~ m/$vid_pattern/i) {
 		return $::MP2 ? Apache2::Const::DECLINED() : Apache::Constants::DECLINED();
 	}
 
@@ -434,13 +438,11 @@ sub handler {
 						  file         => "$tpl_dir/file.tpl",
 						  comment      => "$tpl_dir/dircomment.tpl",
 						  nocomment    => "$tpl_dir/nodircomment.tpl",
+						  video     => "$tpl_dir/video.tpl",
 						  rss          => "$tpl_dir/rss.tpl",
 						  rss_item     => "$tpl_dir/rss_item.tpl",
 						  navdirectory => "$tpl_dir/navdirectory.tpl",
 						 });
-
-
-
 
 		my %tpl_vars;
 
@@ -475,7 +477,7 @@ sub handler {
 
 				my $file = $topdir."/".$picture;
 
-				if ($file =~ /$img_pattern/i) {
+				if ($file =~ /$img_pattern/i || $file =~ /$vid_pattern/i) {
 					push (@new_files, $picture);
 				}
 
@@ -588,7 +590,7 @@ sub handler {
 
 				}
 				# Debian bug #619625 <http://bugs.debian.org/619625>
-				elsif (-f $thumbfilename && $thumbfilename =~ /$doc_pattern/i && $thumbfilename !~ /$img_pattern/i && ! -e $thumbfilename . ".ignore") {
+				elsif (-f $thumbfilename && $thumbfilename =~ /$doc_pattern/i && $thumbfilename !~ /$img_pattern/i && $thumbfilename !~ /$vid_pattern/i && ! -e $thumbfilename . ".ignore") {
 					my $type = lc($1);
 					my $stat = stat($thumbfilename);
 					my $size = $stat->size;
@@ -620,6 +622,39 @@ sub handler {
 										FILETYPE => $filetype,
 									       }
 								      );
+				}
+				elsif (-f $thumbfilename && $thumbfilename =~ /$vid_pattern/i && ! -e $thumbfilename . ".ignore") {
+					my $stat = stat($thumbfilename);
+					my $size = $stat->size;
+					my $magnitude = 0;
+					while ($size > 1024) {
+						$size = $size / 1024;
+						$magnitude++;
+					}
+					my @mag = ("B", "kiB", "MiB", "GiB", "TiB");
+					$size = int($size) . $mag[$magnitude];
+
+					# Should generate the thumb file from the video
+					my $posterthumbfilename = $thumbfilename;
+					$posterthumbfilename =~ s/\....$/.thm/;
+
+					my $posterthumburl = "/icons/gallery/video-mpg.png";
+#					if (-f $posterthumbfilename) {
+#						$posterthumburl = $file;
+#						$posterthumburl =~ s/\....$/.thm/;
+#						$posterthumburl = uri_escape(".cache/176x132-$posterthumburl", $escape_rule);
+#					}
+					log_debug("Video icon: using $posterthumburl");
+
+					my %file_vars = (FILEURL => uri_escape($fileurl, $escape_rule),
+							 FILE    => $file,
+							 SIZE    => $size,
+							 WIDTH   => 176,
+							 HEIGHT  => 132,
+							 POSTER  => uri_escape($posterthumburl, $escape_rule),
+							 SELECT  => $select_mode?'<input type="checkbox" name="selection" value="'.$file.'">&nbsp;&nbsp;':'',
+							 );
+					$tpl_vars{FILES} .= $templates{video}->fill_in(HASH => {%tpl_vars,%file_vars});
 				}
 				# Debian bug #619625 <http://bugs.debian.org/619625>
 				elsif (-f $thumbfilename && ! -e $thumbfilename . ".ignore") {
@@ -792,18 +827,30 @@ sub handler {
 			}
 		}
 
-		my ($orig_width, $orig_height, $type) = imgsize($filename);
+		my ($orig_width, $orig_height, $type);
+		my $imageinfo;
+		my ($image_width, $width, $height, $original_size);
+		my $cached;
 
-		my $imageinfo = get_imageinfo($r, $filename, $type, $orig_width, $orig_height);
+		my $isVideo = $filename =~ m/$vid_pattern/i;
+		if ($isVideo) {
+			log_debug("$filename is a video");
+		}
+		else {
+			($orig_width, $orig_height, $type) = imgsize($filename);
 
-		my ($image_width, $width, $height, $original_size) = get_image_display_size($cgi, $r, $orig_width, $orig_height);
+			$imageinfo = get_imageinfo($r, $filename, $type, $orig_width, $orig_height);
 
-		my $cached = get_scaled_picture_name($filename, $image_width, $height);
+			($image_width, $width, $height, $original_size) = get_image_display_size($cgi, $r, $orig_width, $orig_height);
+
+			$cached = get_scaled_picture_name($filename, $image_width, $height);
+		}
 		
 		my $tpl_dir = $r->dir_config('GalleryTemplateDir');
 
 		my %templates = create_templates({layout         => "$tpl_dir/layout.tpl",
 						  picture        => "$tpl_dir/showpicture.tpl",
+						  video          => "$tpl_dir/showvideo.tpl",
 						  navpicture     => "$tpl_dir/navpicture.tpl",
 						  info           => "$tpl_dir/info.tpl",
 						  scale          => "$tpl_dir/scale.tpl",
@@ -820,14 +867,26 @@ sub handler {
 
 		my %tpl_vars;
 
-		my $resolution = (($image_width > $orig_width) && ($height > $orig_height)) ? 
-			"$orig_width x $orig_height" : "$image_width x $height";
+		my $resolution;
 
-		$tpl_vars{TITLE} = "Viewing ".$r->uri()." at $image_width x $height";
+		unless ($isVideo) {
+			$resolution = (($image_width > $orig_width) && ($height > $orig_height)) ? 
+				"$orig_width x $orig_height" : "$image_width x $height";
+		}
+
+		if ($isVideo) {
+			$tpl_vars{TITLE} = "Viewing ".$r->uri();
+			my @tmp = split (/\//, $filename);
+			my $vidfilename = pop @tmp;
+			$tpl_vars{SRC} = uri_escape($vidfilename, $escape_rule) . "?orig";
+		}
+		else {
+			$tpl_vars{TITLE} = "Viewing ".$r->uri()." at $image_width x $height";
+			$tpl_vars{RESOLUTION} = $resolution;
+			$tpl_vars{SRC} = uri_escape(".cache/$cached", $escape_rule);
+		}
 		$tpl_vars{META} = " ";
-		$tpl_vars{RESOLUTION} = $resolution;
 		$tpl_vars{MENU} = generate_menu($r);
-		$tpl_vars{SRC} = uri_escape(".cache/$cached", $escape_rule);
 		$tpl_vars{URI} = $r->uri();
 	
 		my $exif_mode = $r->dir_config('GalleryEXIFMode');
@@ -839,7 +898,7 @@ sub handler {
 			show_error($r, 500, "Unable to access directory", "Unable to access directory $path");
 			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 		}
-		my @pictures = grep { /$img_pattern/i && ! -e "$path/$_" . ".ignore" } readdir (DATADIR);
+		my @pictures = grep { (/$img_pattern/i || /$vid_pattern/i) && ! -e "$path/$_" . ".ignore" } readdir (DATADIR);
 		closedir(DATADIR);
 		@pictures = gallerysort($r, @pictures);
 
@@ -861,17 +920,28 @@ sub handler {
 					$displayprev = 1;
 				}
 				if ($prevpicture and $displayprev) {
-					my ($orig_width, $orig_height, $type) = imgsize($path.$prevpicture);
-					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $orig_width, $orig_height);	
-					my $imageinfo = get_imageinfo($r, $path.$prevpicture, $type, $orig_width, $orig_height);
-					my $cached = get_scaled_picture_name($path.$prevpicture, $thumbnailwidth, $thumbnailheight);
+					my ($orig_width, $orig_height, $type);
+					my ($thumbnailwidth, $thumbnailheight);
+					my $imageinfo;
+					my $cached;
 					my %nav_vars;
 					$nav_vars{URL}       = uri_escape($prevpicture, $escape_rule);
 					$nav_vars{FILENAME}  = $prevpicture;
-					$nav_vars{WIDTH}     = $width;
-					$nav_vars{PICTURE}   = uri_escape(".cache/$cached", $escape_rule);
 					$nav_vars{DIRECTION} = "&laquo; <u>p</u>rev";
 					$nav_vars{ACCESSKEY} = "P";
+					$nav_vars{WIDTH}     = $width;
+					if ($prevpicture =~ m/$vid_pattern/i) {
+						log_debug("prevpicture is a video");
+						$nav_vars{PICTURE}   = "/icons/gallery/video-mpg.png";
+						$nav_vars{VIDEO} = "video";
+					}
+					else {
+						($orig_width, $orig_height, $type) = imgsize($path.$prevpicture);
+						($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $orig_width, $orig_height);	
+						$imageinfo = get_imageinfo($r, $path.$prevpicture, $type, $orig_width, $orig_height);
+						$cached = get_scaled_picture_name($path.$prevpicture, $thumbnailwidth, $thumbnailheight);
+						$nav_vars{PICTURE}   = uri_escape(".cache/$cached", $escape_rule);
+					}
 					$tpl_vars{BACK} = $templates{navpicture}->fill_in(HASH => \%nav_vars);
 				}
 				else {
@@ -884,20 +954,30 @@ sub handler {
 				}	
 
 				if ($nextpicture) {
-					my ($orig_width, $orig_height, $type) = imgsize($path.$nextpicture);
-					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $orig_width, $orig_height);	
-					my $imageinfo = get_imageinfo($r, $path.$nextpicture, $type, $thumbnailwidth, $thumbnailheight);
-					my $cached = get_scaled_picture_name($path.$nextpicture, $thumbnailwidth, $thumbnailheight);
+					my ($orig_width, $orig_height, $type);
+					my ($thumbnailwidth, $thumbnailheight);
+					my $imageinfo;
+					my $cached;
 					my %nav_vars;
 					$nav_vars{URL}       = uri_escape($nextpicture, $escape_rule);
 					$nav_vars{FILENAME}  = $nextpicture;
-					$nav_vars{WIDTH}     = $width;
-					$nav_vars{PICTURE}   = uri_escape(".cache/$cached", $escape_rule);
 					$nav_vars{DIRECTION} = "<u>n</u>ext &raquo;";
 					$nav_vars{ACCESSKEY} = "N";
-
-					$tpl_vars{NEXT} = $templates{navpicture}->fill_in(HASH => \%nav_vars);
+					$nav_vars{WIDTH}     = $width;
 					$tpl_vars{NEXTURL}   = uri_escape($nextpicture, $escape_rule);
+					if ($nextpicture =~ m/$vid_pattern/i) {
+						log_debug("nextpicture is a video");
+						$nav_vars{PICTURE}   = "/icons/gallery/video-mpg.png";
+						$nav_vars{VIDEO} = "video";
+					}
+					else {
+						($orig_width, $orig_height, $type) = imgsize($path.$nextpicture);
+						($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $orig_width, $orig_height);	
+						$imageinfo = get_imageinfo($r, $path.$nextpicture, $type, $orig_width, $orig_height);
+						$cached = get_scaled_picture_name($path.$nextpicture, $thumbnailwidth, $thumbnailheight);
+						$nav_vars{PICTURE}   = uri_escape(".cache/$cached", $escape_rule);
+					}
+					$tpl_vars{NEXT} = $templates{navpicture}->fill_in(HASH => \%nav_vars);
 				}
 				else {
 					$tpl_vars{NEXT} = "&nbsp;";
@@ -1050,7 +1130,12 @@ sub handler {
 			$tpl_vars{SLIDESHOW} .=  $templates{slideshowisoff}->fill_in(HASH => \%tpl_vars);
 		}
 
-		$tpl_vars{MAIN} = $templates{picture}->fill_in(HASH => \%tpl_vars);
+		if ($isVideo) {
+			$tpl_vars{MAIN} = $templates{video}->fill_in(HASH => \%tpl_vars);
+		}
+		else {
+			$tpl_vars{MAIN} = $templates{picture}->fill_in(HASH => \%tpl_vars);
+		}
 		$tpl_vars{MAIN} = $templates{layout}->fill_in(HASH => \%tpl_vars);
 
 		$r->content_type('text/html');
@@ -2279,10 +2364,17 @@ page. It requires $BROWSELINKS to be in the index.tpl template file.
 
 =item B<GalleryImgFile>
 
-Pattern matching the files you want Apache::Gallery to view in the
+Pattern matching the image files you want Apache::Gallery to view in the
 index as thumbnails. 
 
 The default is '\.(jpe?g|png|tiff?|ppm)$'
+
+=item B<GalleryVidFile>
+
+Pattern matching the video files you want Apache::Gallery to view in the
+index as thumbnails, and in the gallery as HTML5 videos.
+
+The default is '\.(ogv|webm|mp4)$'
 
 =item B<GalleryDocFile>
 

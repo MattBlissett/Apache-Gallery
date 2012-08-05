@@ -31,7 +31,7 @@ table {
 	text-align: left;
 	top: 0px;
 }
-#folder {
+.folder {
 	float: left;
 	height: 100px;
 	padding: 2px;
@@ -53,7 +53,7 @@ a:hover {
 a:hover img {
 	border: 2px solid #ff9400;
 }
-#folder img {
+.folder img {
 	border: 0px;
 }
 .info {

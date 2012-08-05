@@ -52,8 +52,10 @@ footer:hover {
 }
 
 /* Picture display — main picture + next and previous picture links */
-#picture img {
-	margin: 1em;
+#picture img,
+#picture video {
+	display: block;
+	margin: 1em auto;
 	border-radius: 1em;
 
 	box-shadow: 0 0 0.8em #000, 0 0 0.5em #000, 0 0 0.2em #000;
@@ -81,10 +83,14 @@ footer:hover {
 .nav.left img {
 	margin-left: -87px;
 	border-radius: 0 58px 58px 0;
+	
+	background-color: black;
 }
 .nav.right img {
 	margin-right: -87px;
 	border-radius: 58px 0 0 58px;
+	
+	background-color: black;
 }
 .nav.left img:hover {
 	margin-left: -29px;
@@ -99,6 +105,10 @@ footer:hover {
 .nav.right img:hover {
 	border-radius: 1em 0 0 1em;
 	-webkit-transition-duration: 0.25s;
+}
+
+.nav.video img {
+	margin: 0;
 }
 
 .nav.left p,
@@ -241,14 +251,16 @@ footer:hover {
 }
 
 #files a.folder span,
-#files a.file span {
+#files a.file span,
+#files a.video span {
 	width: 100%;
 	font-size: 0.8em;
 	border-radius: 1ex 1ex 0 0;
 	background-color: rgba(255, 255, 255, 0.333);
 }
 
-#files a.file span {
+#files a.file span,
+#files a.video span {
 	margin-top: 50px;
 	border-radius: 0;
 }
