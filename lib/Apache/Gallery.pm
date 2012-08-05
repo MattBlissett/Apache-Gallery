@@ -1453,6 +1453,9 @@ sub get_imageinfo {
 					$value += $imageinfo->{$exif_key}[2] / $imageinfo->{$exif_key}[3] / 60.0;
 					$value += $imageinfo->{$exif_key}[4] / $imageinfo->{$exif_key}[5] / 60.0 / 60.0;
 				}
+				elsif ($exif_key eq 'MaxApertureValue') {
+					$value = $imageinfo->{$exif_key}[0] / $imageinfo->{$exif_key}[1];
+				}
 				else {
 					$value = $imageinfo->{$exif_key}->as_string;
 				}
