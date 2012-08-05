@@ -120,8 +120,8 @@ sub handler {
 	# Selectmode providing checkboxes beside all thumbnails
 	my $select_mode = $cgi->param('select');
 	
-	# Let Apache serve icons without us modifying the request
-	if ($r->uri =~ m/^\/icons/i) {
+	# Let Apache serve icons or favicon without us modifying the request
+	if ($r->uri =~ m/^\/icons/i || $r->uri =~ m/^\/favicon.ico/i) {
 		return $::MP2 ? Apache2::Const::DECLINED() : Apache::Constants::DECLINED();
 	}
 
