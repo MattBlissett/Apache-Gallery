@@ -4,7 +4,7 @@
 <html>
 <head>
 	<title>{ $TITLE }</title>
-	<link rel="stylesheet" href="/gallery-res/gallery.css" type="text/css">
+	<link rel="stylesheet" href="/gallery-res/{ $CSS }" type="text/css">
 	<link rel="stylesheet" href="/gallery-res/map.css" type="text/css" />
 
 	<script src="/gallery-res/jquery-1.6.2.min.js"></script>

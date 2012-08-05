@@ -418,6 +418,12 @@ sub handler {
 		return $::MP2 ? Apache2::Const::DECLINED() : Apache::Constants::DECLINED();
 	}
 
+	# Option to override the CSS file
+	my $tpl_css = $r->dir_config('GalleryCssFilename');
+	unless ($tpl_css) {
+		$tpl_css = "gallery.css";
+	}
+
 	if (-d $filename) {
 
 		unless (-d cache_dir($r, 0)) {
@@ -447,6 +453,7 @@ sub handler {
 		my %tpl_vars;
 
 		$tpl_vars{TITLE} = "Index of: $uri";
+		$tpl_vars{CSS} = $tpl_css;
 
 		if ($media_rss_enabled) {
 			# Put the RSS feed on all directory listings
@@ -885,6 +892,7 @@ sub handler {
 			$tpl_vars{RESOLUTION} = $resolution;
 			$tpl_vars{SRC} = uri_escape(".cache/$cached", $escape_rule);
 		}
+		$tpl_vars{CSS} = $tpl_css;
 		$tpl_vars{META} = " ";
 		$tpl_vars{MENU} = generate_menu($r);
 		$tpl_vars{URI} = $r->uri();
@@ -1814,6 +1822,13 @@ sub show_error {
 
 	my %tpl_vars;
 	$tpl_vars{TITLE}      = "Error! $errortitle";
+
+	my $tpl_css = $r->dir_config('GalleryCssFilename');
+	unless ($tpl_css) {
+		$tpl_css = "gallery.css";
+	}
+	$tpl_vars{CSS} = $tpl_css;
+
 	$tpl_vars{META}       = "";
 	$tpl_vars{ERRORTITLE} = "Error! $errortitle";
 	$tpl_vars{ERROR}      = $error;
@@ -2481,6 +2496,11 @@ for images.
 
 Set this option to 1 to enable generation of a media RSS feed. This
 can be used e.g. together with the PicLens plugin from http://piclens.com
+
+=item B<GalleryCssFilename>
+
+Set this to change the CSS filename included.  On some templates this
+setting is used to select between different variations.
 
 =back
 
