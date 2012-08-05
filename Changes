@@ -3,6 +3,17 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
+1.1 Sun Aug  5 23:48:30 BST 2012
+
+	- Added HTML 5 video support
+	- Added maps, using EXIF geographical data
+	- New "modern" theme, using cover images and maps
+	- Minor updates to existing themes
+	- Produce album covers (thumbnails using four images from the
+	  album) (Matt Blissett)
+	- Moved code to Github <https://github.com/MattBlissett/Apache-Gallery>
+	  (Matt Blissett)
+
 1.0.2 Wed Jun  8 20:47:16 CEST 2011
 
 	- Extended GalleryUnderscoresToSpaces to filenames as well.
@@ -190,7 +201,7 @@ Revision history for Perl extension Apache::Gallery.
 	- Regenerate scaled pictures and thumbnails if the original
 	  image has changed, the image.rotate file has been added or
 	  changed or if the copyright image was added og changed. (Me)
-	- Don't show files starting with "." in the thumbnail index (Yann Kerhervé)
+	- Don't show files starting with "." in the thumbnail index (Yann KerhervÃ©)
 	- Made thumbnailsizes configurable with the GalleryThumbnailSize
 	  option. (Me)
 	- Print "Unknown" instead of $INFO in the imageinfo field if
