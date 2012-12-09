@@ -3,6 +3,14 @@ $Date$
 
 Revision history for Perl extension Apache::Gallery.
 
+Not yet released
+	- Improved performance by caching HTML
+	- Improved performance by skipping checks on images
+	- Still to do: make this optional with a config flag
+	- Refactoring work for file return and cache directory creation
+	- *Temporarily* added timing logging
+	- Slideshows are broken (due to HTML caching)
+
 1.1 Sun Aug  5 23:48:30 BST 2012
 
 	- Added HTML 5 video support

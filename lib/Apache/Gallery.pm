@@ -6,6 +6,7 @@ package Apache::Gallery;
 use strict;
 
 use vars qw($VERSION);
+use Time::HiRes qw/time/;
 
 $VERSION = "1.1";
 
@@ -60,11 +61,16 @@ use Data::Dumper;
 my $escape_rule = "^A-Za-z0-9\-_.!~*'()\/";
 my $memoized;
 
+my $time;
+my $timeurl;
+
 sub handler {
 
 	my $r = shift or Apache2::RequestUtil->request();
 
 	log_info("Apache Gallery request for " . $r->uri);
+	$time = time();
+	$timeurl = $r->uri;
 
 	unless (($r->method eq 'HEAD') or ($r->method eq 'GET')) {
 		return $::MP2 ? Apache2::Const::DECLINED() : Apache::Constants::DECLINED();
@@ -149,19 +155,15 @@ sub handler {
 			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 		}
 
-		my $cache = cache_dir($r, 1);
-		log_debug("cache $cache");
-
 		my $file = cache_dir($r, 0);
 		$file =~ s/\.cache//;
 
 		my $subr = $r->lookup_file($file);
 		$r->content_type($subr->content_type());
 
-		log_debug("Look for $file in cache");
 		if (-f $file) {
 			# file already in cache
-			log_info("Background picture already in cache: $cache");
+			log_info("Background picture already in cache: $file");
 		}
 		else {
 			my @files = sort grep { !/^\./ && /$img_pattern/i && -f "$dirname/$_" && -r "$dirname/$_" } readdir (DIR);
@@ -172,20 +174,13 @@ sub handler {
 
 			log_debug(($#files+1) . " files " . $files[0]);
 
-			unless (-d cache_dir($r, 1)) {
-				log_info("Creating cache directori $cache");
-				unless (create_cache($r, cache_dir($r, 1))) {
-					return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
-				}
-			}
-
 			my $newfilename = ".bg-$image_size.jpg";
 
 			my ($width, $height, $type) = imgsize($dirname."/".$files[0]);
 
 			my $imageinfo = get_imageinfo($r, $dirname."/".$files[0], $type, $width, $height);
 
-			log_debug("Making folder bg image from filees: " . join(', ', @files));
+			log_debug("Making folder bg image from files: " . join(', ', @files));
 			log_debug("Making folder bg image with: $imageinfo");
 
 			my $cached = album_cover_picture($r, $image_size, $image_size, $imageinfo, $dirname, $newfilename, @files);
@@ -193,22 +188,14 @@ sub handler {
 			log_debug("Made folder bg image $cached, $r");
 		}
 
-		if ($::MP2) {
-			$r->sendfile($file);
-			return Apache2::Const::OK();
-		}
-		else {
-			$r->path_info('');
-			$r->filename($file);
-			return Apache::Constants::DECLINED();
-		}
+		return send_file_response($r, $file, "BGIMG");
 	}
 	# END FOLDER ICONS
 
 	# Addition by Matt Blissett, May 2011.
 	# XML GEOREFERENCES file for a map
 	if ($r->uri =~ m/\.cache\/\.points\.xml$/i) {
-		log_info("Points: " . $r->filename().$r->path_info());
+		log_debug("Points: " . $r->filename().$r->path_info());
 
 		my $dirname = $r->filename().$r->path_info();
 		$dirname =~ s!/.cache/.points.xml!!;
@@ -227,20 +214,14 @@ sub handler {
 
 		log_debug("Points: $#files files, first called" . $files[0]);
 
-		my $cache = cache_dir($r, 1);
-		unless (-d cache_dir($r, 1)) {
-			log_debug("Points: cache needed! $cache");
-			unless (create_cache($r, cache_dir($r, 1))) {
-				return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
-			}
-		}
-
 		my $file = cache_dir($r, 0);
+		log_debug("Points file is " . $file);
+
 		$r->content_type('application/xml');
 
 		if (-f $file) {
 			# file already in cache
-			log_debug("Points: file already in cache: $cache");
+			log_debug("Points: file already in cache: $file");
 		}
 		else {
 			my %tpl_vars;
@@ -296,11 +277,9 @@ sub handler {
 							THUMB => uri_escape($dirurl.".cache/$cached", $escape_rule),
 						);
 
-						my $foundcomment = 0;
 						if (-f $filename . '.comment') {
-							log_debug("found" . $filename . '.comment');
+							log_debug("Points: Found .comment file " . $filename . '.comment');
 							my $comment_ref = get_comment($filename . '.comment');
-							$foundcomment = 1;
 							$tpl_vars{COMMENT} = $comment_ref->{COMMENT} . "\n" if $comment_ref->{COMMENT};
 							$tpl_vars{TITLE} = $comment_ref->{TITLE} if $comment_ref->{TITLE};
 						} elsif ($r->dir_config('GalleryCommentExifKey')) {
@@ -308,6 +287,7 @@ sub handler {
 							$tpl_vars{COMMENT} = encode("iso-8859-1", $comment);
 						} else {
 							$tpl_vars{COMMENT} = undef;
+							$tpl_vars{TITLE} = undef;
 						}
 						log_debug("Points: Title: ".$tpl_vars{TITLE});
 						log_debug("Points: Comment: ".$tpl_vars{COMMENT});
@@ -333,15 +313,7 @@ sub handler {
 			}
 		}
 
-		if ($::MP2) {
-			$r->sendfile($file);
-			return Apache2::Const::OK();
-		}
-		else {
-			$r->path_info('');
-			$r->filename($file);
-			return Apache::Constants::DECLINED();
-		}
+		return send_file_response($r, $file, "POINTS");
 	}
 	# End XML GEOREFERENCES
 
@@ -350,50 +322,33 @@ sub handler {
 	if ($r->uri =~ m/\.cache\//i) {
 
 		my $filename = $r->filename().$r->path_info();
-		$filename =~ s/\.cache//;
-
-		$filename =~ m/\/(\d+)x(\d+)\-/;
-		my $image_width = $1;
-		my $image_height = $2;
-
-		$filename =~ s/\/(\d+)x(\d+)\-//;
-
-		my ($width, $height, $type) = imgsize($filename);
-
-		my $imageinfo = get_imageinfo($r, $filename, $type, $width, $height);
-	
-		my $cached = scale_picture($r, $filename, $image_width, $image_height, $imageinfo);
-
 		my $file = cache_dir($r, 0);
-		$file =~ s/\.cache//;
+
+		# Check if the cache image already exists, and assume it's OK if it does.
+		# NB: this bypasses the check for a changed file / changed .rotate / changed GalleryCopyrightImage
+		unless (-f $file) {
+			$filename =~ s/\.cache//;
+
+			$filename =~ m/\/(\d+)x(\d+)\-/;
+			my $image_width = $1;
+			my $image_height = $2;
+
+			$filename =~ s/\/(\d+)x(\d+)\-//;
+
+			my ($width, $height, $type) = imgsize($filename);
+
+			my $imageinfo = get_imageinfo($r, $filename, $type, $width, $height);
+
+			my $cached = scale_picture($r, $filename, $image_width, $image_height, $imageinfo);
+
+			my $file = cache_dir($r, 0);
+			$file =~ s/\.cache//;
+		}
 
 		my $subr = $r->lookup_file($file);
 		$r->content_type($subr->content_type());
 
-		if ($::MP2) {
-			my $fileinfo = stat($file);
-
-			my $nonce = md5_base64($fileinfo->ino.$fileinfo->mtime);
-			if ($r->headers_in->{"If-None-Match"} eq $nonce) {
-				return Apache2::Const::HTTP_NOT_MODIFIED();
-			}
-
-			if ($r->headers_in->{"If-Modified-Since"} && str2time($r->headers_in->{"If-Modified-Since"}) < $fileinfo->mtime) {
-				return Apache2::Const::HTTP_NOT_MODIFIED();
-			}
-
-			$r->headers_out->{"Content-Length"} = $fileinfo->size; 
-			$r->headers_out->{"Last-Modified-Date"} = time2str($fileinfo->mtime); 
-			$r->headers_out->{"ETag"} = $nonce;
-			$r->sendfile($file);
-			return Apache2::Const::OK();
-		}
-		else {
-			$r->path_info('');
-			$r->filename($file);
-			return Apache::Constants::DECLINED();
-		}
-		
+		return send_file_response($r, $file, "IMAGE");
 	}
 
 	my $uri = $r->uri;
@@ -425,13 +380,42 @@ sub handler {
 	}
 
 	if (-d $filename) {
+		my $filename = $r->filename().$r->path_info();
 
-		unless (-d cache_dir($r, 0)) {
-			unless (create_cache($r, cache_dir($r, 0))) {
-				return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
-			}
+		unless (opendir (DIR, $filename)) {
+			show_error ($r, 500, $!, "Unable to access directory $filename: $!");
+			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 		}
 
+		# Check for cached HTML for the directory
+		my $file = cache_dir($r, 0);
+		if ($cgi->param('rss')) {
+			$file .= "/index.rss";
+			$r->content_type('application/rss+xml');
+		} else {
+			$file .= "/index.html";
+			$r->content_type('text/html');
+		}
+		log_debug("Album HTML cached as " . $file);
+
+		my $usecache = 0;
+		if (-f $file) {
+		# TODO: check if directory has changed.
+			my $dirstat = stat($filename);
+			my $cachestat = stat($file);
+			$usecache = ($dirstat->mtime < $cachestat->mtime);
+		}
+
+		if ($usecache) {
+			if ($cgi->param('rss')) {
+				$r->content_type('application/rss+xml');
+			} else {
+				$r->content_type('text/html');
+			}
+			return send_file_response($r, $file, "C-ALBUM");
+		}
+
+		# No cached HTML -- generate it.
 		my $tpl_dir = $r->dir_config('GalleryTemplateDir');
 
 		# Instead of reading the templates every single time
@@ -444,7 +428,7 @@ sub handler {
 						  file         => "$tpl_dir/file.tpl",
 						  comment      => "$tpl_dir/dircomment.tpl",
 						  nocomment    => "$tpl_dir/nodircomment.tpl",
-						  video     => "$tpl_dir/video.tpl",
+						  video        => "$tpl_dir/video.tpl",
 						  rss          => "$tpl_dir/rss.tpl",
 						  rss_item     => "$tpl_dir/rss_item.tpl",
 						  navdirectory => "$tpl_dir/navdirectory.tpl",
@@ -458,11 +442,6 @@ sub handler {
 		if ($media_rss_enabled) {
 			# Put the RSS feed on all directory listings
 			$tpl_vars{META} = '<link rel="alternate" href="?rss=1" type="application/rss+xml" title="" id="gallery" />';
-		}
-
-		unless (opendir (DIR, $filename)) {
-			show_error ($r, 500, $!, "Unable to access directory $filename: $!");
-			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 		}
 
 		$tpl_vars{MENU} = generate_menu($r);
@@ -793,22 +772,23 @@ sub handler {
 
 		if ($cgi->param('rss')) {
 			$tpl_vars{MAIN} = $templates{rss}->fill_in(HASH => \%tpl_vars);
-			$r->content_type('application/rss+xml');
 		} else {
 			$tpl_vars{MAIN} = $templates{index}->fill_in(HASH => \%tpl_vars);
 			$tpl_vars{MAIN} = $templates{layout}->fill_in(HASH => \%tpl_vars);
+		}
+
+		# put $tpl_vars{MAIN} into the file.
+		if (open(P, ">$file")) {
+			print P $tpl_vars{MAIN};
+			close(P);
+		}
+
+		if ($cgi->param('rss')) {
+			$r->content_type('application/rss+xml');
+		} else {
 			$r->content_type('text/html');
 		}
-
-		$r->headers_out->{'Content-Length'} = length($tpl_vars{MAIN});
-
-		if (!$::MP2) {
-			$r->send_http_header;
-		}
-
-		$r->print($tpl_vars{MAIN});
-		return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
-
+		return send_file_response($r, $file, "ALBUM");
 	}
 	else {
 
@@ -828,10 +808,14 @@ sub handler {
 		my $path = (join "/", @tmp)."/";
 		my $cache_path = cache_dir($r, 1);
 
-		unless (-d $cache_path) {
-			unless (create_cache($r, $cache_path)) {
-				return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
-			}
+		my $file = cache_dir($r, 0) . ".html";
+		log_debug("Caching picture HTML as " . $file);
+
+		$r->content_type("text/html");
+
+		# TODO: check for modifications in directory (for prev/next etc).
+		if (-f $file) {
+			return send_file_response($r, $file, "PICPAGE");
 		}
 
 		my ($orig_width, $orig_height, $type);
@@ -1146,39 +1130,29 @@ sub handler {
 		}
 		$tpl_vars{MAIN} = $templates{layout}->fill_in(HASH => \%tpl_vars);
 
-		$r->content_type('text/html');
-		$r->headers_out->{'Content-Length'} = length($tpl_vars{MAIN});
-
-		if (!$::MP2) {
-			$r->send_http_header;
+		# put $tpl_vars{MAIN} into the file.
+		if (open(P, ">$file")) {
+			print P $tpl_vars{MAIN};
+			close(P);
 		}
-
-		$r->print($tpl_vars{MAIN});
-		return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
-
+		return send_file_response($r, $file, "PICPAGE");
 	}
-
 }
 
 sub cache_dir {
-
 	my ($r, $strip_filename) = @_;
 
 	my $cache_root;
 
 	unless ($r->dir_config('GalleryCacheDir')) {
-
 		$cache_root = '/var/cache/www/';
 		if ($r->server->is_virtual) {
 			$cache_root = File::Spec->catdir($cache_root, $r->server->server_hostname);
 		} else {
 			$cache_root = File::Spec->catdir($cache_root, $r->location);
 		}
-
 	} else {
-
 		$cache_root = $r->dir_config('GalleryCacheDir');
-
 	}
 
 	# If the uri contains .cache we need to remove it
@@ -1188,8 +1162,17 @@ sub cache_dir {
 	my (undef, $dirs, $filename) = File::Spec->splitpath($uri);
 	# We don't need a volume as this is a relative path
 
+	# Create directory if it doesn't exist
+	my $dirname = File::Spec->canonpath(File::Spec->catdir($cache_root, $dirs));
+	unless (-d $dirname) {
+		log_debug("Creating cache directory $dirname");
+		unless (create_cache($r, $dirname)) {
+			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
+		}
+	}
+
 	if ($strip_filename) {
-		return(File::Spec->canonpath(File::Spec->catdir($cache_root, $dirs)));
+		return($dirname);
 	} else {
 		return(File::Spec->canonpath(File::Spec->catfile($cache_root, $dirs, $filename)));
 	}
@@ -1353,14 +1336,6 @@ sub album_cover_picture {
 	log_debug("fullpath3 $fullpath[3]");
 
 	my $cache = cache_dir($r, 1);
-
-#	log_debug("cache $cache");
-#	#unless (-d cache_dir($r, 1)) {
-#		log_error("Creating cache directorycache needed! $cache");
-#		unless (create_cache($r, cache_dir($r, 1))) {
-#			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
-#		}
-#	}
 
 	# Do we want to generate a new file in the cache?
 	my $scale = 1;
@@ -2171,6 +2146,43 @@ sub create_templates {
 	  $texttemplate_objects{$template_name} = $tt_obj;
      }
      return %texttemplate_objects;
+}
+
+# Addition by Matt Blissett, December 2012
+# Extracted method for sending responses to be used generally
+# Content-Type should have been set already
+sub send_file_response {
+	my $r = shift;
+	my $file = shift;
+	my $tag = shift;
+
+	if ($::MP2) {
+		my $fileinfo = stat($file);
+
+		my $nonce = md5_base64($fileinfo->ino.$fileinfo->mtime);
+		if ($r->headers_in->{"If-None-Match"} eq $nonce) {
+			log_info("$tag NM TIME elapsed " . int((time() - $time)*1000) . "ms " . $timeurl);
+			return Apache2::Const::HTTP_NOT_MODIFIED();
+		}
+
+		if ($r->headers_in->{"If-Modified-Since"} && str2time($r->headers_in->{"If-Modified-Since"}) < $fileinfo->mtime) {
+			log_info("$tag NM TIME elapsed " . int((time() - $time)*1000) . "ms " . $timeurl);
+			return Apache2::Const::HTTP_NOT_MODIFIED();
+		}
+
+		$r->headers_out->{"Content-Length"} = $fileinfo->size;
+		$r->headers_out->{"Last-Modified-Date"} = time2str($fileinfo->mtime);
+		$r->headers_out->{"ETag"} = $nonce;
+		$r->sendfile($file);
+		log_info("$tag TIME elapsed " . int((time() - $time)*1000) . "ms " . $timeurl);
+		return Apache2::Const::OK();
+	}
+	else {
+		$r->path_info('');
+		$r->filename($file);
+		log_info("$tag TIME elapsed " . int((time() - $time)*1000) . "ms " . $timeurl);
+		return Apache::Constants::DECLINED();
+	}
 }
 
 sub log_error {
