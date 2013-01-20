@@ -9,7 +9,7 @@
 
 	<script src="/gallery-res/jquery-1.6.2.min.js"></script>
 	<script src="/gallery-res/OpenLayers.js"></script>
-	<script src="http://maps.google.com/maps/api/js?v=3.6&sensor=false"></script>
+	<script src="//maps.google.com/maps/api/js?v=3.6&sensor=false"></script>
 	<script src="/gallery-res/map.js"></script>
 
 	{ $META }

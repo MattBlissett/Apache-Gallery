@@ -42,8 +42,8 @@
 		$OUT .= "  var status = '$EXIF_GPSSTATUS';\n";
 		$OUT .= "</script>\n";
 		$OUT .= "<noscript>\n";
-		$OUT .= "\t<a href='http://maps.google.com/maps/api/staticmap?center=${latlong}&zoom=14&size=800x600&maptype=hybrid&sensor=false&markers=size:small|color:${pin}|${latlong}'>";
-		$OUT .=     "<img class='smallmap' src='http://maps.google.com/maps/api/staticmap?center=${latlong}&zoom=14&size=160x160&maptype=hybrid&sensor=false&markers=size:small|color:${pin}|${latlong}' alt='Map showing ${latlong}' title='Location: ${latlong}'/>";
+		$OUT .= "\t<a href='//maps.google.com/maps/api/staticmap?center=${latlong}&zoom=14&size=800x600&maptype=hybrid&sensor=false&markers=size:small|color:${pin}|${latlong}'>";
+		$OUT .=     "<img class='smallmap' src='//maps.google.com/maps/api/staticmap?center=${latlong}&zoom=14&size=160x160&maptype=hybrid&sensor=false&markers=size:small|color:${pin}|${latlong}' alt='Map showing ${latlong}' title='Location: ${latlong}'/>";
 		$OUT .= "</a>\n";
 		$OUT .= "</noscript>\n";
 		$OUT .= "<div id='map' class='smallmap'></div>\n";

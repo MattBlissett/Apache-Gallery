@@ -10,6 +10,7 @@ Not yet released
 	- Refactoring work for file return and cache directory creation
 	- *Temporarily* added timing logging
 	- Slideshows are broken (due to HTML caching)
+	- Remove http: from external resources to allow https access
 
 1.1 Sun Aug  5 23:48:30 BST 2012
 
