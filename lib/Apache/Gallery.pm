@@ -299,8 +299,6 @@ sub handler {
 				}
 			}
 			else {
-				$tpl_vars{FILES} = "No files found";
-				$tpl_vars{BROWSELINKS} = "";
 				$tpl_vars{POINTS} = "";
 			}
 
