@@ -1,1 +1,1 @@
-    <div class="folder"><a href="{ $FILEURL }/"><img border="0" src="/icons/gallery/agfolder.png"><br>{ $FILE }</a></div>
+    <div class="folder"><a href="{ $FILEURL }/"><img border="0" src="/ApacheGallery/agfolder.png"><br>{ $FILE }</a></div>

@@ -127,7 +127,7 @@ sub handler {
 	my $select_mode = $cgi->param('select');
 	
 	# Let Apache serve icons or favicon without us modifying the request
-	if ($r->uri =~ m/^\/icons/i || $r->uri =~ m/^\/favicon.ico/i) {
+	if ($r->uri =~ m!^/ApacheGallery/!i || $r->uri =~ m!^/favicon.ico!i) {
 		return $::MP2 ? Apache2::Const::DECLINED() : Apache::Constants::DECLINED();
 	}
 
@@ -376,7 +376,7 @@ sub handler {
 	# Option to override the CSS file
 	my $tpl_css = $r->dir_config('GalleryCssFilename');
 	unless ($tpl_css) {
-		$tpl_css = "gallery.css";
+		$tpl_css = "modern.css";
 	}
 
 	if (-d $filename) {

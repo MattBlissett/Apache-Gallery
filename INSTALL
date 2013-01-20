@@ -48,6 +48,7 @@ your virtualhostblock to look like:
 	PerlSetVar   GallerySizes '640 1024 1600 2272'
 	PerlSetVar   GalleryThumbnailSize '100x75'
 	PerlSetVar   GalleryCopyrightImage 'htdocs/c.png'
+	Alias        /ApacheGallery/ /usr/local/apache/gallery/htdocs
 	<Location />
 		SetHandler        perl-script
 		PerlHandler       Apache::Gallery
@@ -68,6 +69,7 @@ like:
 	PerlSetVar   GalleryThumbnailSize '100x75'
 	PerlSetVar   GalleryCopyrightImage 'htdocs/c.png'
 	PerlOptions +GlobalRequest
+	Alias        /ApacheGallery/ /usr/local/apache/gallery/htdocs
 	<Location />
 		SetHandler        modperl
 		PerlResponseHandler       Apache::Gallery
@@ -89,9 +91,6 @@ Apache will respond with the classic (and ugly) directory listing performed
 by mod_autoindex.
 
 Copy the files from templates/ to where you pointed GalleryTemplateDir to.
-
-Create a directory called gallery in your Apache icons directory and
-copy the png files in htdocs to this directory. 
 
 The gallery.css file from the template directory you choose must be 
 copied to the DocumentRoot of your gallery.

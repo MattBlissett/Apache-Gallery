@@ -22,3 +22,7 @@ $Date$
 - Use imlib_create_cropped_scaled_image in resizepicture
 
 - Try to avoid running too many resize processes 
+
+- Are the VERSION and REV variables working?
+
+- Under HTTPS, OpenStreetMap tiles cause warnings in browsers

@@ -5,7 +5,7 @@ var map, template, photos, select;
 var storedSliderPos = -1;
 var mapHidden = false;
 
-OpenLayers.ImgPath = "/icons/gallery/";
+OpenLayers.ImgPath = "/ApacheGallery/";
 
 // Called from the HTML to produce a map for an index page
 // Initialise index page map (though does not show it).

@@ -4,7 +4,7 @@
 <html>
 <head>
 	<title>{ $TITLE }</title>
-	<link rel="stylesheet" href="/gallery.css">
+	<link rel="stylesheet" href="/ApacheGallery/default/default.css">
 	{ $META }
 </head>
 

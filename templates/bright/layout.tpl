@@ -5,12 +5,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" >
 <head>
 <title>{ $TITLE }</title>
-<link rel="stylesheet" href="/gallery.css" type="text/css" />
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<link rel="stylesheet" href="/ApacheGallery/bright/bright.css" type="text/css" />
 { $META }
-<!--[if gte IE 5.5000]>
-<link rel="stylesheet" href="/galleryIE.css" type="text/css" />
-<![endif]-->
 </head>
 <body>
 { $MAIN }

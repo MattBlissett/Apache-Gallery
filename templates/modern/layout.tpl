@@ -4,13 +4,13 @@
 <html>
 <head>
 	<title>{ $TITLE }</title>
-	<link rel="stylesheet" href="/gallery-res/{ $CSS }" type="text/css">
-	<link rel="stylesheet" href="/gallery-res/map.css" type="text/css" />
+	<link rel="stylesheet" href="/ApacheGallery/modern/{ $CSS }" type="text/css">
+	<link rel="stylesheet" href="/ApacheGallery/modern/map.css" type="text/css" />
 
-	<script src="/gallery-res/jquery-1.6.2.min.js"></script>
-	<script src="/gallery-res/OpenLayers.js"></script>
+	<script src="/ApacheGallery/modern/jquery-1.6.2.min.js"></script>
+	<script src="/ApacheGallery/modern/OpenLayers.js"></script>
 	<script src="//maps.google.com/maps/api/js?v=3.6&sensor=false"></script>
-	<script src="/gallery-res/map.js"></script>
+	<script src="/ApacheGallery/modern/map.js"></script>
 
 	{ $META }
 </head>
