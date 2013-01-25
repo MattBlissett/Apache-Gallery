@@ -26,7 +26,7 @@ BEGIN {
 		require Apache2::SubRequest;
 		require Apache2::Const;
 	
-		Apache2::Const->import(-compile => 'OK','DECLINED','FORBIDDEN','NOT_FOUND','HTTP_NOT_MODIFIED');
+		Apache2::Const->import(-compile => 'OK','DECLINED','FORBIDDEN','NOT_FOUND','HTTP_NOT_MODIFIED','HTTP_NO_CONTENT');
 
 		$::MP2 = 1;
 	} else {
@@ -170,6 +170,7 @@ sub handler {
 			my @files = sort grep { !/^\./ && /$img_pattern/i && -f "$dirname/$_" && -r "$dirname/$_" } readdir (DIR);
 
 			if ($#files+1 <= 0) {
+				log_debug("No files, returning 204");
 				return $::MP2 ? Apache2::Const::HTTP_NO_CONTENT() : Apache::Constants::NOT_FOUND();
 			}
 
