@@ -622,10 +622,15 @@ sub handler {
 
 					my $posterthumburl = "/ApacheGallery/video-mpg.png";
 					if (-f $posterthumbfilename) {
-						$posterthumburl = $file;
-						$posterthumburl =~ s/\....$/.thm/;
-						# This should use the configured image dimensions
-						$posterthumburl = uri_escape(".cache/176x132-$posterthumburl", $escape_rule);
+						$posterthumbfilename = $thumbfilename;
+						$posterthumbfilename =~ s/\....$/.thm/;
+						my ($width, $height, $type) = imgsize($posterthumbfilename);
+						my @filetypes = qw(JPG TIF PNG PPM GIF);
+						unless ($type eq 'Data stream is not a known image file format') {
+							my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $width, $height);
+							my $cached = get_scaled_picture_name($posterthumbfilename, $thumbnailwidth, $thumbnailheight);
+							$posterthumburl = uri_escape(".cache/$cached", $escape_rule);
+						}
 					}
 					log_debug("Video icon: using $posterthumburl");
 
