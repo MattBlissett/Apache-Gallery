@@ -619,12 +619,13 @@ sub handler {
 					my $posterthumbfilename = $thumbfilename;
 					$posterthumbfilename =~ s/\....$/.thm/;
 
-					my $posterthumburl = "/icons/gallery/video-mpg.png";
-#					if (-f $posterthumbfilename) {
-#						$posterthumburl = $file;
-#						$posterthumburl =~ s/\....$/.thm/;
-#						$posterthumburl = uri_escape(".cache/176x132-$posterthumburl", $escape_rule);
-#					}
+					my $posterthumburl = "/ApacheGallery/video-mpg.png";
+					if (-f $posterthumbfilename) {
+						$posterthumburl = $file;
+						$posterthumburl =~ s/\....$/.thm/;
+						# This should use the configured image dimensions
+						$posterthumburl = uri_escape(".cache/176x132-$posterthumburl", $escape_rule);
+					}
 					log_debug("Video icon: using $posterthumburl");
 
 					my %file_vars = (FILEURL => uri_escape($fileurl, $escape_rule),
@@ -803,16 +804,6 @@ sub handler {
 		my $path = (join "/", @tmp)."/";
 		my $cache_path = cache_dir($r, 1);
 
-		my $file = cache_dir($r, 0) . ".html";
-		log_debug("Caching picture HTML as " . $file);
-
-		$r->content_type("text/html");
-
-		# TODO: check for modifications in directory (for prev/next etc).
-		if (-f $file) {
-			return send_file_response($r, $file, "PICPAGE");
-		}
-
 		my ($orig_width, $orig_height, $type);
 		my $imageinfo;
 		my ($image_width, $width, $height, $original_size);
@@ -832,6 +823,24 @@ sub handler {
 			$cached = get_scaled_picture_name($filename, $image_width, $height);
 		}
 		
+		my @slideshow_intervals = split (/ /, $r->dir_config('GallerySlideshowIntervals') ? $r->dir_config('GallerySlideshowIntervals') : '3 5 10 15 30');
+		my $slideshow_selected_interval = "0";
+		foreach my $interval (@slideshow_intervals) {
+			if ($cgi->param('slideshow') && $cgi->param('slideshow') == $interval) {
+				$slideshow_selected_interval = $interval;
+			}
+		}
+
+		my $file = cache_dir($r, 0) . "-$width-$slideshow_selected_interval.html";
+		log_debug("Caching picture HTML as " . $file);
+
+		$r->content_type("text/html");
+
+		# TODO: check for modifications in directory (for prev/next etc).
+		if (-f $file) {
+			return send_file_response($r, $file, "PICPAGE");
+		}
+
 		my $tpl_dir = $r->dir_config('GalleryTemplateDir');
 
 		my %templates = create_templates({layout         => "$tpl_dir/layout.tpl",
@@ -919,7 +928,11 @@ sub handler {
 					$nav_vars{WIDTH}     = $width;
 					if ($prevpicture =~ m/$vid_pattern/i) {
 						log_debug("prevpicture is a video");
-						$nav_vars{PICTURE}   = "/icons/gallery/video-mpg.png";
+						#$nav_vars{PICTURE}   = "/ApacheGallery/video-mpg.png";
+						my $posterthumburl = $prevpicture;
+						$posterthumburl =~ s/\....$/.thm/;
+						# Read dimensions from configuration
+						$nav_vars{PICTURE} = uri_escape(".cache/176x132-$posterthumburl", $escape_rule);
 						$nav_vars{VIDEO} = "video";
 					}
 					else {
@@ -954,7 +967,11 @@ sub handler {
 					$tpl_vars{NEXTURL}   = uri_escape($nextpicture, $escape_rule);
 					if ($nextpicture =~ m/$vid_pattern/i) {
 						log_debug("nextpicture is a video");
-						$nav_vars{PICTURE}   = "/icons/gallery/video-mpg.png";
+						#$nav_vars{PICTURE}   = "/ApacheGallery/video-mpg.png";
+						my $posterthumburl = $nextpicture;
+						$posterthumburl =~ s/\....$/.thm/;
+						# Read dimensions from configuration
+						$nav_vars{PICTURE} = uri_escape(".cache/176x132-$posterthumburl", $escape_rule);
 						$nav_vars{VIDEO} = "video";
 					}
 					else {
@@ -1080,7 +1097,6 @@ sub handler {
 			$tpl_vars{SIZES} .= $templates{orig}->fill_in(HASH => \%tpl_vars);
 		}
 
-		my @slideshow_intervals = split (/ /, $r->dir_config('GallerySlideshowIntervals') ? $r->dir_config('GallerySlideshowIntervals') : '3 5 10 15 30');
 		foreach my $interval (@slideshow_intervals) {
 
 			my %slideshow_vars;
@@ -1282,6 +1298,8 @@ sub scale_picture {
 		my $newpath = $cache."/".$newfilename;
 		my $rotate = readfile_getnum($r, $imageinfo, $fullpath . ".rotate");
 		my $quality = $r->dir_config('GalleryQuality');
+
+		log_debug("Writing resized picture to " . $newpath);
 
 		if ($width == $thumbnailwidth or $width == $thumbnailheight) {
 
