@@ -69,6 +69,7 @@ sub handler {
 	my $r = shift or Apache2::RequestUtil->request();
 
 	log_info("Apache Gallery request for " . $r->uri);
+
 	$time = time();
 	$timeurl = $r->uri;
 
@@ -208,11 +209,7 @@ sub handler {
 
 		my @files = sort grep { !/^\./ && /$img_pattern/i && -f "$dirname/$_" && -r "$dirname/$_" } readdir (DIR);
 
-		if ($#files <= 0) {
-			return $::MP2 ? Apache2::Const::HTTP_NO_CONTENT() : Apache::Constants::NOT_FOUND();
-		}
-
-		log_debug("Points: $#files files, first called" . $files[0]);
+		log_debug("Points: $#files files");
 
 		my $file = cache_dir($r, 0);
 		log_debug("Points file is " . $file);
