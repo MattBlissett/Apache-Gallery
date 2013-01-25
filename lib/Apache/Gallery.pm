@@ -1962,6 +1962,11 @@ sub resizepicture {
 		$image->set_quality($quality);
 	}
 
+	# Force file type for THM files to JPEG
+	if ($outfile =~ m/\.thm$/) {
+		$image->image_set_format("jpeg");
+	}
+
 	$image->save($outfile);
 
 }
