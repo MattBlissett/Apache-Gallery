@@ -1,1 +1,1 @@
-<a href="{ $URL }?width={ $WIDTH }" class="nav { $VIDEO }" rel="{ $RELATION }"><img src="{ $PICTURE }"><p>{ $DIRECTION } - { $FILENAME }</p></a>
+<a rel="{ $DIRECTION }" accesskey="{ $ACCESSKEY }" href="{ $URL }?width={ $WIDTH }" class="nav { $VIDEO }"><img src="{ $PICTURE }" alt="{ $DIRECTION }"/>{ $DIRECTION } &ndash; { $FILENAME }</a>

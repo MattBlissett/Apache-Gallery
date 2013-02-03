@@ -1,5 +1,5 @@
 <div class="pictureinfo">
-	<h2>{ $TITLE }</h2>
+	<h2 property="dc:title" datatype="xsd:string">{ $TITLE }</h2>
 	{ $COMMENT }
-	{ $INFO }
+	<span property="dc:description" datatype="xsd:string">{ $INFO }</span>
 </div>

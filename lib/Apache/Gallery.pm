@@ -929,7 +929,7 @@ sub handler {
 					my %nav_vars;
 					$nav_vars{URL}       = uri_escape($prevpicture, $escape_rule);
 					$nav_vars{FILENAME}  = $prevpicture;
-					$nav_vars{DIRECTION} = "&laquo; <u>p</u>rev";
+					$nav_vars{DIRECTION} = "prev";
 					$nav_vars{ACCESSKEY} = "P";
 					$nav_vars{WIDTH}     = $width;
 					if ($prevpicture =~ m/$vid_pattern/i) {
@@ -967,7 +967,7 @@ sub handler {
 					my %nav_vars;
 					$nav_vars{URL}       = uri_escape($nextpicture, $escape_rule);
 					$nav_vars{FILENAME}  = $nextpicture;
-					$nav_vars{DIRECTION} = "<u>n</u>ext &raquo;";
+					$nav_vars{DIRECTION} = "next";
 					$nav_vars{ACCESSKEY} = "N";
 					$nav_vars{WIDTH}     = $width;
 					$tpl_vars{NEXTURL}   = uri_escape($nextpicture, $escape_rule);

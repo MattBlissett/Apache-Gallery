@@ -28,7 +28,7 @@ html, body {
 }
 
 /* Footer */
-footer {
+#footer {
 	position: fixed;
 	bottom: 0;
 	left: 25%;
@@ -47,7 +47,7 @@ footer {
 	opacity: 0.666;
 }
 
-footer:hover {
+#footer:hover {
 	opacity: 1.0;
 }
 
@@ -330,7 +330,7 @@ a img {
 }
 
 @media screen and (max-width: 800px) {
-	footer, #menu {
+	#footer, #menu {
 		display: none;
 	}
 }
