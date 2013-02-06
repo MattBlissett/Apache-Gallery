@@ -9,8 +9,20 @@ Not yet released
 	- Still to do: make this optional with a config flag
 	- Refactoring work for file return and cache directory creation
 	- *Temporarily* added timing logging
-	- Slideshows are broken (due to HTML caching)
 	- Remove http: from external resources to allow https access
+	- Added RFDa properties to 'modern' theme
+		- Made 'modern' theme have (almost) valid XHTML+RDFa
+	- Extracted bulk of the main handle routine into seperate methods
+	- Removed '.cache' path:
+		- Old URLs are redirected to new locations where possible
+		- /dir/file.jpg is now the image
+		- /dir/file.jpg?w=640&h=480 is a scaled image
+		- /dir/file is the HTML page
+		- /dir/file?width=800 HTML page with chosen width
+		- /dir/.points.xml is the points file
+		- /dir/.bg-100.jpg is the directory icon
+	- Tidied up whitespace and odd bits of style
+	- Fixed some bugs
 
 1.1 Sun Aug  5 23:48:30 BST 2012
 

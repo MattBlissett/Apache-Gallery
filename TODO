@@ -9,12 +9,7 @@ $Date$
 
 - Write perlscript to make static html galleries.
 
-- Sort by the DateTimeOriginal part of the EXIF header
-  if possible
-
 - Make the template and imagesystem pluggable
-
-- Make scaling quality configurable
 
 - Thumbnails are to be generated in tmp files first,
   then moved to the correct location.

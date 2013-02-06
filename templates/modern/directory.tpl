@@ -1,1 +1,1 @@
-    <a class="folder" href="{ $FILEURL }/" style="background-image: url({ $FILEURL }/.cache/.bg-116.jpg);"><span>{ $FILE }</span></a>
+    <a class="folder" href="{ $FILEURL }/" style="background-image: url({ $DIRICON });"><span>{ $FILE }</span></a>

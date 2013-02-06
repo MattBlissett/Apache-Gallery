@@ -54,7 +54,7 @@ function bigMap() {
 			new OpenLayers.Strategy.Cluster()
 		],
 		protocol: new OpenLayers.Protocol.HTTP({
-			url: ".cache/.points.xml",
+			url: ".points.xml",
 			format: new OpenLayers.Format.GML()
 		}),
 		styleMap: new OpenLayers.StyleMap({
