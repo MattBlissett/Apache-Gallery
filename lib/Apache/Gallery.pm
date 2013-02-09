@@ -2046,7 +2046,7 @@ sub generate_menu {
 	}
 
 	my $picturename;
-	if (-f $filename) {
+	if (! -e $filename) {
 		$picturename = pop(@links);
 	}
 
@@ -2057,11 +2057,10 @@ sub generate_menu {
 	my $menu;
 	my $menuurl = $root_path;
 	foreach my $link (@links) {
-
 		$menuurl .= $link."/";
 		my $linktext = $link;
 		unless (length($link)) {
-			$linktext = "$root_text ";
+			$linktext = "$root_text";
 		}
 		else {
 			$dirname = File::Spec->catdir($dirname, $link);
@@ -2071,17 +2070,21 @@ sub generate_menu {
 			}
 		}
 
-		# Final link should have rel="index"
 		if ("$root_path$uri" eq $menuurl) {
-			$menu .= "$linktext  / ";
+			$menu .= "$linktext / ";
 		}
 		else {
-			$menu .= "<a href=\"".uri_escape($menuurl, $escape_rule)."\">$linktext</a> / ";
+			# Final link should have rel="index"
+			my $extraAttribute;
+			if (\$link == \$links[-1]) {
+				$extraAttribute = 'rel="index"';
+			}
+			$menu .= "<a ${extraAttribute} href=\"".uri_escape($menuurl, $escape_rule)."\">$linktext</a> / ";
 		}
 
 	}
 
-	if (-f $filename) {
+	if ($picturename) {
 		$menu .= $picturename;
 	}
 	else {
