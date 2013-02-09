@@ -230,7 +230,7 @@ sub directory_listing {
 	$uri =~ s/\/$//;
 
 	unless (opendir (DIR, $dirname)) {
-		show_error ($r, 500, $!, "Unable to access directory $dirname: $!");
+		show_error($r, 404, "404!", "No such file or directory: ".uri_escape($r->uri, $escape_rule));
 		return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 	}
 
@@ -687,7 +687,7 @@ sub directory_icon {
 	log_debug("BG Dirname: $dirname");
 
 	unless (opendir (DIR, $dirname)) {
-		show_error ($r, 500, $!, "Unable to access directory $dirname: $!");
+		show_error($r, 404, "404!", "No such file or directory: ".uri_escape($r->uri, $escape_rule));
 		return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 	}
 
@@ -873,7 +873,7 @@ sub picture_page {
 	}
 
 	unless (opendir(DATADIR, $path)) {
-		show_error($r, 500, "Unable to access directory", "Unable to access directory $path");
+		show_error($r, 404, "404!", "No such file or directory: ".uri_escape($r->uri, $escape_rule));
 		return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 	}
 
@@ -1128,7 +1128,7 @@ sub picture_page {
 		$tpl_vars{SLIDESHOW} .= $templates{slideshowoff}->fill_in(HASH => \%tpl_vars);
 
 		unless ((grep $cgi->param('slideshow') == $_, @slideshow_intervals)) {
-			show_error($r, 200, "Invalid interval", "Invalid slideshow interval choosen");
+			show_error($r, 403, "Invalid interval", "Invalid slideshow interval choosen");
 			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 		}
 
@@ -1222,7 +1222,7 @@ sub points_file {
 	log_debug("Points: dirname: $dirname");
 
 	unless (opendir (DIR, $dirname)) {
-		show_error ($r, 500, $!, "Unable to access directory $dirname: $!");
+		show_error($r, 404, "404!", "No such file or directory: ".uri_escape($r->uri, $escape_rule));
 		return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 	}
 
@@ -1652,7 +1652,7 @@ sub get_image_display_size {
 
 	if ($cgi->param('width')) {
 		unless ((grep $cgi->param('width') == $_, @sizes) or ($cgi->param('width') == $original_size)) {
-			show_error($r, 200, "Invalid width", "The specified width is invalid");
+			show_error($r, 403, "Invalid width", "The specified width is invalid");
 			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 		}
 
@@ -1988,7 +1988,6 @@ sub get_comment {
 }
 
 sub show_error {
-
 	my ($r, $statuscode, $errortitle, $error) = @_;
 
 	log_error($error);
