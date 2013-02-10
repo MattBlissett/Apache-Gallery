@@ -23,7 +23,7 @@
 	{ $MAIN }
 	<div id="footer">
 		Indexed by <a href="http://apachegallery.dk">Apache::Gallery</a> &mdash; Copyright &copy; 2001-2011 Michael Legart &mdash; <a href="http://www.hestdesign.com/">Hest Design!</a><br/>
-		Modifications by Matthew Blissett &mdash; source code available on <a href="https://github.com/MattBlissett/Apache-Gallery">Github</a>
+		Modifications by Matthew Blissett; source code available on <a href="https://github.com/MattBlissett/Apache-Gallery">GitHub</a>
 	</div>
 </body>
 </html>
