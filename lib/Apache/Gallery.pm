@@ -1,8 +1,5 @@
 package Apache::Gallery;
 
-# $Author$ $Rev$
-# $Date$
-
 use strict;
 
 use vars qw($VERSION);
@@ -91,7 +88,6 @@ sub handler {
 	}
 
 	$r->headers_out->{"X-Powered-By"} = "apachegallery.dk $VERSION - Hest design!";
-	$r->headers_out->{"X-Gallery-Version"} = '$Rev$ $Date$';
 
 	# Just return the http headers if the client requested that
 	if ($r->header_only) {

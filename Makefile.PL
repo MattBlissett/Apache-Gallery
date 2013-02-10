@@ -1,5 +1,4 @@
 use ExtUtils::MakeMaker;
-# $Id: Makefile.PL,v 1.7 2002/02/09 06:32:03 thomas Exp $
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
 WriteMakefile(

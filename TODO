@@ -1,6 +1,3 @@
-$Author$ $Rev$
-$Date$
-
 - Write a gallery-cleancache.pl script for removing entries in
   the cache where the original picture has been removed.
 
