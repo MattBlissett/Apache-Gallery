@@ -39,4 +39,4 @@
 	</div>
 </div>
 
-<p id="copyleft" about="{ $IMAGEURI }">This <span href="http://purl.org/dc/dcmitype/StillImage" rel="dc:type">work</span> by <span property="cc:attributionName">Matthew Blissett</span> is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/deed.en_GB">Creative Commons Attribution-ShareAlike 3.0 Unported License</a>.<br />Permissions beyond the scope of this license may be available at <a href="/contact/" rel="cc:morePermissions">http://matt.blissett.me.uk/contact/</a>.</p>
+{ $LICENSE }

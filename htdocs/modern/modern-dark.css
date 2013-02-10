@@ -24,6 +24,13 @@ html {
 	box-shadow: 0 0 0.8em #000, 0 0 0.5em #000, 0 0 0.2em #000;
 }
 
+#license {
+	color: #555;
+}
+#license a {
+	color: #555;
+}
+
 #directory {
 	background: #121212;
 }

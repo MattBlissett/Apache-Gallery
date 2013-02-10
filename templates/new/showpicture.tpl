@@ -19,6 +19,7 @@
       </tr>
 	  <tr>
 	  	<td colspan="3">
+		{ $LICENSE }
 		  <div id="gallery">
 		  <a href="http://apachegallery.dk/">Apache::Gallery</a> &copy; 2001-2005 Michael Legart, <a href="http://www.hestdesign.com/">Hest Design</a>
 

@@ -31,3 +31,5 @@
     </table>
   </div>
 </div>
+
+{ $LICENSE }

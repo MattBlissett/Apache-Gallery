@@ -183,6 +183,15 @@ h2 {
 	clear: both;
 }
 
+#license {
+	margin-top: 2em;
+	font-size: 75%;
+	color: #663;
+}
+#license a {
+	color: #663;
+}
+
 /* Directory (album) view */
 #directory {
 	text-align: center;

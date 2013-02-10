@@ -1164,6 +1164,11 @@ sub picture_page {
 		$tpl_vars{SLIDESHOW} .=  $templates{slideshowisoff}->fill_in(HASH => \%tpl_vars);
 	}
 
+	if (my $license_file = $r->dir_config('GalleryCopyrightHtmlTemplate')) {
+		my %license_template = create_templates({license => $license_file});
+		$tpl_vars{LICENSE} = $license_template{license}->fill_in(HASH => \%tpl_vars);
+	}
+
 	if ($isVideo) {
 		$tpl_vars{MAIN} = $templates{video}->fill_in(HASH => \%tpl_vars);
 	}
@@ -2740,6 +2745,21 @@ Transparent orange:
 The background-color of a GalleryCopyrightText
 
 r,g,b,a - for examples, see GalleryCopyrightColor
+
+=item B<GalleryCopyrightHtmlTemplate>
+
+Path to a template file that will be inserted on every picture/video
+page.
+
+Example template file:
+        <p id="license" about="{ $IMAGEURI }">This <span
+href="http://purl.org/dc/dcmitype/Image" rel="dc:type">work</span> by <span
+property="cc:attributionName">Matthew Blissett</span> is licensed under a <a
+rel="license"
+href="http://creativecommons.org/licenses/by-sa/3.0/deed.en_GB">Creative Commons
+Attribution-ShareAlike 3.0 Unported License</a>.<br />Permissions beyond the
+scope of this license may be available at <a href="/contact/"
+rel="cc:morePermissions">http://matt.blissett.me.uk/contact/</a>.</p>
 
 =item B<GalleryQuality>
 
