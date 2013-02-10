@@ -19,6 +19,11 @@ html {
 	color: #aaa;
 }
 
+.pictureinfo {
+	background: #222;
+	box-shadow: 0 0 0.8em #000, 0 0 0.5em #000, 0 0 0.2em #000;
+}
+
 #directory {
 	background: #121212;
 }
@@ -46,4 +51,4 @@ a:hover {
 	color: #33b033;
 }
 
-/* kate: indent-mode normal; indent-width 1; space-indent off; tab-width 8; hl css; */
+/* kate: indent-mode normal; indent-width 4; space-indent off; tab-width 4; hl css; */

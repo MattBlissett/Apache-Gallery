@@ -57,12 +57,7 @@ html, body {
 	display: block;
 	margin: 1em auto;
 	border-radius: 1em;
-
 	box-shadow: 0 0 0.8em #000, 0 0 0.5em #000, 0 0 0.2em #000;
-}
-
-.pictureinfo {
-	margin: 1em auto;
 }
 
 .nav.left,
@@ -83,13 +78,13 @@ html, body {
 .nav.left img {
 	margin-left: -87px;
 	border-radius: 0 58px 58px 0;
-	
+	box-shadow: 0 0 0.5em #000;
 	background-color: black;
 }
 .nav.right img {
 	margin-right: -87px;
 	border-radius: 58px 0 0 58px;
-	
+	box-shadow: 0 0 0.5em #000;
 	background-color: black;
 }
 .nav.left img:hover {
@@ -105,10 +100,6 @@ html, body {
 .nav.right img:hover {
 	border-radius: 1em 0 0 1em;
 	-webkit-transition-duration: 0.25s;
-}
-
-.nav.video img {
-	margin: 0;
 }
 
 .nav.left p,
@@ -158,11 +149,23 @@ html, body {
 	transform: scale(1.5);
 }
 
-.nav h2 {
+.pictureinfo {
+	margin: 1em auto;
+	background: #aa8;
+	max-width: 60%;
+	border-radius: 1em;
+	padding: 0.5em;
+	box-shadow: 0 0 0.5em #000;
+}
+.pictureinfo > * {
+	margin: 0;
+}
+
+h2 {
 	font-family: 'Gentium', 'Constantia', 'Calisto MT', 'Didot', 'Georgia', serif;
 }
 
-.nav .info {
+.info {
 }
 
 .detail {
@@ -439,4 +442,4 @@ a img {
 	display: none;
 }
 
-/* kate: indent-mode normal; indent-width 1; space-indent off; tab-width 8; hl css; */
+/* kate: indent-mode normal; indent-width 4; space-indent off; tab-width 4; hl css; */

@@ -292,7 +292,8 @@ sub directory_listing {
 	log_debug("looking for $dirname.folder");
 	my $title;
 	if (-f $dirname.".folder") {
-		$title = get_filecontent($dirname.".folder");;
+		$title = get_filecontent($dirname.".folder");
+		$title =~ s|<.*?>||g;
 		$tpl_vars{TITLE} = $title;
 	}
 	else {
