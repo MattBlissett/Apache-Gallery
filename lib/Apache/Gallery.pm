@@ -816,6 +816,7 @@ sub picture_page {
 		 video          => "$tpl_dir/showvideo.tpl",
 		 navpicture     => "$tpl_dir/navpicture.tpl",
 		 info           => "$tpl_dir/info.tpl",
+		 map            => "$tpl_dir/map.tpl",
 		 scale          => "$tpl_dir/scale.tpl",
 		 scaleactive    => "$tpl_dir/scaleactive.tpl",
 		 orig           => "$tpl_dir/orig.tpl",
@@ -1072,6 +1073,31 @@ sub picture_page {
 	}
 	else {
 		$tpl_vars{PICTUREINFO} = $templates{nopictureinfo}->fill_in(HASH => \%tpl_vars);
+	}
+
+	unless ($r->dir_config('GalleryHideMap')) {
+		my %map_vars;
+		$map_vars{IMAGEURI} = uri_escape($r->uri() . ".$ext", $escape_rule);
+		(
+		 $map_vars{LAT},
+		 $map_vars{LONG},
+		 $map_vars{LAT_NICE},
+		 $map_vars{LONG_NICE},
+		 $map_vars{STATUS},
+		 $map_vars{PIN_COLOUR}
+		) =
+			get_georef(
+			    $imageinfo->{GPSLatitude} ? $imageinfo->{GPSLatitude} : '',
+			    $imageinfo->{GPSLatitudeRef} ? $imageinfo->{GPSLatitudeRef} : '',
+			    $imageinfo->{GPSLongitude} ? $imageinfo->{GPSLongitude} : '',
+			    $imageinfo->{GPSLongitudeRef} ? $imageinfo->{GPSLongitudeRef} : '',
+			    $imageinfo->{GPSStatus} ? $imageinfo->{GPSStatus} : '',
+			    );
+
+		$tpl_vars{MAP} = $templates{map}->fill_in(HASH => \%map_vars);
+	}
+	else {
+		$tpl_vars{MAP} = "";
 	}
 
 	# Fill in sizes and determine if any are smaller than the
@@ -2385,6 +2411,47 @@ sub send_file_response {
 	}
 }
 
+sub get_georef {
+	my ($gps_lat, $gps_lat_ref, $gps_long, $gps_long_ref, $gps_status) = @_;
+
+	my ($lat, $long, $lat_nice, $long_nice, $status, $pin);
+
+	if ($gps_lat ne '' && $gps_long ne '') {
+		$status = $gps_status;
+		$pin = 'red';
+		if ($gps_status eq 'A') { $pin = 'yellow'; }
+		if ($gps_status eq 'V') { $pin = 'gray'; }
+
+		if ($gps_lat_ref eq 'S') { $lat = "-" };
+		$lat .= $gps_lat;
+		if ($gps_long_ref eq 'W') { $long = "-" };
+		$long .= $gps_long;
+
+		$lat_nice = decimal_to_degminsec($lat, "N", "S");
+		$long_nice = decimal_to_degminsec($long, "E", "W");
+	}
+
+	log_debug("Map values are $lat, $long, $lat_nice, $long_nice, $status, $pin");
+	return ($lat, $long, $lat_nice, $long_nice, $status, $pin);
+}
+
+sub decimal_to_degminsec {
+	my ($value, $positive, $negative) = @_;
+
+	my $v = abs($value);
+	my $dms  = int($v) . "° ";
+	$v -= int($v);
+	$v *= 60;
+	$dms .= int($v) . "′ ";
+	$v -= int($v);
+	$v *= 60;
+	$dms .= (sprintf '%.3f', $v) . "″ ";
+	if ($value < 0) { $dms .= $negative; }
+	else { $dms .= $positive; }
+
+	return $dms;
+}
+
 sub log_error {
 	if ($::MP2) {
 		Apache2::RequestUtil->request->log->error(shift());
@@ -2716,6 +2783,11 @@ can be used e.g. together with the PicLens plugin from http://piclens.com
 
 Set this to change the CSS filename included.  On some templates this
 setting is used to select between different variations.
+
+=item B<GalleryHideMap>
+
+Setting to hide the map for images with EXIF georeference data (if
+supported by the theme).
 
 =back
 

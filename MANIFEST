@@ -115,6 +115,7 @@ templates/bright/info.tpl
 templates/bright/interval.tpl
 templates/bright/intervalactive.tpl
 templates/bright/layout.tpl
+templates/bright/map.tpl
 templates/bright/navdirectory.tpl
 templates/bright/navpicture.tpl
 templates/bright/nodircomment.tpl
@@ -142,6 +143,7 @@ templates/default/info.tpl
 templates/default/interval.tpl
 templates/default/intervalactive.tpl
 templates/default/layout.tpl
+templates/default/map.tpl
 templates/default/navdirectory.tpl
 templates/default/navpicture.tpl
 templates/default/nodircomment.tpl
@@ -168,6 +170,7 @@ templates/modern/info.tpl
 templates/modern/interval.tpl
 templates/modern/intervalactive.tpl
 templates/modern/layout.tpl
+templates/modern/map.tpl
 templates/modern/navdirectory.tpl
 templates/modern/navpicture.tpl
 templates/modern/nodircomment.tpl
@@ -196,6 +199,7 @@ templates/new/info.tpl
 templates/new/interval.tpl
 templates/new/intervalactive.tpl
 templates/new/layout.tpl
+templates/new/map.tpl
 templates/new/navdirectory.tpl
 templates/new/navpicture.tpl
 templates/new/nodircomment.tpl
