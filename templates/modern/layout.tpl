@@ -5,6 +5,7 @@
 	xmlns:dc="http://purl.org/dc/elements/1.1/"
 	xmlns:foaf="http://xmlns.com/foaf/0.1/"
 	xmlns:geopos="http://www.w3.org/2003/01/geo/wgs84_pos#"
+	xmlns:og="http://ogp.me/ns#"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema">
 <head>
 	<title>{ $TITLE }</title>

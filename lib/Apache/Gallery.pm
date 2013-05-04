@@ -306,6 +306,13 @@ sub directory_listing {
 		$tpl_vars{META} = '<link rel="alternate" href="?rss=1" type="application/rss+xml" title="$title"/>';
 	}
 
+	# OpenGraph information
+	my $og_image = 'http://' . $r->server->server_hostname . $uri . '/.bg-1600.jpg';
+	$tpl_vars{META} .= "<meta property='og:image' content='$og_image'/>\n";
+	$tpl_vars{META} .= "<meta property='og:title' content='$title'/>\n";
+	my $og_url = 'http://' . $r->server->server_hostname . $uri . '/';
+	$tpl_vars{META} .= "<meta property='og:url' content='$og_url'/>\n";
+
 	$tpl_vars{MENU} = generate_menu($r);
 
 	$tpl_vars{FORM_BEGIN} = $select_mode ? '<form method="get">' : '';
@@ -838,6 +845,7 @@ sub picture_page {
 		$width = $cgi->param('width');
 	}
 
+	my $og_image;
 	$tpl_vars{TITLE} = "Viewing ".$r->uri();
 	if ($isVideo) {
 		my @tmp = split (m|/|, $filename);
@@ -853,10 +861,12 @@ sub picture_page {
 		else {
 			$tpl_vars{POSTER} = "/ApacheGallery/video-mpg.png";
 		}
+		$og_image = $tpl_vars{POSTER};
 	}
 	else {
 		$tpl_vars{RESOLUTION} = $resolution;
 		$tpl_vars{SRC} = uri_escape($picfilename, $escape_rule) . "?w=$image_width&amp;h=$height";
+		$og_image = uri_escape($picfilename, $escape_rule) . "?w=$image_width&amp;h=$height";
 	}
 	$tpl_vars{META} = "";
 	$tpl_vars{MENU} = generate_menu($r);
@@ -864,6 +874,14 @@ sub picture_page {
 
 	# Option to override the CSS file
 	$tpl_vars{CSS} = $r->dir_config('GalleryCssFilename') ? $r->dir_config('GalleryCssFilename') : "modern.css";
+
+	# OpenGraph information
+	my @uribits = split (m|/|, $r->uri);
+	pop @uribits;
+	my $uripath = (join "/", @uribits)."/";
+	$tpl_vars{META} .= "<meta property='og:image' content='http://" . $r->server->server_hostname . $uripath . $og_image . "'/>\n";
+	my $og_url = 'http://' . $r->server->server_hostname . $r->uri;
+	$tpl_vars{META} .= "<meta property='og:url' content='$og_url'/>\n";
 
 	my $exif_mode = $r->dir_config('GalleryEXIFMode');
 	unless ($exif_mode) {
