@@ -21,6 +21,7 @@
 </head>
 
 <body>
+	<script type="text/javascript">var theme = "{ $CSS }";</script>
 	{ $MAIN }
 	<div id="footer">
 		Indexed by <a href="http://apachegallery.dk">Apache::Gallery</a> &mdash; Copyright &copy; 2001-2011 Michael Legart &mdash; <a href="http://www.hestdesign.com/">Hest Design!</a><br/>

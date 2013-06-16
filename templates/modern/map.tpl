@@ -12,12 +12,23 @@
 	</div>
 </noscript>
 
-<div id='map' class='smallmap'></div>
+<div id="map"></div>
 
-<span about='{ $IMAGEURI }'>
-	Location: <span property='geopos:lat' content='{ $LAT }'>{ $LAT_NICE }</span>, <span property='geopos:long' content='{ $LONG }'>{ $LONG_NICE }</span>
+<span id="georef" about='{ $IMAGEURI }'>
+	<!--&#x1f310;-->⚐ <span property='geopos:lat' content='{ $LAT }'>{ $LAT_NICE }</span>, <span property='geopos:long' content='{ $LONG }'>{ $LONG_NICE }</span>
 </span>
 
 <script type="text/javascript">
-  smallmap(llat, llong, status);
+	var mapLoaded = 0;
+	if ( theme == 'modern.css' ) \{
+		$('#pictureinfo-map').bind('mouseenter', function(event) \{
+			if (!mapLoaded) \{
+				smallmap(llat, llong, status);
+				mapLoaded = 1;
+			\}
+		\});
+	\}
+	else \{
+		smallmap(llat, llong, status);
+	\}
 </script>

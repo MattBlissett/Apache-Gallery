@@ -238,12 +238,7 @@ function smallmap(llat, llong, status) {
 	map.addControl(new OpenLayers.Control.MouseToolbar());
 
 	var base = new OpenLayers.Layer.OSM();
-	var ghyb = new OpenLayers.Layer.Google(
-		"Google Hybrid",
-		{type: google.maps.MapTypeId.HYBRID, numZoomLevels: 20}
-	);
 	map.addLayer(base);
-	map.addLayer(ghyb);
 
 	var lonlat = new OpenLayers.LonLat(llong, llat).transform(
 		new OpenLayers.Projection("EPSG:4326"),

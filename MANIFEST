@@ -22,8 +22,9 @@ htdocs/measuring-stick-on.png
 htdocs/modern/jquery-1.6.2.min.js
 htdocs/modern/map.css
 htdocs/modern/map.js
-htdocs/modern/modern-dark.css
 htdocs/modern/modern.css
+htdocs/modern/old-dark.css
+htdocs/modern/old.css
 htdocs/modern/OpenLayers.js
 htdocs/modern/theme/default/framedCloud.css
 htdocs/modern/theme/default/google.css

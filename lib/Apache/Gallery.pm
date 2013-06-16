@@ -1109,7 +1109,12 @@ sub picture_page {
 			    $imageinfo->{GPSStatus} ? $imageinfo->{GPSStatus} : '',
 			    );
 
-		$tpl_vars{MAP} = $templates{map}->fill_in(HASH => \%map_vars);
+		if ($map_vars{LAT} != '') {
+			$tpl_vars{MAP} = $templates{map}->fill_in(HASH => \%map_vars);
+		}
+		else {
+			$tpl_vars{MAP} = "";
+		}
 	}
 	else {
 		$tpl_vars{MAP} = "";
