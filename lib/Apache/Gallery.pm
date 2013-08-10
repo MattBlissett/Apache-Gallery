@@ -320,7 +320,7 @@ sub directory_listing {
 
 	# Read, sort, and filter files
 	# Changed implementation of "Debian bug #619625 <http://bugs.debian.org/619625>"
-	my @files = grep { !/^\./ && -f "$dirname/$_" && ! -e "$dirname/$_.ignore" } readdir (DIR);
+	my @files = grep { !/^\./ && -f "$dirname/$_" && -r "$dirname/$_" && ! -e "$dirname/$_.ignore" } readdir (DIR);
 
 	@files=gallerysort($r, @files);
 
@@ -346,7 +346,7 @@ sub directory_listing {
 	# Read and sort directories
 	rewinddir (DIR);
 	# Changed implementation of "Debian bug #619625 <http://bugs.debian.org/619625>"
-	my @directories = grep { !/^\./ && -d "$dirname/$_" && ! -e "$dirname/$_.ignore" } readdir (DIR);
+	my @directories = grep { !/^\./ && -d "$dirname/$_" && -r "$dirname/$_" && ! -e "$dirname/$_.ignore" } readdir (DIR);
 	my $dirsortby;
 	if (defined($r->dir_config('GalleryDirSortBy'))) {
 		$dirsortby=$r->dir_config('GalleryDirSortBy');
@@ -593,7 +593,7 @@ sub directory_listing {
 	if ($dirname ne $root_path && opendir (PARENT_DIR, $parent_filename)) {
 		log_debug("aoeu");
 		# Debian bug #619625 <http://bugs.debian.org/619625>
-		my @neighbour_directories = grep { !/^\./ && -d "$parent_filename/$_" && ! -e "$parent_filename/$_.ignore" } readdir (PARENT_DIR);
+		my @neighbour_directories = grep { !/^\./ && -d "$parent_filename/$_" && -r "$parent_filename/$_" && ! -e "$parent_filename/$_.ignore" } readdir (PARENT_DIR);
 		my $dirsortby;
 		if (defined($r->dir_config('GalleryDirSortBy'))) {
 			$dirsortby=$r->dir_config('GalleryDirSortBy');
@@ -895,7 +895,7 @@ sub picture_page {
 
 	my $doc_pattern = get_document_pattern($r);
 
-	my @pictures = grep { (/$img_pattern/i || /$vid_pattern/i) && ! -e "$path/$_" . ".ignore" } readdir (DATADIR);
+	my @pictures = grep { (/$img_pattern/i || /$vid_pattern/i) && -r "$path/$_" && ! -e "$path/$_.ignore" } readdir (DATADIR);
 	closedir(DATADIR);
 	@pictures = gallerysort($r, @pictures);
 
