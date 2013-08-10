@@ -64,12 +64,12 @@ my $timeurl;
 sub handler {
 	my $r = shift or Apache2::RequestUtil->request();
 
-	log_info("Apache Gallery request for " . $r->uri);
-
 	$time = time();
 	$timeurl = $r->uri;
 
 	my $cgi = new CGI;
+
+	log_info("Apache Gallery request for " . $r->uri . "?" . $ENV{QUERY_STRING});
 
 	# Handle selected images
 	if ($cgi->param('selection')) {
@@ -236,34 +236,36 @@ sub directory_listing {
 	my $select_mode = $cgi->param('select') ? "s" : "";
 
 	# Check for cached HTML for the directory
-	my $file = cache_dir($r, 0);
+	my $cache_fullpath = cache_dir($r);
 	if ($cgi->param('rss') && $media_rss_enabled) {
-		$file .= "/index.rss";
+		$cache_fullpath .= "index.rss";
 		$r->content_type('application/rss+xml');
-	} else {
-		$file .= "/index$select_mode.html";
+	}
+	else {
+		$cache_fullpath .= "index$select_mode.html";
 		$r->content_type('text/html');
 	}
-	log_debug("Album HTML cached as " . $file);
+	log_debug("directory_listing: cache file is/will be " . $cache_fullpath);
 
 	my $usecache = 0;
-	if (-f $file) {
-		# TODO: check if directory has changed.
+	if (-f $cache_fullpath) {
+		# TODO: is this sufficient to check if directory has changed?
 		my $dirstat = stat($dirname);
-		my $cachestat = stat($file);
+		my $cachestat = stat($cache_fullpath);
 		$usecache = ($dirstat->mtime < $cachestat->mtime);
-		log_debug("$dirname newer than $file, ignoring cache") unless $usecache;
+		log_debug("directory_listing: $dirname newer than $cache_fullpath, ignoring cache") unless $usecache;
 	}
 
 	if ($usecache) {
-		return send_file_response($r, $file, "C-ALBUM");
+		return send_file_response($r, $cache_fullpath, "C-ALBUM");
 	}
+
+	# No cached HTML -- generate it.
 
 	my $img_pattern = get_image_pattern($r);
 	my $vid_pattern = get_video_pattern($r);
 	my $doc_pattern = get_document_pattern($r);
 
-	# No cached HTML -- generate it.
 	my $tpl_dir = $r->dir_config('GalleryTemplateDir');
 
 	# Instead of reading the templates every single time
@@ -285,7 +287,7 @@ sub directory_listing {
 
 	my %tpl_vars;
 
-	log_debug("looking for $dirname.folder");
+	log_debug("directory_listing: looking for $dirname.folder");
 	my $title;
 	if (-f $dirname.".folder") {
 		$title = get_filecontent($dirname.".folder");
@@ -509,7 +511,7 @@ sub directory_listing {
 					}
 				}
 
-				log_debug("Video icon: using $posterthumburl");
+				log_debug("directory_listing: Video icon: using $posterthumburl");
 
 				my %file_vars = (
 					FILEURL => uri_escape($fileurlnoext, $escape_rule),
@@ -591,7 +593,6 @@ sub directory_listing {
 	$r->document_root =~ m|(.*)/$|;
 	my $root_path = $1;
 	if ($dirname ne $root_path && opendir (PARENT_DIR, $parent_filename)) {
-		log_debug("aoeu");
 		# Debian bug #619625 <http://bugs.debian.org/619625>
 		my @neighbour_directories = grep { !/^\./ && -d "$parent_filename/$_" && -r "$parent_filename/$_" && ! -e "$parent_filename/$_.ignore" } readdir (PARENT_DIR);
 		my $dirsortby;
@@ -662,7 +663,7 @@ sub directory_listing {
 	}
 
 	# put $tpl_vars{MAIN} into the file.
-	if (open(P, ">$file")) {
+	if (open(P, ">$cache_fullpath")) {
 		print P $tpl_vars{MAIN};
 		close(P);
 	}
@@ -672,7 +673,7 @@ sub directory_listing {
 	} else {
 		$r->content_type('text/html');
 	}
-	return send_file_response($r, $file, "ALBUM");
+	return send_file_response($r, $cache_fullpath, "ALBUM");
 }
 
 # Addition by Matt Blissett, June 2011.
@@ -695,13 +696,14 @@ sub directory_icon {
 		return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
 	}
 
-	my $file = cache_dir($r, 0);
+	my $cache_filename = ".bg-$image_size.jpg";
+	my $cache_fullpath = cache_dir($r) . $cache_filename;
 
 	$r->content_type("image/jpeg");
 
-	if (-f $file) {
+	if (-f $cache_fullpath) {
 		# file already in cache
-		log_info("Background picture already in cache: $file");
+		log_info("Background picture already in cache: $cache_fullpath");
 	}
 	else {
 		my $img_pattern = get_image_pattern($r);
@@ -715,35 +717,28 @@ sub directory_icon {
 
 		#log_debug(($#files+1) . " file, first " . $files[0]);
 
-		my $newfilename = ".bg-$image_size.jpg";
-
-		my ($width, $height, $type) = imgsize($dirname."/".$files[0]);
-
-		my $imageinfo = get_imageinfo($r, $dirname."/".$files[0], $type, $width, $height);
-
 		log_debug("Making folder bg image from files: " . join(', ', @files));
-		log_debug("Making folder bg image with: $imageinfo");
 
-		my $cached = album_cover_picture($r, $image_size, $image_size, $imageinfo, $dirname, $newfilename, @files);
+		my $cached = album_cover_picture($r, $dirname, $image_size, $image_size, $cache_fullpath, @files);
 
 		log_debug("Made folder bg image $cached, $r");
 	}
 
-	return send_file_response($r, $file, "BGIMG");
+	return send_file_response($r, $cache_fullpath, "BGIMG");
 }
 
 # Tests whether the requested URL is the HTML page for an image or video
 sub is_picture_or_video_page {
 	my $r = shift;
 	my $filename = $r->filename().$r->path_info();
-	log_debug("Looking for file for $filename");
+	log_debug("is_picture_or_video_page: Looking for file for $filename");
 
 	my @extensions = split (/ /, $r->dir_config('GalleryImgFileThing') ? $r->dir_config('GalleryImgFileThing') : 'jpg jpeg png tiff ppm ogv');
 
 	foreach my $ext (@extensions) {
 		if (-f $filename . "." . $ext && ! -e "$filename.$ext.ignore" ) {
 			$filename .= "." . $ext;
-			log_info("Found file $filename");
+			log_debug("is_picture_or_video_page: Found file $filename");
 			return ($filename, $ext);
 		}
 	}
@@ -765,7 +760,7 @@ sub picture_page {
 	my @tmp = split (m|/|, $filename);
 	my $picfilename = pop @tmp;
 	my $path = (join "/", @tmp)."/";
-	my $cache_path = cache_dir($r, 1);
+	my $cache_path = cache_dir($r);
 
 	my ($orig_width, $orig_height, $type);
 	my $imageinfo;
@@ -793,23 +788,23 @@ sub picture_page {
 		}
 	}
 
-	my $file = cache_dir($r, 0) . "-$width-$slideshow_selected_interval.html";
-	log_debug("Picture HTML cache is/will be " . $file);
+	my $cache_fullpath = cache_dir($r) . picturepage_filename($r->uri, $width, $slideshow_selected_interval);
+	log_debug("Picture HTML cache is/will be " . $cache_fullpath);
 
 	$r->content_type("text/html");
 
 	# TODO: check for modifications in directory (for prev/next etc).
 	my $usecache = 0;
-	if (-f $file) {
+	if (-f $cache_fullpath) {
 		# TODO: check if directory has changed.
 		my $filestat = stat($filename);
-		my $cachestat = stat($file);
+		my $cachestat = stat($cache_fullpath);
 		$usecache = ($filestat->mtime < $cachestat->mtime);
-		log_debug("$filename newer than $file, ignoring cache") unless $usecache;
+		log_debug("$filename newer than $cache_fullpath, ignoring cache") unless $usecache;
 	}
 
 	if ($usecache) {
-		return send_file_response($r, $file, "C-PICPAGE");
+		return send_file_response($r, $cache_fullpath, "C-PICPAGE");
 	}
 
 	my $tpl_dir = $r->dir_config('GalleryTemplateDir');
@@ -1206,66 +1201,42 @@ sub picture_page {
 	$tpl_vars{MAIN} = $templates{layout}->fill_in(HASH => \%tpl_vars);
 
 	# put $tpl_vars{MAIN} into the file.
-	if (open(P, ">$file")) {
+	if (open(P, ">$cache_fullpath")) {
 		print P $tpl_vars{MAIN};
 		close(P);
 	}
-	return send_file_response($r, $file, "PICPAGE");
+	return send_file_response($r, $cache_fullpath, "PICPAGE");
 }
 
 # Handles image files (original or scaled)
 sub image_file {
 	my $r = shift;
-	my $filename = $r->filename().$r->path_info();
+	my $image_fullpath = $r->filename().$r->path_info();
 
 	# original size
 	if (!defined($ENV{QUERY_STRING}) || $ENV{QUERY_STRING} eq '') {
 		log_info("Sending full-sized image");
 		if ($r->dir_config('GalleryAllowOriginal') ? 1 : 0) {
-			$r->filename($filename);
+			$r->filename($image_fullpath);
 			return $::MP2 ? Apache2::Const::DECLINED() : Apache::Constants::DECLINED();
 		} else {
 			return $::MP2 ? Apache2::Const::FORBIDDEN() : Apache::Constants::FORBIDDEN();
 		}
 	}
 
+	my $cgi = new CGI;
+
 	# TODO Check width is allowed (remembering thumnail width)
+	# TODO Validate user-controlled parameter
+	my $request_width = $cgi->param('w');
+	my $request_height = $cgi->param('h');
 
-	my $file = cache_dir($r, 0);
+	my $cached_fullpath = scale_picture($r, $image_fullpath, $request_width, $request_height);
 
-	# Check if the cache image already exists, and assume it's OK if it does.
-	# NB: this bypasses the check for a changed file / changed .rotate / changed GalleryCopyrightImage
-	my $usecache = 0;
-	if (-f $file) {
-		my $filestat = stat($filename);
-		my $cachestat = stat($file);
-		$usecache = ($filestat->mtime < $cachestat->mtime);
-		log_debug("$filename newer than $file, ignoring cache") unless $usecache;
-	}
-
-	if ($usecache) {
-		return send_file_response($r, $file, "C-IMAGE");
-	}
-
-	unless ($usecache) {
-		my $cgi = new CGI;
-
-		my $image_width = $cgi->param('w');
-		my $image_height = $cgi->param('h');
-
-		my ($width, $height, $type) = imgsize($filename);
-
-		my $imageinfo = get_imageinfo($r, $filename, $type, $width, $height);
-
-		my $cached = scale_picture($r, $filename, $image_width, $image_height, $imageinfo);
-
-		my $file = cache_dir($r, 0);
-	}
-
-	my $subr = $r->lookup_file($file);
+	my $subr = $r->lookup_file($cached_fullpath);
 	$r->content_type($subr->content_type());
 
-	return send_file_response($r, $file, "IMAGE");
+	return send_file_response($r, $cached_fullpath, "IMAGE");
 }
 
 # Generate XML file containing georeferences of photographs
@@ -1275,7 +1246,6 @@ sub points_file {
 
 	my $dirname = $r->filename().$r->path_info();
 	$dirname =~ s!/.points.xml!!;
-	log_debug("Points: dirname: $dirname");
 
 	unless (opendir (DIR, $dirname)) {
 		show_error($r, 404, "404!", "No such file or directory: ".uri_escape($r->uri, $escape_rule));
@@ -1284,27 +1254,27 @@ sub points_file {
 
 	$r->content_type('application/xml');
 
-	my $file = cache_dir($r, 0);
-	log_debug("Points file is/will be " . $file);
+	my $cache_fullpath = cache_dir($r) . ".points.xml";
+	log_debug("points_file: cache file is/will be " . $cache_fullpath);
 
 	my $usecache = 0;
-	if (-f $file) {
+	if (-f $cache_fullpath) {
 		my $dirstat = stat($dirname);
-		my $cachestat = stat($file);
+		my $cachestat = stat($cache_fullpath);
 		$usecache = ($dirstat->mtime < $cachestat->mtime);
-		log_debug("$dirname newer than $file, ignoring cache") unless $usecache;
+		log_debug("points_file: $dirname newer than $cache_fullpath, ignoring cache") unless $usecache;
 	}
 
 	if ($usecache) {
-		log_debug("Points: file already in cache: $file");
-		return send_file_response($r, $file, "C-POINTS");
+		log_debug("points_file: file already in cache: $cache_fullpath");
+		return send_file_response($r, $cache_fullpath, "C-POINTS");
 	}
 	else {
 		my $img_pattern = get_image_pattern($r);
 
 		my @files = sort grep { !/^\./ && /$img_pattern/i && -f "$dirname/$_" && -r "$dirname/$_" && ! -e "$dirname/$_/.ignore"} readdir (DIR);
 
-		log_debug("Points: $#files files");
+		log_debug("points_file: $#files files");
 
 		my %tpl_vars;
 
@@ -1326,10 +1296,9 @@ sub points_file {
 			$dirurl =~ s!.points.xml!!;
 
 			foreach my $file (@files) {
-				log_debug("Points: scanning file $file_counter " . $file);
+				log_debug("points_file: scanning file $file_counter " . $file);
 				$file_counter++;
 				my $filename = $dirname."/".$file;
-				#log_debug("Points: filename " . $filename);
 
 				if (-f $filename) {
 					# Check it's an image
@@ -1343,7 +1312,7 @@ sub points_file {
 					# Thumbnail dimensions needed for URL to thumbnail
 					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $width, $height);
 					my $cached = get_scaled_picture_name($filename, $thumbnailwidth, $thumbnailheight);
-					log_debug("Points: thumbnail name $cached");
+					log_debug("points_file: thumbnail name $cached");
 
 					# Read EXIF info
 					my $imageinfo = get_imageinfo($r, $filename, $type, $width, $height);
@@ -1359,19 +1328,21 @@ sub points_file {
 					);
 
 					if (-f $filename . '.comment') {
-						log_debug("Points: Found .comment file " . $filename . '.comment');
+						log_debug("points_file: Found .comment file " . $filename . '.comment');
 						my $comment_ref = get_comment($filename . '.comment');
 						$tpl_vars{COMMENT} = $comment_ref->{COMMENT} . "\n" if $comment_ref->{COMMENT};
 						$tpl_vars{TITLE} = $comment_ref->{TITLE} if $comment_ref->{TITLE};
-					} elsif ($r->dir_config('GalleryCommentExifKey')) {
+					}
+					elsif ($r->dir_config('GalleryCommentExifKey')) {
 						my $comment = decode("utf8", $imageinfo->{$r->dir_config('GalleryCommentExifKey')});
 						$tpl_vars{COMMENT} = encode("iso-8859-1", $comment);
-					} else {
+					}
+					else {
 						$tpl_vars{COMMENT} = undef;
 						$tpl_vars{TITLE} = undef;
 					}
-					log_debug("Points: Title: ".$tpl_vars{TITLE});
-					log_debug("Points: Comment: ".$tpl_vars{COMMENT});
+					log_debug("points_file: Title: ".$tpl_vars{TITLE});
+					log_debug("points_file: Comment: ".$tpl_vars{COMMENT});
 
 					$tpl_vars{POINTS} .= $templates{point}->fill_in(
 						HASH => {%tpl_vars, %point_vars},
@@ -1386,13 +1357,13 @@ sub points_file {
 		$tpl_vars{MAIN} = $templates{points}->fill_in(HASH => \%tpl_vars);
 
 		# put $tpl_vars{MAIN} into the file.
-		if (open(P, ">$file")) {
+		if (open(P, ">$cache_fullpath")) {
 			print P $tpl_vars{MAIN};
 			close(P);
 		}
 	}
 
-	return send_file_response($r, $file, "POINTS");
+	return send_file_response($r, $cache_fullpath, "POINTS");
 }
 
 sub selected_images {
@@ -1416,8 +1387,10 @@ sub selected_images {
 #                      # Helper methods #                      #
 ################################################################
 
+# Turns /url/path/file -> /cache/dir/path/
+# Argument: Request object
 sub cache_dir {
-	my ($r, $strip_filename) = @_;
+	my ($r) = @_;
 
 	my $cache_root;
 
@@ -1425,10 +1398,12 @@ sub cache_dir {
 		$cache_root = '/var/cache/www/';
 		if ($r->server->is_virtual) {
 			$cache_root = File::Spec->catdir($cache_root, $r->server->server_hostname);
-		} else {
+		}
+		else {
 			$cache_root = File::Spec->catdir($cache_root, $r->location);
 		}
-	} else {
+	}
+	else {
 		$cache_root = $r->dir_config('GalleryCacheDir');
 	}
 
@@ -1446,19 +1421,7 @@ sub cache_dir {
 		}
 	}
 
-	if ($strip_filename) {
-		return($dirname);
-	} else {
-		my $cgi = new CGI;
-		if ($cgi->param('w') && $cgi->param('h')) {
-			my $w = $cgi->param('w');
-			my $h = $cgi->param('h');
-			$filename =~ s|\.(...?)$||;
-			$filename = "${w}x${h}-$filename.${1}";
-			# use get_scaled_picture_name?
-		}
-		return(File::Spec->canonpath(File::Spec->catfile($cache_root, $dirs, $filename)));
-	}
+	return($dirname . "/");
 }
 
 sub create_cache {
@@ -1486,6 +1449,19 @@ sub mkdirhier {
 	}
 }
 
+# Gets HTML cache page filename
+sub picturepage_filename {
+	my ($fullpath, $width, $slideshow_selected_interval) = @_;
+
+	my @parts = split(m|/|, $fullpath);
+	my $filename = pop(@parts);
+	my $picturepage_filename;
+
+	$picturepage_filename = "$filename-$width-$slideshow_selected_interval.html";
+
+	return $picturepage_filename;
+}
+
 sub get_scaled_picture_name {
 	my ($fullpath, $width, $height) = @_;
 
@@ -1507,69 +1483,67 @@ sub get_scaled_picture_name {
 }
 
 sub scale_picture {
-	my ($r, $fullpath, $width, $height, $imageinfo) = @_;
+	my ($r, $image_fullpath, $request_width, $request_height) = @_;
 
-	my @dirs = split(m|/|, $fullpath);
-	my $filename = pop(@dirs);
+	my ($orig_width, $orig_height, $type) = imgsize($image_fullpath);
 
-	my ($orig_width, $orig_height, $type) = imgsize($fullpath);
+	my $imageinfo = get_imageinfo($r, $image_fullpath, $type, $orig_width, $orig_height);
 
-	my $cache = cache_dir($r, 1);
-
-	my $newfilename = get_scaled_picture_name($fullpath, $width, $height);
-
-	if (($width > $orig_width) && ($height > $orig_height)) {
+	if (($request_width > $orig_width) && ($request_height > $orig_height)) {
 		# Run it through the resize code anyway to get watermarks
-		$width = $orig_width;
-		$height = $orig_height;
+		# Also, to convert non-JPEG to a JPEG (if enabled)
+		$request_width = $orig_width;
+		$request_height = $orig_height;
 	}
+
+	my $cache_dir = cache_dir($r);
+	my $cache_filename = get_scaled_picture_name($image_fullpath, $request_width, $request_height);
+	my $cache_fullpath = $cache_dir . $cache_filename;
 
 	my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $orig_width, $orig_height);
 
 	# Do we want to generate a new file in the cache?
 	my $scale = 1;
 
-	if (-f $cache."/".$newfilename) {
+	if (-f $cache_fullpath) {
 		$scale = 0;
 
 		# Check to see if the image has changed
-		my $filestat = stat($fullpath);
-		my $cachestat = stat($cache."/".$newfilename);
-		if ($filestat->mtime >= $cachestat->mtime) {
+		my $filestat = stat($image_fullpath);
+		my $cache_dirstat = stat($cache_dir."/".$cache_filename);
+		if ($filestat->mtime >= $cache_dirstat->mtime) {
 			$scale = 1;
 		}
 
 		# Check to see if the .rotate file has been added or changed
-		if (-f $fullpath . ".rotate") {
-			my $rotatestat = stat($fullpath . ".rotate");
-			if ($rotatestat->mtime > $cachestat->mtime) {
+		if (-f $image_fullpath . ".rotate") {
+			my $rotatestat = stat($image_fullpath . ".rotate");
+			if ($rotatestat->mtime > $cache_dirstat->mtime) {
 				$scale = 1;
 			}
 		}
 		# Check to see if the copyrightimage has been added or changed
 		if ($r->dir_config('GalleryCopyrightImage') && -f $r->dir_config('GalleryCopyrightImage')) {
-			unless ($width == $thumbnailwidth or $width == $thumbnailheight) {
+			unless ($request_width == $thumbnailwidth or $request_width == $thumbnailheight) {
 				my $copyrightstat = stat($r->dir_config('GalleryCopyrightImage'));
-				if ($copyrightstat->mtime > $cachestat->mtime) {
+				if ($copyrightstat->mtime > $cache_dirstat->mtime) {
 					$scale = 1;
 				}
 			}
 		}
-
 	}
 
 	if ($scale) {
-		my $newpath = $cache."/".$newfilename;
-		my $rotate = readfile_getnum($r, $imageinfo, $fullpath . ".rotate");
+		my $rotate = readfile_getnum($r, $imageinfo, $image_fullpath . ".rotate");
 		my $quality = $r->dir_config('GalleryQuality');
 
-		log_debug("Writing resized picture to " . $newpath);
+		log_debug("scale_picture: writing resized picture to " . $cache_fullpath);
 
-		if ($width == $thumbnailwidth or $width == $thumbnailheight) {
-			resizepicture($r, $fullpath, $newpath, $width, $height, $rotate, '', '', '', '', '', '');
+		if ($request_width == $thumbnailwidth or $request_width == $thumbnailheight) {
+			resizepicture($r, $image_fullpath, $cache_fullpath, $request_width, $request_height, $rotate, '', '', '', '', '', '');
 		}
 		else {
-			resizepicture($r, $fullpath, $newpath, $width, $height, $rotate,
+			resizepicture($r, $image_fullpath, $cache_fullpath, $request_width, $request_height, $rotate,
 				($r->dir_config('GalleryCopyrightImage') ? $r->dir_config('GalleryCopyrightImage') : ''),
 				($r->dir_config('GalleryTTFDir') ? $r->dir_config('GalleryTTFDir') : ''),
 				($r->dir_config('GalleryCopyrightText') ? $r->dir_config('GalleryCopyrightText') : ''),
@@ -1580,64 +1554,37 @@ sub scale_picture {
 				$quality);
 		}
 	}
+	else {
+		log_debug("scale_picture: using existing scaled picture at " . $cache_fullpath);
+	}
 
-	return $newfilename;
-
+	return $cache_fullpath;
 }
 
 # Addition by Matt Blissett, June 2011
 sub album_cover_picture {
-	my ($r, $width, $height, undef, $dirname, $newfilename, @allfiles) = @_;
+	my ($r, $dir_fullpath, $width, $height, $cache_fullpath, @all_filenames) = @_;
 
 	my @fullpath;
-	log_debug("Have $#allfiles files to select from");
+	log_debug("album_cover_picture: Have $#all_filenames files to select from");
 
-	my $inc = floor($#allfiles/4);
+	# Choose (up to) four images
+	my $inc = floor($#all_filenames/4);
 	$inc++ if ($inc == 0);
-	for (my $i = 0; $i <= $#allfiles; $i += $inc) {
+	for (my $i = 0; $i <= $#all_filenames; $i += $inc) {
 		my $j = floor($i);
-		log_debug("$i choosing ${j}th: $allfiles[$j]");
-		push @fullpath, "$dirname/" . $allfiles[$j];
+		log_debug("album_cover_picture: $i choosing ${j}th: $all_filenames[$j]");
+		push @fullpath, "$dir_fullpath/" . $all_filenames[$j];
 	}
 
-	my @dirs = split(m|/|, $fullpath[0]);
-	my $filename = pop(@dirs);
+	log_debug("album_cover_picture: 1st $fullpath[0]");
+	log_debug("album_cover_picture: 2nd $fullpath[1]");
+	log_debug("album_cover_picture: 3rd $fullpath[2]");
+	log_debug("album_cover_picture: 4th $fullpath[3]");
 
-	log_debug("filename = $filename");
-	log_debug("fullpath0 $fullpath[0]");
-	log_debug("fullpath1 $fullpath[1]");
-	log_debug("fullpath2 $fullpath[2]");
-	log_debug("fullpath3 $fullpath[3]");
+	my $quality = $r->dir_config('GalleryQuality');
 
-	my $cache = cache_dir($r, 1);
-
-	# Do we want to generate a new file in the cache?
-	my $scale = 1;
-
-	if (-f $cache."/".$newfilename) {
-		$scale = 0;
-
-		# Check to see if the image has changed
-		my $filestat = stat($fullpath[0]);
-		my $cachestat = stat($cache."/".$newfilename);
-		if ($filestat->mtime >= $cachestat->mtime) {
-			$scale = 1;
-		}
-
-		# Check to see if the copyrightimage has been added or changed
-		if ($r->dir_config('GalleryCopyrightImage') && -f $r->dir_config('GalleryCopyrightImage')) {
-			my $copyrightstat = stat($r->dir_config('GalleryCopyrightImage'));
-			if ($copyrightstat->mtime > $cachestat->mtime) {
-				$scale = 1;
-			}
-		}
-	}
-
-	if ($scale) {
-		my $newpath = $cache."/".$newfilename;
-		my $quality = $r->dir_config('GalleryQuality');
-
-		albumcoverpicture($r, $newpath, $width, $height,
+	make_album_cover_picture($r, $cache_fullpath, $width, $height,
 			($r->dir_config('GalleryCopyrightImage') ? $r->dir_config('GalleryCopyrightImage') : ''),
 			($r->dir_config('GalleryTTFDir') ? $r->dir_config('GalleryTTFDir') : ''),
 			($r->dir_config('GalleryCopyrightText') ? $r->dir_config('GalleryCopyrightText') : ''),
@@ -1647,9 +1594,8 @@ sub album_cover_picture {
 			($r->dir_config('GalleryCopyrightBackgroundColor') ?  $r->dir_config('GalleryCopyrightBackgroundColor') : ''),
 			$quality,
 			@fullpath);
-	}
 
-	return $newfilename;
+	return $cache_fullpath;
 }
 # END album_cover_picture
 
@@ -2230,15 +2176,16 @@ sub resizepicture {
 }
 
 # Addition by Matt Blissett, June 2011
-sub albumcoverpicture {
+sub make_album_cover_picture {
 	my ($r, $outfile, $x, $y, $copyrightfile, $GalleryTTFDir, $GalleryCopyrightText, $text_color, $GalleryTTFFile, $GalleryTTFSize, $GalleryCopyrightBackgroundColor, $quality, @infile) = @_;
 
 	# Load images
+	# TODO: Load one at a time to reduce memory use?
 	my @image;
 	my $i;
 	for ($i = 0; $i < 4 && $i <= $#infile; $i++) {
 		$image[$i] = Image::Imlib2->load($infile[$i]) or warn("Unable to open file $infile[$i], $!");
-		log_debug("Album cover picture: loaded file $i : $infile[$i]");
+		log_debug("make_album_cover_picture: loaded file $i : $infile[$i]");
 	}
 	my $pictures = $i;
 
@@ -2266,7 +2213,7 @@ sub albumcoverpicture {
 		}
 	}
 
-	log_debug("ACP: f $f[0], g $g[0], d $d[0], x $x, y $y, w " . $image[0]->width() . ", h " . $image[0]->height());
+	log_debug("make_album_cover_picture: f $f[0], g $g[0], d $d[0], x $x, y $y, w " . $image[0]->width() . ", h " . $image[0]->height());
 
 	if ($pictures == 4) {
 		$image->blend($image[0], 1, $f[0], $g[0], $d[0], $d[0], 0, 0, $x/2, $y/2);
