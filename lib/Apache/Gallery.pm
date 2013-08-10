@@ -952,8 +952,6 @@ sub picture_page {
 				else {
 					($orig_width, $orig_height, $type) = imgsize($path.$prevpicture);
 					($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $orig_width, $orig_height);
-					#$imageinfo = get_imageinfo($r, $path.$prevpicture, $type, $orig_width, $orig_height);
-					#$cached = get_scaled_picture_name($path.$prevpicture, $thumbnailwidth, $thumbnailheight);
 					$nav_vars{PICTURE} = uri_escape($prevpicture, $escape_rule) . "?w=$thumbnailwidth&amp;h=$thumbnailheight";
 				}
 				$tpl_vars{BACK} = $templates{navpicture}->fill_in(HASH => \%nav_vars);
@@ -1003,11 +1001,18 @@ sub picture_page {
 				else {
 					($orig_width, $orig_height, $type) = imgsize($path.$nextpicture);
 					($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $orig_width, $orig_height);
-					#$imageinfo = get_imageinfo($r, $path.$nextpicture, $type, $orig_width, $orig_height);
-					#$cached = get_scaled_picture_name($path.$nextpicture, $thumbnailwidth, $thumbnailheight);
 					$nav_vars{PICTURE} = uri_escape($nextpicture, $escape_rule) . "?w=$thumbnailwidth&amp;h=$thumbnailheight";
+
+					# Tell browser to prefetch next image
+					my $next_width; my $next_height;
+					($next_width, undef, $next_height) = get_image_display_size($cgi, $r, $orig_width, $orig_height);
+					my $next_picture_url = uri_escape($nextpicture, $escape_rule) . "?w=$next_width&amp;h=$next_height";
+					$tpl_vars{META} .= "<link rel='prefetch' href='$next_picture_url'/>\n";
 				}
 				$tpl_vars{NEXT} = $templates{navpicture}->fill_in(HASH => \%nav_vars);
+
+				# Tell browser to prefetch next page
+				$tpl_vars{META} .= "<link rel='prefetch prerender' href='$nav_vars{URL}?width=$width'/>\n";
 			}
 			else {
 				$tpl_vars{NEXT} = "";
