@@ -842,6 +842,8 @@ sub picture_page {
 
 	my $og_image;
 	$tpl_vars{TITLE} = "Viewing ".$r->uri();
+	$tpl_vars{TITLE} =~ s!^Viewing /!Viewing !;
+	$tpl_vars{TITLE} =~ s!/!&#8594;!g;
 	if ($isVideo) {
 		my @tmp = split (m|/|, $filename);
 		my $vidfilename = pop @tmp;
@@ -1029,6 +1031,16 @@ sub picture_page {
 	} else {
 		$tpl_vars{COMMENT} = '';
 	}
+	my $title_no_html = $tpl_vars{TITLE};
+	$title_no_html =~ s/<.+?>/ /sg;
+	$title_no_html =~ s/\s(\s+)/$1/g;
+	$title_no_html =~ s/^\s+|\s+$//g;
+	$tpl_vars{META} .= "<meta property='og:title' content='". $title_no_html ."'/>\n";
+	my $comment_no_html = $tpl_vars{COMMENT};
+	$comment_no_html =~ s/<.+?>/ /sg;
+	$comment_no_html =~ s/\s(\s+)/$1/g;
+	$comment_no_html =~ s/^\s+|\s+$//g;
+	$tpl_vars{META} .= "<meta property='og:description' content='". $comment_no_html ."'/>\n";
 
 	my @infos = split /, /, $r->dir_config('GalleryInfo') ? $r->dir_config('GalleryInfo') : 'Picture Taken => DateTimeOriginal, Flash => Flash';
 	my $foundinfo = 0;
