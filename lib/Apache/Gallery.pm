@@ -734,6 +734,7 @@ sub is_picture_or_video_page {
 	log_debug("is_picture_or_video_page: Looking for file for $filename");
 
 	my @extensions = split (/ /, $r->dir_config('GalleryImgFileThing') ? $r->dir_config('GalleryImgFileThing') : 'jpg jpeg png tiff ppm ogv');
+	push @extensions, split (/ /, $r->dir_config('GalleryImgFileThing') ? uc($r->dir_config('GalleryImgFileThing')) : 'JPG JPEG PNG TIFF PPM OGV');
 
 	foreach my $ext (@extensions) {
 		if (-f $filename . "." . $ext && ! -e "$filename.$ext.ignore" ) {
