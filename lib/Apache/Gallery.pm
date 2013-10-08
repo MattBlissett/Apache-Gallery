@@ -2388,7 +2388,7 @@ sub send_file_response {
 
 		$r->headers_out->{"Content-Length"} = $fileinfo->size;
 		$r->headers_out->{"Last-Modified-Date"} = time2str($fileinfo->mtime);
-		$r->headers_out->{"ETag"} = $nonce;
+		$r->headers_out->{"ETag"} = "\"$nonce\"";
 		$r->sendfile($file);
 		log_info("$tag TIME elapsed " . int((time() - $time)*1000) . "ms " . $timeurl);
 		return Apache2::Const::OK();
