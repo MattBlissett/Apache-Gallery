@@ -22,6 +22,8 @@ Not yet released
 	- Fixed some bugs
 	- OpenGraph metadata <http://ogp.me/>
 	- Default 'modern' stylesheet now fills the page with the image
+	- Pre-loading of next image (if browser supports it)
+	- Quote CSS url(...) references in case filename contains brackets
 
 1.1 Sun Aug  5 23:48:30 BST 2012
 
