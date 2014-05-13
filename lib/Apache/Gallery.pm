@@ -1109,6 +1109,7 @@ sub picture_page {
 		(
 		 $map_vars{LAT},
 		 $map_vars{LONG},
+		 $map_vars{ALTITUDE},
 		 $map_vars{LAT_NICE},
 		 $map_vars{LONG_NICE},
 		 $map_vars{STATUS},
@@ -1119,6 +1120,7 @@ sub picture_page {
 			    $imageinfo->{GPSLatitudeRef} ? $imageinfo->{GPSLatitudeRef} : '',
 			    $imageinfo->{GPSLongitude} ? $imageinfo->{GPSLongitude} : '',
 			    $imageinfo->{GPSLongitudeRef} ? $imageinfo->{GPSLongitudeRef} : '',
+			    $imageinfo->{GPSAltitude} ? $imageinfo->{GPSAltitude} : '',
 			    $imageinfo->{GPSStatus} ? $imageinfo->{GPSStatus} : '',
 			    );
 
@@ -1740,7 +1742,7 @@ sub get_imageinfo {
 					$value += $imageinfo->{$exif_key}[2] / $imageinfo->{$exif_key}[3] / 60.0;
 					$value += $imageinfo->{$exif_key}[4] / $imageinfo->{$exif_key}[5] / 60.0 / 60.0;
 				}
-				elsif ($exif_key eq 'MaxApertureValue') {
+				elsif ($exif_key eq 'MaxApertureValue' or $exif_key eq 'GPSAltitude') {
 					$value = $imageinfo->{$exif_key}[0] / $imageinfo->{$exif_key}[1];
 				}
 				else {
@@ -2402,9 +2404,9 @@ sub send_file_response {
 }
 
 sub get_georef {
-	my ($gps_lat, $gps_lat_ref, $gps_long, $gps_long_ref, $gps_status) = @_;
+	my ($gps_lat, $gps_lat_ref, $gps_long, $gps_long_ref, $gps_altitude, $gps_status) = @_;
 
-	my ($lat, $long, $lat_nice, $long_nice, $status, $pin);
+	my ($lat, $long, $altitude, $lat_nice, $long_nice, $status, $pin);
 
 	if ($gps_lat ne '' && $gps_long ne '') {
 		$status = $gps_status;
@@ -2417,12 +2419,14 @@ sub get_georef {
 		if ($gps_long_ref eq 'W') { $long = "-" };
 		$long .= $gps_long;
 
+		$altitude = $gps_altitude . "m";
+
 		$lat_nice = decimal_to_degminsec($lat, "N", "S");
 		$long_nice = decimal_to_degminsec($long, "E", "W");
 	}
 
-	log_debug("Map values are $lat, $long, $lat_nice, $long_nice, $status, $pin");
-	return ($lat, $long, $lat_nice, $long_nice, $status, $pin);
+	log_debug("Map values are $lat, $long, $altitude, $lat_nice, $long_nice, $status, $pin");
+	return ($lat, $long, $altitude, $lat_nice, $long_nice, $status, $pin);
 }
 
 sub decimal_to_degminsec {

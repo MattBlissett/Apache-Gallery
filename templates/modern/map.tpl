@@ -15,7 +15,7 @@
 <div id="map"></div>
 
 <span id="georef" about='{ $IMAGEURI }'>
-	<!--&#x1f310;-->⚐ <span property='geopos:lat' content='{ $LAT }'>{ $LAT_NICE }</span>, <span property='geopos:long' content='{ $LONG }'>{ $LONG_NICE }</span>
+	<!--&#x1f310;-->⚐ <span property='geopos:lat' content='{ $LAT }'>{ $LAT_NICE }</span> <span property='geopos:long' content='{ $LONG }'>{ $LONG_NICE }</span>, <!--&#x26f0;-->⛰ <span property='geopos:altitude' content='{ $ALTITUDE }'>{ $ALTITUDE }</span>
 </span>
 
 <script type="text/javascript">
