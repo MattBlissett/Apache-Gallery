@@ -315,3 +315,42 @@ function dumpObj(obj, name, indent, depth) {
 	return obj;
     }
 }
+
+function resizeWindow() {
+    if (document.getElementById('next') == null) {
+	return;
+    }
+
+    var h = $(window).height();
+    var w = $(window).width();
+
+    // Possibilities are 640, 800, 1024, 1600.
+    // Choose the next one down.
+
+    var picw = 640;
+
+    if (w >= 1600) {
+	picw = 1600;
+    }
+    else if (w >= 1024) {
+	picw = 1024;
+    }
+    else if (w >= 800) {
+	picw = 800;
+    }
+    else {
+	picw = 640;
+    }
+
+    var oldlink = $('#next').prop('href');
+
+    var link = oldlink.replace(/width=\d+/, 'width='+picw);
+
+    $('#next').prop('href', link);
+}
+
+$(window).resize(resizeWindow);
+
+$(document).ready(function() {
+    resizeWindow();
+});
