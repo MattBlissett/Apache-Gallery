@@ -316,41 +316,40 @@ function dumpObj(obj, name, indent, depth) {
     }
 }
 
-function resizeWindow() {
-    if (document.getElementById('next') == null) {
-	return;
-    }
+// Adjust the width parameter of the 'next' and 'previous' links according to the screen size.
+function adjustPhotoWidths() {
+	if (availablePhotoWidths.length == 0 || (document.getElementById('next') == null && document.getElementById('prev') == null)) {
+		return;
+	}
 
-    var h = $(window).height();
-    var w = $(window).width();
+	var h = $(window).height();
+	var w = $(window).width();
 
-    // Possibilities are 640, 800, 1024, 1600.
-    // Choose the next one down.
+	// Choose the largest width that's not larger than the screen.
+	var picw = availablePhotoWidths[availablePhotoWidths.length-1];
 
-    var picw = 640;
+	for (var i = availablePhotoWidths.length - 1; i >= 0; i--) {
+		if (w > availablePhotoWidths[i]) {
+			break;
+		}
+		picw = availablePhotoWidths[i];
+	}
 
-    if (w >= 1600) {
-	picw = 1600;
-    }
-    else if (w >= 1024) {
-	picw = 1024;
-    }
-    else if (w >= 800) {
-	picw = 800;
-    }
-    else {
-	picw = 640;
-    }
+	if (document.getElementById('next') != null) {
+		var oldNextLink = $('#next').prop('href');
+		var newNextLink = oldNextLink.replace(/width=\d+/, 'width='+picw);
+		$('#next').prop('href', newNextLink);
+	}
 
-    var oldlink = $('#next').prop('href');
-
-    var link = oldlink.replace(/width=\d+/, 'width='+picw);
-
-    $('#next').prop('href', link);
+	if (document.getElementById('prev') != null) {
+		var oldPrevLink = $('#prev').prop('href');
+		var newPrevLink = oldPrevLink.replace(/width=\d+/, 'width='+picw);
+		$('#prev').prop('href', newPrevLink);
+	}
 }
 
-$(window).resize(resizeWindow);
+$(window).resize(adjustPhotoWidths);
 
 $(document).ready(function() {
-    resizeWindow();
+	adjustPhotoWidths();
 });

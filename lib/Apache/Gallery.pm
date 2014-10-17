@@ -1139,6 +1139,7 @@ sub picture_page {
 	# actual image. If they are, $scaleable=1
 	my $scaleable = 0;
 	my @sizes = split (/ /, $r->dir_config('GallerySizes') ? $r->dir_config('GallerySizes') : '640 800 1024 1600');
+	my @available_sizes;
 	foreach my $size (@sizes) {
 		if ($size<=$original_size) {
 			my %sizes_vars;
@@ -1152,8 +1153,10 @@ sub picture_page {
 				$tpl_vars{SIZES} .= $templates{scale}->fill_in(HASH => \%sizes_vars);
 			}
 			$scaleable = 1;
+			push @available_sizes, $size
 		}
 	}
+	$tpl_vars{AVAILABLEWIDTHS} = join ", ", @available_sizes;
 
 	unless ($scaleable) {
 		my %sizes_vars;

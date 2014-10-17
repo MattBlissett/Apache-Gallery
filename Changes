@@ -25,6 +25,7 @@ Not yet released
 	- Pre-loading of next image (if browser supports it)
 	- Quote CSS url(...) references in case filename contains brackets
 	- Added altitude to modern template
+	- Added Javascript-controlled next/prev photo size to modern template
 
 1.1 Sun Aug  5 23:48:30 BST 2012
 
