@@ -339,6 +339,11 @@ function adjustPhotoWidths() {
 		var oldNextLink = $('#next').prop('href');
 		var newNextLink = oldNextLink.replace(/width=\d+/, 'width='+picw);
 		$('#next').prop('href', newNextLink);
+		if (document.getElementById('refresh') != null) {
+			var oldRefreshLink = $('#refresh').prop('content');
+			var newRefreshLink = oldRefreshLink.replace(/width=\d+/, 'width='+picw);
+			$('#refresh').prop('content', newRefreshLink);
+		}
 	}
 
 	if (document.getElementById('prev') != null) {

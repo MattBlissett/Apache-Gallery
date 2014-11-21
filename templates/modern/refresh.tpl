@@ -1,1 +1,1 @@
-<meta http-equiv="refresh" content="{ $INTERVAL }; url={ $URL }?slideshow={ $INTERVAL }&width={ $WIDTH }" />
+<meta id="refresh" http-equiv="refresh" content="{ $INTERVAL }; url={ $URL }?slideshow={ $INTERVAL }&width={ $WIDTH }" />
