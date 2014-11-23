@@ -117,6 +117,11 @@ function photosLoaded(event) {
 
 // Called by the map if there are geotagged photos
 function initMapElements() {
+	// Don't show the map if the window is small
+	if ($(window).width() < 1000) {
+		return;
+	}
+
 	$('#mapcontainer').css("display","block");
 	$('#mapcontainer').css("visibility","hidden");
 
@@ -351,6 +356,8 @@ function adjustPhotoWidths() {
 		var newPrevLink = oldPrevLink.replace(/width=\d+/, 'width='+picw);
 		$('#prev').prop('href', newPrevLink);
 	}
+
+	$("#size").hide();
 }
 
 $(window).resize(adjustPhotoWidths);

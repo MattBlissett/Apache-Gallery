@@ -8,22 +8,27 @@ html, body {
 	text-align: center;
 }
 
-/* Hide everything except the image when the mouse isn't over the page */
+/* Hide most of the interface when the mouse isn't over the page */
 body #footer,
 body #menu,
 body #size-slideshow,
-body #pictureinfo-map,
-body .nav {
+body #pictureinfo-map {
 	display: none;
 }
 body:hover #footer,
 body:hover #menu,
 body:hover #size-slideshow,
-body:hover #pictureinfo-map,
-body:hover .nav {
+body:hover #pictureinfo-map {
 	display: inherit;
 }
 
+/* Hide the menu on a small screen */
+@media screen and (max-width: 1000px) {
+	body #menu, body:hover #menu {
+		display: none;
+	}
+	a { outline: 1px solid yellow; }
+}
 /* Footer */
 #footer {
 	position: fixed;
