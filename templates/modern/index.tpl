@@ -9,7 +9,6 @@
 		</div>
 
 		<div id="mapcontainer">
-			<div id="slider"></div>
 			<div id="map" class="map bigmap"></div>
 		</div>
 
@@ -20,5 +19,5 @@
 </div>
 
 <script type="text/javascript">
-  bigMap();
+	createToggleMapButton();
 </script>

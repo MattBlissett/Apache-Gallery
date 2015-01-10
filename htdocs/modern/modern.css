@@ -27,8 +27,8 @@ body:hover #pictureinfo-map {
 	body #menu, body:hover #menu {
 		display: none;
 	}
-	a { outline: 1px solid yellow; }
 }
+
 /* Footer */
 #footer {
 	position: fixed;
@@ -228,8 +228,6 @@ body:hover #pictureinfo-map {
 }
 
 #files a {
-	width: 116px;
-	height: 116px;
 	position: relative;
 	display: inline-block;
 	overflow: hidden;
@@ -238,7 +236,6 @@ body:hover #pictureinfo-map {
 	background-color: #888;
 	background-repeat: no-repeat;
 	background-position: 50% 50%;
-	border-radius: 58px;
 	box-shadow: 0 0 0.8em #000, 0 0 0.5em #000, 0 0 0.2em #000;
 }
 
@@ -247,20 +244,6 @@ body:hover #pictureinfo-map {
 	position: absolute;
 	top: 0;
 	left: 0;
-}
-
-#files a:hover {
-	overflow: visible;
-
-	webkit-transition-property: all;
-	webkit-transition-duration: 0.25s;
-	z-index: 2;
-	opacity: 1;
-	
-	-o-transform: scale(1.5);
-	-webkit-transform: scale(1.5);
-	-moz-transform: scale(1.5);
-	transform: scale(1.5);
 }
 
 #files a.dimmed {
@@ -273,9 +256,6 @@ body:hover #pictureinfo-map {
 
 #files a.folder,
 #files a.file {
-	width: 112px;
-	height: 112px;
-	
 	color: black;
 	text-shadow: 0 0 2px white, 0 0 4px white, 0 0 6px white, 0 0 8px white;
 
@@ -304,11 +284,6 @@ body:hover #pictureinfo-map {
 #files a.video span {
 	margin-top: 50px;
 	border-radius: 0;
-}
-
-#files a.folder:hover {
-	border-bottom-right-radius: 58px 116px;
-	-webkit-transition-duration: 0.25s;
 }
 
 #files a.folder:hover span,
@@ -360,8 +335,9 @@ a img {
 	color: #222;
 	background: #fff;
 	margin: 1em auto;
-	border: none;
-	border-radius: 1em 0 0 1em;
+	border: 5px solid black;
+	border-width: 5px 0 0 5px;
+	border-radius: 1em 0 0 0;
 	overflow: hidden;
 
 	margin: 0 auto;
@@ -369,39 +345,21 @@ a img {
 
 .map a img {border:none;}
 
-.bigmap {
+#mapcontainer {
 	position: fixed;
-	width: 200px;
-	height: 80%;
+	width: 20%;
 	right: 0;
-	top: 10%;
+	bottom: 0;
+	background: transparent;
 }
 
 #hidemap {
 	display: block;
-	position: fixed;
-	bottom: 5%;
-	right: 0;
-	text-align: right;
-	padding: 0.2em;
+	float: right;
+	padding: 0.2em 0.4em;
 	cursor: pointer;
-
-	webkit-transition-property: all;
-	webkit-transition-duration: 0.25s;
-}
-
-.showmap {
-	content: 'Show map';
-
-	-webkit-transform: rotate(270deg) translate(4em);
-	-moz-transform: rotate(270deg) translate(4em);
-	-o-transform: rotate(270deg) translate(4em);
-	transform: rotate(270deg) translate(4em);
-
-	-webkit-transform-origin: 100% 100%;
-	-moz-transform-origin: 100% 100%;
-	-o-transform-origin: 100% 100%;
-	transform-origin: 100% 100%;
+	background: rgba(0, 0, 0, 0.5);
+	border-radius: 0.75em 0 0 0;
 }
 
 #map a[href] {
@@ -415,21 +373,6 @@ a img {
 
 #map #docs p {
 	margin-bottom: 0.5em;
-}
-
-#slider {
-	width: 1em;
-	border-left: 3px solid #555;
-	position: fixed;
-	top: 0;
-	bottom: 0;
-	right: 0;
-	z-index: 10;
-	cursor: w-resize;
-}
-#slider:hover {
-	border-color: yellow;
-	background: rgba(32, 32, 32, 0.5);
 }
 
 /* Small map */
