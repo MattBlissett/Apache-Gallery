@@ -228,6 +228,8 @@ body:hover #pictureinfo-map {
 }
 
 #files a {
+	width: 116px;
+	height: 116px;
 	position: relative;
 	display: inline-block;
 	overflow: hidden;
