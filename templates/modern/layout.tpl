@@ -10,6 +10,10 @@
 <head>
 	<title>{ $TITLE }</title>
 
+	<script type="text/javascript">
+		var availablePhotoWidths = [{ $AVAILABLEWIDTHS }];
+	</script>
+
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.1" />
 	<link rel="stylesheet" href="/ApacheGallery/modern/{ $CSS }" type="text/css"/>
 	<link rel="stylesheet" href="/ApacheGallery/modern/map.css" type="text/css"/>
@@ -18,9 +22,6 @@
 	<script type="text/javascript" src="/ApacheGallery/modern/OpenLayers.js"></script>
 	<script type="text/javascript" src="//maps.google.com/maps/api/js?v=3.6&amp;sensor=false"></script>
 	<script type="text/javascript" src="/ApacheGallery/modern/map.js"></script>
-	<script type="text/javascript">
-		var availablePhotoWidths = [{ $AVAILABLEWIDTHS }];
-	</script>
 
 	{ $META }
 </head>
