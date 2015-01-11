@@ -223,6 +223,9 @@ function smallmap(llat, llong, status) {
 	map = new OpenLayers.Map('map', { controls: [] });
 	map.addControl(new OpenLayers.Control.MouseToolbar());
 
+	$('#map').width($('#info').width());
+	$('#map').height(200);
+
 	var base = new OpenLayers.Layer.OSM();
 	map.addLayer(base);
 
@@ -465,6 +468,11 @@ function tileNicely() {
 					}
 				}
 
+				// Change CSS rule since the sizes are different.
+				var elemSpan = $("#files a:nth-child("+(p)+") span");
+				elemSpan.css("margin", "0");
+				elemSpan.css("transform", "translateX("+(w_row[j]/2)+"px) translateX(-50%) translateY("+(h_row[j]/2)+"px) translateY(-50%) rotate("+(Math.random()*0.1-0.05)+"rad)");
+
 				p++;
 			}
 
@@ -474,6 +482,7 @@ function tileNicely() {
 		}
 		i++;
 	}
+
 }
 
 $(window).resize(function() {

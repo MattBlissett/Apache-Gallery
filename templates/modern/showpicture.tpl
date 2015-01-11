@@ -15,30 +15,25 @@
 			<span class="nav right">{ $NEXT }</span>
 		</div>
 
-		<div class="clear"></div>
+		<div id="info" about="{ $IMAGEURI }">
+			<div id="picturedatetime" property="dc:created" content="{ $EXIF_DATETIMEORIGINAL }" datatype="xsd:date">{ $EXIF_DATETIMEORIGINAL }</div>
 
-		<div class="info" about="{ $IMAGEURI }">
-			<div id="pictureinfo-map">
-				{ $PICTUREINFO }
-				<div>{ $MAP }</div>
-			</div>
-			<div id="picturedata">
-				<span property="dc:created" content="{ $EXIF_DATETIMEORIGINAL }" datatype="xsd:date">{ $EXIF_DATETIMEORIGINAL }</span>
-				| { $EXIF_EXPOSURETIME }s
-				| { $EXIF_ISOSPEEDRATINGS }iso
-				| { $EXIF_FOCALLENGTH }
-				| { $EXIF_MAXAPERTUREVALUE }
+			<div id="pictureinfo">{ $PICTUREINFO }</div>
 
-				<ul class="detail">
-					<li>Flash => {$EXIF_FLASH}</li>
-					<li>MeteringMode => {$EXIF_METERINGMODE}</li>
-					<li>Camera => {$EXIF_MAKE} {$EXIF_MODEL}</li>
-					<li>WhiteBalance => {$EXIF_WHITEBALANCE}</li>
-					<li>ExposureMode => {$EXIF_EXPOSUREMODE}</li>
-					<li>MaxApertureValue => {$EXIF_MAXAPERTUREVALUE}</li>
-					<li>FNumber => {$EXIF_FNUMBER}</li>
-				</ul>
-			</div>
+			{ $MAP }
+
+			<ul id="picturedata">
+				<li>Exposure time: {$EXIF_EXPOSURETIME}s</li>
+				<li>Speed: {$EXIF_ISOSPEEDRATINGS}iso</li>
+				<li>Focal length: {$EXIF_FOCALLENGTH}</li>
+				<li>Aperture: {$EXIF_MAXAPERTUREVALUE}</li>
+				<li>{$EXIF_FLASH}</li>
+				<li>Metering mode: {$EXIF_METERINGMODE}</li>
+				<li>Camera: {$EXIF_MAKE} {$EXIF_MODEL}</li>
+				<li>White balance: {$EXIF_WHITEBALANCE}</li>
+				<li>Exposure mode: {$EXIF_EXPOSUREMODE}</li>
+				<li>F-number: {$EXIF_FNUMBER}</li>
+			</ul>
 		</div>
 	</div>
 </div>

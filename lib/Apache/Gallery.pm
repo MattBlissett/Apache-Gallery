@@ -2422,7 +2422,9 @@ sub get_georef {
 		if ($gps_long_ref eq 'W') { $long = "-" };
 		$long .= $gps_long;
 
-		$altitude = $gps_altitude . "m";
+		if (length $gps_altitude) {
+			$altitude = $gps_altitude . "m";
+		}
 
 		$lat_nice = decimal_to_degminsec($lat, "N", "S");
 		$long_nice = decimal_to_degminsec($long, "E", "W");
