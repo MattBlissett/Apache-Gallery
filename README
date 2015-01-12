@@ -273,6 +273,10 @@ FEATURES
         To ignore a directory or a file (of any kind, not only images) you
         create a <directory|file>.ignore file.
 
+        To hide a directory or a file from finding it by browsing, whilst
+        still allowing direct access if the name is known, create a
+        <directory|file>.noindex file.
+
     Comments
         To include comments for a directory you create a <directory>.comment
         file where the first line can contain "TITLE: New title" which will

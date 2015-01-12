@@ -26,6 +26,8 @@ Not yet released
 	- Quote CSS url(...) references in case filename contains brackets
 	- Added altitude to modern template
 	- Added Javascript-controlled next/prev photo size to modern template
+	- Added support to hide files from browsing, but still allow direct
+	  access, with <directory|file>.noindex.
 
 1.1 Sun Aug  5 23:48:30 BST 2012
 

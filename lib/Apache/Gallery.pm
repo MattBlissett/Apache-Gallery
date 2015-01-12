@@ -322,7 +322,7 @@ sub directory_listing {
 
 	# Read, sort, and filter files
 	# Changed implementation of "Debian bug #619625 <http://bugs.debian.org/619625>"
-	my @files = grep { !/^\./ && -f "$dirname/$_" && -r "$dirname/$_" && ! -e "$dirname/$_.ignore" } readdir (DIR);
+	my @files = grep { !/^\./ && -f "$dirname/$_" && -r "$dirname/$_" && ! -e "$dirname/$_.ignore" && ! -e "$dirname/$_.noindex" } readdir (DIR);
 
 	@files=gallerysort($r, @files);
 
@@ -348,7 +348,7 @@ sub directory_listing {
 	# Read and sort directories
 	rewinddir (DIR);
 	# Changed implementation of "Debian bug #619625 <http://bugs.debian.org/619625>"
-	my @directories = grep { !/^\./ && -d "$dirname/$_" && -r "$dirname/$_" && ! -e "$dirname/$_.ignore" } readdir (DIR);
+	my @directories = grep { !/^\./ && -d "$dirname/$_" && -r "$dirname/$_" && ! -e "$dirname/$_.ignore" && ! -e "$dirname/$_.noindex" } readdir (DIR);
 	my $dirsortby;
 	if (defined($r->dir_config('GalleryDirSortBy'))) {
 		$dirsortby=$r->dir_config('GalleryDirSortBy');
@@ -594,7 +594,7 @@ sub directory_listing {
 	my $root_path = $1;
 	if ($dirname ne $root_path && opendir (PARENT_DIR, $parent_filename)) {
 		# Debian bug #619625 <http://bugs.debian.org/619625>
-		my @neighbour_directories = grep { !/^\./ && -d "$parent_filename/$_" && -r "$parent_filename/$_" && ! -e "$parent_filename/$_.ignore" } readdir (PARENT_DIR);
+		my @neighbour_directories = grep { !/^\./ && -d "$parent_filename/$_" && -r "$parent_filename/$_" && ! -e "$parent_filename/$_.ignore" && ! -e "$dirname/$_.noindex" } readdir (PARENT_DIR);
 		my $dirsortby;
 		if (defined($r->dir_config('GalleryDirSortBy'))) {
 			$dirsortby=$r->dir_config('GalleryDirSortBy');
@@ -708,7 +708,7 @@ sub directory_icon {
 	else {
 		my $img_pattern = get_image_pattern($r);
 
-		my @files = sort grep { !/^\./ && /$img_pattern/i && -f "$dirname/$_" && -r "$dirname/$_" && ! -e "$dirname/$_/.ignore" } readdir (DIR);
+		my @files = sort grep { !/^\./ && /$img_pattern/i && -f "$dirname/$_" && -r "$dirname/$_" && ! -e "$dirname/$_.ignore" && ! -e "$dirname/$_.noindex" } readdir (DIR);
 
 		if ($#files+1 <= 0) {
 			log_debug("No files, returning 204");
@@ -733,11 +733,11 @@ sub is_picture_or_video_page {
 	my $filename = $r->filename().$r->path_info();
 	log_debug("is_picture_or_video_page: Looking for file for $filename");
 
-	my @extensions = split (/ /, $r->dir_config('GalleryImgFileThing') ? $r->dir_config('GalleryImgFileThing') : 'jpg jpeg png tiff ppm ogv');
-	push @extensions, split (/ /, $r->dir_config('GalleryImgFileThing') ? uc($r->dir_config('GalleryImgFileThing')) : 'JPG JPEG PNG TIFF PPM OGV');
+	my @extensions = split (/ /, $r->dir_config('GalleryImgFileThing') ? $r->dir_config('GalleryImgFileThing') : 'jpg jpeg png tiff ppm ogv mpg mp4');
+	push @extensions, split (/ /, $r->dir_config('GalleryImgFileThing') ? uc($r->dir_config('GalleryImgFileThing')) : 'JPG JPEG PNG TIFF PPM OGV MPG MP4');
 
 	foreach my $ext (@extensions) {
-		if (-f $filename . "." . $ext && ! -e "$filename.$ext.ignore" ) {
+		if (-f $filename . "." . $ext && ! -e "$filename.$ext.ignore" ) { # Files marked .noindex can still be accessed
 			$filename .= "." . $ext;
 			log_debug("is_picture_or_video_page: Found file $filename");
 			return ($filename, $ext);
@@ -893,7 +893,7 @@ sub picture_page {
 
 	my $doc_pattern = get_document_pattern($r);
 
-	my @pictures = grep { (/$img_pattern/i || /$vid_pattern/i) && -r "$path/$_" && ! -e "$path/$_.ignore" } readdir (DATADIR);
+	my @pictures = grep { (/$img_pattern/i || /$vid_pattern/i) && -r "$path/$_" && ! -e "$path/$_.ignore" && ! -e "$path/$_.noindex" } readdir (DATADIR);
 	closedir(DATADIR);
 	@pictures = gallerysort($r, @pictures);
 
@@ -1290,7 +1290,7 @@ sub points_file {
 	else {
 		my $img_pattern = get_image_pattern($r);
 
-		my @files = sort grep { !/^\./ && /$img_pattern/i && -f "$dirname/$_" && -r "$dirname/$_" && ! -e "$dirname/$_/.ignore"} readdir (DIR);
+		my @files = sort grep { !/^\./ && /$img_pattern/i && -f "$dirname/$_" && -r "$dirname/$_" && ! -e "$dirname/$_.ignore" && ! -e "$dirname/$_.noindex" } readdir (DIR);
 
 		log_debug("points_file: $#files files");
 
@@ -2836,7 +2836,12 @@ the number 1 inside of it.
 =item B<Ignore directories/files>
 
 To ignore a directory or a file (of any kind, not only images) you
-create a <directory|file>.ignore file.
+create a <directory|file>.ignore file.  This prevents access to the
+directory or file.
+
+To hide a directory or a file from gallery views and the previous/next
+sequence, create a file <directory|file>.noindex.  This still allows
+direct access if you know the filename.
 
 =item B<Comments>
 
