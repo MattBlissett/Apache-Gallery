@@ -1,1 +1,1 @@
-    <a id="{ $FILE }" class="picture" width="{ $WIDTH }" height="{ $HEIGHT }" href="{ $FILEURL }" style="background-image: url('{ $SRC }');"><span>{ $FILE } - { $DATE }</span></a>
+			<a id="{ $FILE }" class="picture" href="{ $FILEURL }" data-width="{ $WIDTH }" data-height="{ $HEIGHT }" data-img="{ $SRC }"><noscript><img alt="{ $FILE } - { $DATE }" width="{ $WIDTH }" height="{ $HEIGHT }" src="{ $SRC }"/></noscript><span>{ $FILE } - { $DATE }</span></a>

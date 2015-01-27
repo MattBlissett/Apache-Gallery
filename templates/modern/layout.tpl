@@ -21,7 +21,7 @@
 	<script type="text/javascript" src="/ApacheGallery/modern/jquery-1.6.2.min.js"></script>
 	<script type="text/javascript" src="/ApacheGallery/modern/OpenLayers.js"></script>
 	<script type="text/javascript" src="//maps.google.com/maps/api/js?v=3.6&amp;sensor=false"></script>
-	<script type="text/javascript" src="/ApacheGallery/modern/map.js"></script>
+	<script type="text/javascript" src="/ApacheGallery/modern/modern.js"></script>
 
 	{ $META }
 </head>

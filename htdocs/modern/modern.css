@@ -234,8 +234,8 @@ body:hover #info {
 }
 
 #files a {
-	width: 116px;
-	height: 116px;
+	width: 175px;
+	height: 175px;
 	position: relative;
 	display: inline-block;
 	overflow: hidden;
@@ -359,10 +359,6 @@ a img {
 
 #map #docs p {
 	margin-bottom: 0.5em;
-}
-
-#debug {
-	display: block;
 }
 
 /* kate: indent-mode normal; indent-width 4; space-indent off; tab-width 4; hl css; */

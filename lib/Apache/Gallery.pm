@@ -438,7 +438,7 @@ sub directory_listing {
 						HASH=> {
 							FILEURL => uri_escape($fileurl, $escape_rule),
 							# TODO: configure size of directory icon.
-							DIRICON => uri_escape($fileurl, $escape_rule) . "/.bg-116.jpg",
+							DIRICON => uri_escape($fileurl, $escape_rule) . "/.bg-100.jpg",
 							FILE    => $dirtitle,
 						});
 			}
@@ -924,7 +924,7 @@ sub picture_page {
 
 				# Chop extension off.
 				my $prevpicturenoext = $prevpicture;
-				$prevpicturenoext =~ s|\....?$||;
+				$prevpicturenoext =~ s|\.....?$||;
 
 				$nav_vars{URL}       = uri_escape($prevpicturenoext, $escape_rule);
 				$nav_vars{FILENAME}  = $prevpicturenoext;
@@ -972,7 +972,7 @@ sub picture_page {
 
 				# Chop extension off.
 				$nextpicturenoext = $nextpicture;
-				$nextpicturenoext =~ s|\....?$||;
+				$nextpicturenoext =~ s|\.....?$||;
 
 				$nav_vars{URL}       = uri_escape($nextpicturenoext, $escape_rule);
 				$nav_vars{FILENAME}  = $nextpicturenoext;
@@ -1627,7 +1627,7 @@ sub get_thumbnailsize {
 			$gallerythumbnailsize =~ /^\s*\d+\s*x\s*\d+\s*$/i;
 	}
 
-	my ($thumbnailwidth, $thumbnailheight) = split(/x/i, ($gallerythumbnailsize) ?  $gallerythumbnailsize : "100x75");
+	my ($thumbnailwidth, $thumbnailheight) = split(/x/i, ($gallerythumbnailsize) ?  $gallerythumbnailsize : "200x150");
 
 	my $width = $thumbnailwidth;
 	my $height = $thumbnailheight;
@@ -2562,7 +2562,7 @@ The default is '640 800 1024 1600'
 
 Defines the width and height of the thumbnail images.
 
-Defaults to '100x75'
+Defaults to '200x150'
 
 =item B<GalleryThumbnailSizeLS>
 

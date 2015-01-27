@@ -5,7 +5,7 @@
 	</div>
 	<div id="directory">
 		<div id="files">
-			{ $FILES }
+{ $FILES }
 		</div>
 
 		<div id="mapcontainer">

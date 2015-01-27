@@ -1,1 +1,1 @@
-    <a id="{ $FILE }" class="video" width="{ $WIDTH }" height="{ $HEIGHT }" href="{ $FILEURL }" style="background-image: url('{ $POSTER }');"><span>{ $FILE } - { $SIZE }</span></a>
+			<a id="{ $FILE }" class="video" href="{ $FILEURL }" data-width="{ $WIDTH }" data-height="{ $HEIGHT }" data-img="{ $POSTER }"><noscript><img alt="{ $FILE } - { $SIZE }" src="{ $POSTER }"</noscript><span>{ $FILE } - { $SIZE }</span></a>
