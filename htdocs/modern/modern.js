@@ -11,7 +11,15 @@ function initialiseBigMap() {
 	map.addControl(new OpenLayers.Control.LayerSwitcher());
 
 	// Load base maps
-	var base = new OpenLayers.Layer.OSM();
+	var base = new OpenLayers.Layer.OSM(
+		"OpenStreetMap",
+		// Official OSM tileset as protocol-independent URLs
+		[
+			'//a.tile.openstreetmap.org/${z}/${x}/${y}.png',
+			'//b.tile.openstreetmap.org/${z}/${x}/${y}.png',
+			'//c.tile.openstreetmap.org/${z}/${x}/${y}.png'
+		],
+		null);
 	var ghyb = new OpenLayers.Layer.Google(
 		"Google Hybrid",
 		{type: google.maps.MapTypeId.HYBRID, numZoomLevels: 20}
