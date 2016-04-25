@@ -1189,7 +1189,10 @@ sub picture_page {
 
 	if ($cgi->param('slideshow') and $nextpicture) {
 
-		$tpl_vars{SLIDESHOW} .= $templates{slideshowoff}->fill_in(HASH => \%tpl_vars);
+		my %slideshow_vars;
+		$slideshow_vars{IMAGEURI} = uri_escape($r->uri(), $escape_rule);
+		$slideshow_vars{WIDTH} = ($width > $height ? $width : $height);
+		$tpl_vars{SLIDESHOW} .= $templates{slideshowoff}->fill_in(HASH => \%slideshow_vars);
 
 		unless ((grep $cgi->param('slideshow') == $_, @slideshow_intervals)) {
 			show_error($r, 403, "Invalid interval", "Invalid slideshow interval choosen");
