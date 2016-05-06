@@ -29,6 +29,7 @@ Not yet released
 	- Added support to hide files from browsing, but still allow direct
 	  access, with <directory|file>.noindex.
 	- Remove mod_perl 1 support
+	- Remove old 'bright' and 'new' templates
 
 1.1 Sun Aug  5 23:48:30 BST 2012
 

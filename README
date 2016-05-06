@@ -320,7 +320,7 @@ AUTHOR
 COPYRIGHT AND LICENSE
     Copyright © 2001-2011 Michael Legart <michael@legart.dk>
 
-    'bright', 'default' and 'new' templates designed by Thomas Kjaer <tk@lnx.dk>
+    'default' template designed by Thomas Kjaer <tk@lnx.dk>
     'modern' template designed by Matthew Blissett.
 
     Apache::Gallery is free software and is released under the Artistic
