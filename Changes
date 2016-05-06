@@ -30,6 +30,7 @@ Not yet released
 	  access, with <directory|file>.noindex.
 	- Remove mod_perl 1 support
 	- Remove old 'bright' and 'new' templates
+	- Remove selection mode
 
 1.1 Sun Aug  5 23:48:30 BST 2012
 

@@ -15,7 +15,6 @@ BEGIN {
 	require Apache2::ServerRec;
 	require Apache2::RequestRec;
 	require Apache2::Log;
-	require APR::Table;
 	require Apache2::RequestIO;
 	require Apache2::SubRequest;
 	require Apache2::Const;
@@ -55,12 +54,6 @@ sub handler {
 	my $cgi = new CGI;
 
 	log_info("Apache Gallery request for " . $r->uri . "?" . $ENV{QUERY_STRING});
-
-	# Handle selected images
-	if ($cgi->param('selection')) {
-		log_info("Selection request");
-		return selected_images($r, $cgi);
-	}
 
 	unless (($r->method eq 'HEAD') or ($r->method eq 'GET')) {
 		return Apache2::Const::DECLINED();
@@ -213,9 +206,6 @@ sub directory_listing {
 
 	my $media_rss_enabled = $r->dir_config('GalleryEnableMediaRss');
 
-	# Selectmode providing checkboxes beside all thumbnails
-	my $select_mode = $cgi->param('select') ? "s" : "";
-
 	# Check for cached HTML for the directory
 	my $cache_fullpath = cache_dir($r);
 	if ($cgi->param('rss') && $media_rss_enabled) {
@@ -223,7 +213,7 @@ sub directory_listing {
 		$r->content_type('application/rss+xml');
 	}
 	else {
-		$cache_fullpath .= "index$select_mode.html";
+		$cache_fullpath .= "index.html";
 		$r->content_type('text/html');
 	}
 	log_debug("directory_listing: cache file is/will be " . $cache_fullpath);
@@ -297,9 +287,6 @@ sub directory_listing {
 	$tpl_vars{META} .= "<meta property='og:url' content='$og_url'/>\n";
 
 	$tpl_vars{MENU} = generate_menu($r);
-
-	$tpl_vars{FORM_BEGIN} = $select_mode ? '<form method="get">' : '';
-	$tpl_vars{FORM_END}   = $select_mode ? '<input type="submit" name="Get list" value="Get list"/></form>' : '';
 
 	# Read, sort, and filter files
 	# Changed implementation of "Debian bug #619625 <http://bugs.debian.org/619625>"
@@ -501,7 +488,6 @@ sub directory_listing {
 					WIDTH   => 176,
 					HEIGHT  => 132,
 					POSTER  => $posterthumburl,
-					SELECT  => $select_mode ? '<input type="checkbox" name="selection" value="'.$file.'">&nbsp;&nbsp;' : '',
 					);
 				$tpl_vars{FILES} .= $templates{video}->fill_in(HASH => {%tpl_vars,%file_vars});
 			}
@@ -538,7 +524,6 @@ sub directory_listing {
 					SRC     => uri_escape($fileurl, $escape_rule) . "?w=$w&amp;h=$h",
 					HEIGHT  => $h,
 					WIDTH   => $w,
-					SELECT  => $select_mode ? '<input type="checkbox" name="selection" value="'.$file.'"/>&nbsp;&nbsp;':'',
 					);
 				$tpl_vars{FILES} .= $templates{picture}->fill_in(
 					HASH => {
@@ -1368,19 +1353,6 @@ sub points_file {
 	return send_file_response($r, $cache_fullpath, "POINTS");
 }
 
-sub selected_images {
-	my $r = shift;
-	my $cgi = shift;
-
-	my @selected = $cgi->param('selection');
-	my $content = join "<br />\n",@selected;
-	$r->content_type('text/html');
-	$r->headers_out->{'Content-Length'} = length($content);
-
-	$r->print($content);
-	return Apache2::Const::OK();
-}
-
 ################################################################
 #                      # Helper methods #                      #
 ################################################################
@@ -2086,12 +2058,6 @@ sub generate_menu {
 	if ($picturename) {
 		$menu .= $picturename;
 	}
-	else {
-		if ($r->dir_config('GallerySelectionMode') && $r->dir_config('GallerySelectionMode') eq '1') {
-			$menu .= "<a href=\"".uri_escape($menuurl, $escape_rule);
-			$menu .= "?select=1\">[select]</a> ";
-		}
-	}
 
 	return $menu;
 }
@@ -2576,11 +2542,6 @@ data until the current Apache child dies.
 
 Set this option to 1 to make A::G show the files timestamp
 instead of the EXIF value for "Picture taken".
-
-=item B<GallerySelectionMode>
-
-Enable the selection mode. Select images with checkboxes and
-get a list of filenames.
 
 =item B<GalleryEXIFMode>
 
