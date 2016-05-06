@@ -136,7 +136,7 @@ sub handler {
 		return image_file($r);
 	}
 	# /dir/dir/file.mpg          Video (original)
-	# /dir/dir/file.mpg?f=ogv    Video (transcode)
+	# /dir/dir/file.mpg?f=ogv    Video (transcode -- not implemented)
 	elsif ($uri =~ m|$vid_pattern|i) {
 		log_info("Video file: $uri");
 		return image_file($r);
@@ -166,7 +166,7 @@ sub get_image_pattern {
 	my $r = shift;
 	my $img_pattern = $r->dir_config('GalleryImgFile');
 	unless ($img_pattern) {
-		$img_pattern = '\.(jpe?g|png|tiff?|ppm)$'
+		$img_pattern = '\.(jpe?g|png|tiff?|ppm)$';
 	}
 	return $img_pattern;
 }
@@ -175,16 +175,25 @@ sub get_video_pattern {
 	my $r = shift;
 	my $vid_pattern = $r->dir_config('GalleryVidFile');
 	unless ($vid_pattern) {
-		$vid_pattern = '\.(ogv|webm|mp4)$'
+		$vid_pattern = '\.(ogv|webm|mp4|mpe?g|avi|mov|asf|wmv)$';
 	}
 	return $vid_pattern;
+}
+
+sub get_audio_pattern {
+	my $r = shift;
+	my $audio_pattern = $r->dir_config('GalleryAudioFile');
+	unless ($audio_pattern) {
+		$audio_pattern = '\.(mp3|m4a|ogg|wav|flac)$';
+	}
+	return $audio_pattern;
 }
 
 sub get_document_pattern {
 	my $r = shift;
 	my $doc_pattern = $r->dir_config('GalleryDocFile');
 	unless ($doc_pattern) {
-		$doc_pattern = '\.(mpe?g|avi|mov|asf|wmv|doc|mp3|ogg|pdf|rtf|wav|dlt|txt|html?|csv|eps)$'
+		$doc_pattern = '\.(od.|xlsx?|pptx?|docx?|pdf|rtf|txt|html?|csv|eps)$';
 	}
 	return $doc_pattern;
 }
@@ -235,6 +244,7 @@ sub directory_listing {
 
 	my $img_pattern = get_image_pattern($r);
 	my $vid_pattern = get_video_pattern($r);
+	my $audio_pattern = get_audio_pattern($r);
 	my $doc_pattern = get_document_pattern($r);
 
 	my $tpl_dir = $r->dir_config('GalleryTemplateDir');
@@ -416,14 +426,13 @@ sub directory_listing {
 				my $size = $stat->size;
 				my $filetype;
 
-				if ($thumbfilename =~ m/\.(mpe?g|avi|mov|asf|wmv)$/i) {
-					$filetype = "video-$type";
-				} elsif ($thumbfilename =~ m/\.(txt|html?)$/i) {
-					$filetype = "text-$type";
-				} elsif ($thumbfilename =~ m/\.(mp3|ogg|wav)$/i) {
-					$filetype = "sound-$type";
-				} elsif ($thumbfilename =~ m/$doc_pattern/i) {
-					$filetype = "application-$type";
+				if ($thumbfilename =~ m/$vid_pattern/i) {
+					$filetype = "video";
+				} elsif ($thumbfilename =~ m/$audio_pattern/i) {
+					$filetype = "audio";
+				} elsif ($thumbfilename =~ m/\.(docx?|html?|pdf|rtf|txt)$/i) {
+					# Supported icons
+					$filetype = "filetype-$type";
 				} else {
 					$filetype = "unknown";
 				}
@@ -464,7 +473,7 @@ sub directory_listing {
 				my $posterthumbfilename = $thumbfilename;
 				$posterthumbfilename =~ s/\....$/.thm/;
 
-				my $posterthumburl = "/ApacheGallery/video-mpg.png";
+				my $posterthumburl = "/ApacheGallery/video.png";
 				if (-f $posterthumbfilename) {
 					$posterthumbfilename = $thumbfilename;
 					$posterthumbfilename =~ s/\....$/.thm/;
@@ -699,8 +708,8 @@ sub is_picture_or_video_page {
 	my $filename = $r->filename().$r->path_info();
 	log_debug("is_picture_or_video_page: Looking for file for $filename");
 
-	my @extensions = split (/ /, $r->dir_config('GalleryImgFileThing') ? $r->dir_config('GalleryImgFileThing') : 'jpg jpeg png tiff ppm ogv mpg mp4');
-	push @extensions, split (/ /, $r->dir_config('GalleryImgFileThing') ? uc($r->dir_config('GalleryImgFileThing')) : 'JPG JPEG PNG TIFF PPM OGV MPG MP4');
+	my @extensions = split (/ /, $r->dir_config('GalleryImgFileThing') ? $r->dir_config('GalleryImgFileThing') : 'jpg jpeg png tiff ppm ogv mpg mp4 tif');
+	push @extensions, split (/ /, $r->dir_config('GalleryImgFileThing') ? uc($r->dir_config('GalleryImgFileThing')) : 'JPG JPEG PNG TIFF PPM OGV MPG MP4 TIF');
 
 	foreach my $ext (@extensions) {
 		if (-f $filename . "." . $ext && ! -e "$filename.$ext.ignore" ) { # Files marked .noindex can still be accessed
@@ -2535,6 +2544,13 @@ default is "root:"
 This options controls how many thumbnails should be displayed in a
 page. It requires $BROWSELINKS to be in the index.tpl template file.
 
+=item B<GalleryAudioFile>
+
+Pattern matching the audio files you want Apache::Gallery to view in the
+index as audio files.
+
+The default is '\.(mp3|m4a|ogg|wav|flac)$'
+
 =item B<GalleryImgFile>
 
 Pattern matching the image files you want Apache::Gallery to view in the
@@ -2547,7 +2563,7 @@ The default is '\.(jpe?g|png|tiff?|ppm)$'
 Pattern matching the video files you want Apache::Gallery to view in the
 index as thumbnails, and in the gallery as HTML5 videos.
 
-The default is '\.(ogv|webm|mp4)$'
+The default is '\.(ogv|webm|mp4|mpe?g|avi|mov|asf|wmv)$'
 
 =item B<GalleryDocFile>
 
@@ -2555,7 +2571,7 @@ Pattern matching the files you want Apache::Gallery to view in the index
 as normal files. All other filetypes will still be served by Apache::Gallery
 but are not visible in the index.
 
-The default is '\.(mpe?g|avi|mov|asf|wmv|doc|mp3|ogg|pdf|rtf|wav|dlt|txt|html?|csv|eps)$'
+The default is '\.(od.|xlsx?|pptx?|docx?|pdf|rtf|txt|html?|csv|eps)$'
 
 =item B<GalleryTTFDir>
 
