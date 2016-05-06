@@ -507,7 +507,7 @@ sub directory_listing {
 				my $imageinfo = get_imageinfo($r, $thumbfilename, $type, $width, $height);
 				my $cached = get_scaled_picture_name($thumbfilename, $thumbnailwidth, $thumbnailheight);
 
-				my $rotate = readfile_getnum($r, $imageinfo, $thumbfilename.".rotate");
+				my $rotate = get_exif_orientation($r, $imageinfo);
 
 				# Debian bug #348724 <http://bugs.debian.org/348724>
 				# HTML <img> tag, alt attribute
@@ -1485,13 +1485,6 @@ sub scale_picture {
 			$scale = 1;
 		}
 
-		# Check to see if the .rotate file has been added or changed
-		if (-f $image_fullpath . ".rotate") {
-			my $rotatestat = stat($image_fullpath . ".rotate");
-			if ($rotatestat->mtime > $cache_dirstat->mtime) {
-				$scale = 1;
-			}
-		}
 		# Check to see if the copyrightimage has been added or changed
 		if ($r->dir_config('GalleryCopyrightImage') && -f $r->dir_config('GalleryCopyrightImage')) {
 			unless ($request_width == $thumbnailwidth or $request_width == $thumbnailheight) {
@@ -1504,7 +1497,7 @@ sub scale_picture {
 	}
 
 	if ($scale) {
-		my $rotate = readfile_getnum($r, $imageinfo, $image_fullpath . ".rotate");
+		my $rotate = get_exif_orientation($r, $imageinfo);
 		my $quality = $r->dir_config('GalleryQuality');
 
 		log_debug("scale_picture: writing resized picture to " . $cache_fullpath);
@@ -1886,38 +1879,21 @@ sub get_imageinfo_from_thm_file {
 	return $imageinfo;
 }
 
-sub readfile_getnum {
-	my ($r, $imageinfo, $filename) = @_;
+sub get_exif_orientation {
+	my ($r, $imageinfo) = @_;
 
 	my $rotate = 0;
 
 	log_debug("orientation: ".$imageinfo->{Orientation});
 	# Check to see if the image contains the Orientation EXIF key,
-	# but allow user to override using rotate
-	if (!defined($r->dir_config("GalleryAutoRotate"))
-		|| $r->dir_config("GalleryAutoRotate") eq "1") {
-		if (defined($imageinfo->{Orientation})) {
-			log_debug($imageinfo->{Orientation});
-			if ($imageinfo->{Orientation} eq 'right_top') {
-				$rotate=1;
-			}
-			elsif ($imageinfo->{Orientation} eq 'left_bot') {
-				$rotate=3;
-			}
+	if (defined($imageinfo->{Orientation})) {
+		log_debug($imageinfo->{Orientation});
+		if ($imageinfo->{Orientation} eq 'right_top') {
+			$rotate=1;
 		}
-	}
-
-	if (open(FH, "<$filename")) {
-		my $temp = <FH>;
-		chomp($temp);
-		close(FH);
-		unless ($temp =~ /^\d$/) {
-			$rotate = 0;
+		elsif ($imageinfo->{Orientation} eq 'left_bot') {
+			$rotate=3;
 		}
-		unless ($temp == 1 || $temp == 2 || $temp == 3) {
-			$rotate = 0;
-		}
-		$rotate = $temp;
 	}
 
 	return $rotate;
@@ -2414,7 +2390,7 @@ See the INSTALL file in the distribution for installation instructions.
 
 =head1 DESCRIPTION
 
-Apache::Gallery creates an thumbnail index of each directory and allows
+Apache::Gallery creates a thumbnail index of each directory and allows
 viewing pictures in different resolutions. Pictures are resized on the
 fly and cached. The gallery can be configured and customized in many ways
 and a custom copyright image can be added to all the images without
@@ -2432,16 +2408,6 @@ B<PerlSetVar OptionName 'value'>
 Example: B<PerlSetVar GalleryCacheDir '/var/cache/www/'>
 
 =over 4
-
-=item B<GalleryAutoRotate>
-
-Some cameras, like the Canon G3, can detect the orientation of a
-the pictures you take and will save this information in the
-'Orientation' EXIF field. Apache::Gallery will then automatically
-rotate your images.
-
-This behavior is default but can be disabled by setting GalleryAutoRotate
-to 0.
 
 =item B<GalleryCacheDir>
 
@@ -2727,29 +2693,6 @@ supported by the theme).
 =head1 FEATURES
 
 =over 4
-
-=item B<Rotate images>
-
-Some cameras, like the Canon G3, detects the orientation of a picture
-and adds this info to the EXIF header. Apache::Gallery detects this
-and automatically rotates images with this info.
-
-If your camera does not support this, you can rotate the images
-manually, This can also be used to override the rotate information
-from a camera that supports that. You can also disable this behavior
-with the GalleryAutoRotate option.
-
-To use this functionality you have to create file with the name of the
-picture you want rotated appended with ".rotate". The file should include
-a number where these numbers are supported:
-
-	"1", rotates clockwise by 90 degree
-	"2", rotates clockwise by 180 degrees
-	"3", rotates clockwise by 270 degrees
-
-So if we want to rotate "Picture1234.jpg" 90 degrees clockwise we would
-create a file in the same directory called "Picture1234.jpg.rotate" with
-the number 1 inside of it.
 
 =item B<Ignore directories/files>
 

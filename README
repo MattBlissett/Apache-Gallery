@@ -21,15 +21,6 @@ CONFIGURATION
 
     Example: PerlSetVar GalleryCacheDir '/var/cache/www/'
 
-    GalleryAutoRotate
-        Some cameras, like the Canon G3, can detect the orientation of a the
-        pictures you take and will save this information in the
-        'Orientation' EXIF field. Apache::Gallery will then automatically
-        rotate your images.
-
-        This behavior is default but can be disabled by setting
-        GalleryAutoRotate to 0.
-
     GalleryCacheDir
         Directory where Apache::Gallery should create its cache with scaled
         pictures. The default is /var/cache/www/ . Here, a directory for
@@ -243,28 +234,6 @@ CONFIGURATION
         http://piclens.com
 
 FEATURES
-    Rotate images
-        Some cameras, like the Canon G3, detects the orientation of a
-        picture and adds this info to the EXIF header. Apache::Gallery
-        detects this and automatically rotates images with this info.
-
-        If your camera does not support this, you can rotate the images
-        manually, This can also be used to override the rotate information
-        from a camera that supports that. You can also disable this behavior
-        with the GalleryAutoRotate option.
-
-        To use this functionality you have to create file with the name of
-        the picture you want rotated appended with ".rotate". The file
-        should include a number where these numbers are supported:
-
-                "1", rotates clockwise by 90 degree
-                "2", rotates clockwise by 180 degrees
-                "3", rotates clockwise by 270 degrees
-
-        So if we want to rotate "Picture1234.jpg" 90 degrees clockwise we
-        would create a file in the same directory called
-        "Picture1234.jpg.rotate" with the number 1 inside of it.
-
     Ignore directories/files
         To ignore a directory or a file (of any kind, not only images) you
         create a <directory|file>.ignore file.

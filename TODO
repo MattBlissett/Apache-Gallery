@@ -1,11 +1,6 @@
 - Write a gallery-cleancache.pl script for removing entries in
   the cache where the original picture has been removed.
 
-- /admin page to edit comments and .rotate file. (Cleanup in
-  .cache when changing rotation)
-
-- Write perlscript to make static html galleries.
-
 - Make the template and imagesystem pluggable
 
 - Thumbnails are to be generated in tmp files first,
