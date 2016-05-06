@@ -1842,10 +1842,7 @@ sub get_imageinfo {
 		}
 	}
 
-	if ($r->dir_config('GalleryUseFileDate') &&
-		($r->dir_config('GalleryUseFileDate') eq '1'
-		|| !$imageinfo->{"Picture Taken"} )) {
-
+	if (!$imageinfo->{"Picture Taken"}) {
 		my $st = stat($file);
 		$imageinfo->{"DateTimeOriginal"} = $imageinfo->{"Picture Taken"} = scalar localtime($st->mtime) if $st;
 	}
@@ -2503,11 +2500,6 @@ will revert to sorting by name.
 Cache EXIF data using Memoize - this will make Apache::Gallery faster
 when many people access the same images, but it will also cache EXIF
 data until the current Apache child dies.
-
-=item B<GalleryUseFileDate>
-
-Set this option to 1 to make A::G show the files timestamp
-instead of the EXIF value for "Picture taken".
 
 =item B<GalleryEXIFMode>
 

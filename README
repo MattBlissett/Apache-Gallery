@@ -104,10 +104,6 @@ CONFIGURATION
         faster when many people access the same images, but it will also
         cache EXIF data until the current Apache child dies.
 
-    GalleryUseFileDate
-        Set this option to 1 to make A::G show the files timestamp instead
-        of the EXIF value for "Picture taken".
-
     GalleryEXIFMode
         You can choose how Apache::Gallery should display EXIF info from
         your images.
