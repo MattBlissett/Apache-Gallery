@@ -8,34 +8,19 @@ use Time::HiRes qw/time/;
 $VERSION = "2.0-rc1";
 
 BEGIN {
-
-	if (exists($ENV{MOD_PERL_API_VERSION})
-		and ($ENV{MOD_PERL_API_VERSION}==2)) {
-		require mod_perl2;
-		if ($mod_perl::VERSION >= 1.99 && $mod_perl::VERSION < 2.0) {
-			die "mod_perl 2.0.0 or later is now required";
-		}
-		require Apache2::ServerRec;
-		require Apache2::RequestRec;
-		require Apache2::Log;
-		require APR::Table;
-		require Apache2::RequestIO;
-		require Apache2::SubRequest;
-		require Apache2::Const;
-
-		Apache2::Const->import(-compile => 'OK','DECLINED','FORBIDDEN','NOT_FOUND','HTTP_NOT_MODIFIED','HTTP_NO_CONTENT','REDIRECT');
-
-		$::MP2 = 1;
-	} else {
-		require mod_perl;
-
-		require Apache;
-		require Apache::Constants;
-		require Apache::Request;
-
-		Apache::Constants->import('OK','DECLINED','FORBIDDEN','NOT_FOUND','REDIRECT');
-		$::MP2 = 0;
+	require mod_perl2;
+	if ($mod_perl::VERSION < 2.0) {
+		die "mod_perl 2.0.0 or later is now required";
 	}
+	require Apache2::ServerRec;
+	require Apache2::RequestRec;
+	require Apache2::Log;
+	require APR::Table;
+	require Apache2::RequestIO;
+	require Apache2::SubRequest;
+	require Apache2::Const;
+
+	Apache2::Const->import(-compile => 'OK','DECLINED','FORBIDDEN','NOT_FOUND','HTTP_NOT_MODIFIED','HTTP_NO_CONTENT','REDIRECT');
 }
 
 use Image::Info qw(image_info);
@@ -78,7 +63,7 @@ sub handler {
 	}
 
 	unless (($r->method eq 'HEAD') or ($r->method eq 'GET')) {
-		return $::MP2 ? Apache2::Const::DECLINED() : Apache::Constants::DECLINED();
+		return Apache2::Const::DECLINED();
 	}
 
 	if ((not $memoized) and ($r->dir_config('GalleryMemoize'))) {
@@ -91,22 +76,18 @@ sub handler {
 
 	# Just return the http headers if the client requested that
 	if ($r->header_only) {
-		if (!$::MP2) {
-			$r->send_http_header;
-		}
-
 		my $filename = $r->filename().$r->path_info();
 		if (-f $filename or -d $filename) {
-			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
+			return Apache2::Const::OK();
 		}
 		else {
-			return $::MP2 ? Apache2::Const::NOT_FOUND() : Apache::Constants::NOT_FOUND();
+			return Apache2::Const::NOT_FOUND();
 		}
 	}
 
 	# Let Apache serve icons or favicon without us modifying the request
 	if ($r->uri =~ m!^/ApacheGallery/!i || $r->uri =~ m!^/favicon.ico!i) {
-		return $::MP2 ? Apache2::Const::DECLINED() : Apache::Constants::DECLINED();
+		return Apache2::Const::DECLINED();
 	}
 
 	my $img_pattern = get_image_pattern($r);
@@ -121,21 +102,21 @@ sub handler {
 			$uri =~ s|\.cache/||;
 			log_info("Redirecting to $uri");
 			$r->headers_out->set('Location' => $uri);
-			return $::MP2 ? Apache2::Const::REDIRECT() : Apache::Constants::REDIRECT();
+			return Apache2::Const::REDIRECT();
 		}
 		elsif ($uri =~ m|/\.cache/.bg-\d+.jpg|) {
 			# Redirect to /.bg-{}.jpg
 			$uri =~ s|\.cache/||;
 			log_info("Redirecting to $uri");
 			$r->headers_out->set('Location' => $uri);
-			return $::MP2 ? Apache2::Const::REDIRECT() : Apache::Constants::REDIRECT();
+			return Apache2::Const::REDIRECT();
 		}
 		elsif ($uri =~ m|/\.cache/\d+x\d+-.+\.[a-zA-Z0-9]+|) {
 			# Redirect to /$3?w=$1&h=2
 			$uri =~ s|/\.cache/(\d+)x(\d+)-(.+)$|/$3?w=$1&h=$2|;
 			log_info("Redirecting to $uri");
 			$r->headers_out->set('Location' => $uri);
-			return $::MP2 ? Apache2::Const::REDIRECT() : Apache::Constants::REDIRECT();
+			return Apache2::Const::REDIRECT();
 		}
 	}
 	# /dir/dir/                  Directory listing
@@ -170,7 +151,7 @@ sub handler {
 	# /dir/dir/file.txt          Document
 	elsif ($uri =~ m|$doc_pattern|i) {
 		log_info("Document file: $uri");
-		return $::MP2 ? Apache2::Const::DECLINED() : Apache::Constants::DECLINED();
+		return Apache2::Const::DECLINED();
 	}
 	# /dir/dir/file              Photo/video page
 	# (Check for existence of file.$img_pattern)
@@ -183,7 +164,7 @@ sub handler {
 	}
 
 	show_error($r, 404, "404!", "No such file or directory: ".uri_escape($r->uri, $escape_rule));
-	return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
+	return Apache2::Const::OK();
 }
 
 ######################## END HANDLER ########################
@@ -227,7 +208,7 @@ sub directory_listing {
 
 	unless (opendir (DIR, $dirname)) {
 		show_error($r, 404, "404!", "No such file or directory: ".uri_escape($r->uri, $escape_rule));
-		return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
+		return Apache2::Const::OK();
 	}
 
 	my $media_rss_enabled = $r->dir_config('GalleryEnableMediaRss');
@@ -693,7 +674,7 @@ sub directory_icon {
 
 	unless (opendir (DIR, $dirname)) {
 		show_error($r, 404, "404!", "No such file or directory: ".uri_escape($r->uri, $escape_rule));
-		return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
+		return Apache2::Const::OK();
 	}
 
 	my $cache_filename = ".bg-$image_size.jpg";
@@ -712,7 +693,7 @@ sub directory_icon {
 
 		if ($#files+1 <= 0) {
 			log_debug("No files, returning 204");
-			return $::MP2 ? Apache2::Const::HTTP_NO_CONTENT() : Apache::Constants::NOT_FOUND();
+			return Apache2::Const::HTTP_NO_CONTENT();
 		}
 
 		#log_debug(($#files+1) . " file, first " . $files[0]);
@@ -888,7 +869,7 @@ sub picture_page {
 
 	unless (opendir(DATADIR, $path)) {
 		show_error($r, 404, "404!", "No such file or directory: ".uri_escape($r->uri, $escape_rule));
-		return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
+		return Apache2::Const::OK();
 	}
 
 	my $doc_pattern = get_document_pattern($r);
@@ -1196,7 +1177,7 @@ sub picture_page {
 
 		unless ((grep $cgi->param('slideshow') == $_, @slideshow_intervals)) {
 			show_error($r, 403, "Invalid interval", "Invalid slideshow interval choosen");
-			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
+			return Apache2::Const::OK();
 		}
 
 		$tpl_vars{URL} = uri_escape($nextpicturenoext, $escape_rule);
@@ -1239,9 +1220,9 @@ sub image_file {
 		log_info("Sending full-sized image");
 		if ($r->dir_config('GalleryAllowOriginal') ? 1 : 0) {
 			$r->filename($image_fullpath);
-			return $::MP2 ? Apache2::Const::DECLINED() : Apache::Constants::DECLINED();
+			return Apache2::Const::DECLINED();
 		} else {
-			return $::MP2 ? Apache2::Const::FORBIDDEN() : Apache::Constants::FORBIDDEN();
+			return Apache2::Const::FORBIDDEN();
 		}
 	}
 
@@ -1270,7 +1251,7 @@ sub points_file {
 
 	unless (opendir (DIR, $dirname)) {
 		show_error($r, 404, "404!", "No such file or directory: ".uri_escape($r->uri, $escape_rule));
-		return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
+		return Apache2::Const::OK();
 	}
 
 	$r->content_type('application/xml');
@@ -1396,12 +1377,8 @@ sub selected_images {
 	$r->content_type('text/html');
 	$r->headers_out->{'Content-Length'} = length($content);
 
-	if (!$::MP2) {
-		$r->send_http_header;
-	}
-
 	$r->print($content);
-	return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
+	return Apache2::Const::OK();
 }
 
 ################################################################
@@ -1438,7 +1415,7 @@ sub cache_dir {
 	unless (-d $dirname) {
 		log_debug("Creating cache directory $dirname");
 		unless (create_cache($r, $dirname)) {
-			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
+			return Apache2::Const::OK();
 		}
 	}
 
@@ -1676,7 +1653,7 @@ sub get_image_display_size {
 	if ($cgi->param('width')) {
 		unless ((grep $cgi->param('width') == $_, @sizes) or ($cgi->param('width') == $original_size)) {
 			show_error($r, 403, "Invalid width", "The specified width is invalid");
-			return $::MP2 ? Apache2::Const::OK() : Apache::Constants::OK();
+			return Apache2::Const::OK();
 		}
 
 		$width = $cgi->param('width');
@@ -2379,35 +2356,27 @@ sub send_file_response {
 	my $file = shift;
 	my $tag = shift;
 
-	if ($::MP2) {
-		log_debug("Sending file $file");
-		my $fileinfo = stat($file);
+	log_debug("Sending file $file");
+	my $fileinfo = stat($file);
 
-		my $nonce = md5_base64($fileinfo->ino.$fileinfo->mtime);
-		if ($r->headers_in->{"If-None-Match"} eq $nonce) {
-			log_info("$tag NM TIME elapsed " . int((time() - $time)*1000) . "ms " . $timeurl);
-			return Apache2::Const::HTTP_NOT_MODIFIED();
-		}
-
-		if ($r->headers_in->{"If-Modified-Since"} && str2time($r->headers_in->{"If-Modified-Since"}) < $fileinfo->mtime) {
-			log_info("$tag NM TIME elapsed " . int((time() - $time)*1000) . "ms " . $timeurl);
-			return Apache2::Const::HTTP_NOT_MODIFIED();
-		}
-
-		$r->headers_out->{"Content-Length"} = $fileinfo->size;
-		$r->headers_out->{"Last-Modified-Date"} = time2str($fileinfo->mtime);
-		$r->headers_out->{"ETag"} = "\"$nonce\"";
-		$r->headers_out->{"Cache-Control"} = "public";
-		$r->sendfile($file);
-		log_info("$tag TIME elapsed " . int((time() - $time)*1000) . "ms " . $timeurl);
-		return Apache2::Const::OK();
+	my $nonce = md5_base64($fileinfo->ino.$fileinfo->mtime);
+	if ($r->headers_in->{"If-None-Match"} eq $nonce) {
+		log_info("$tag NM TIME elapsed " . int((time() - $time)*1000) . "ms " . $timeurl);
+		return Apache2::Const::HTTP_NOT_MODIFIED();
 	}
-	else {
-		$r->path_info('');
-		$r->filename($file);
-		log_info("$tag TIME elapsed " . int((time() - $time)*1000) . "ms " . $timeurl);
-		return Apache::Constants::DECLINED();
+
+	if ($r->headers_in->{"If-Modified-Since"} && str2time($r->headers_in->{"If-Modified-Since"}) < $fileinfo->mtime) {
+		log_info("$tag NM TIME elapsed " . int((time() - $time)*1000) . "ms " . $timeurl);
+		return Apache2::Const::HTTP_NOT_MODIFIED();
 	}
+
+	$r->headers_out->{"Content-Length"} = $fileinfo->size;
+	$r->headers_out->{"Last-Modified-Date"} = time2str($fileinfo->mtime);
+	$r->headers_out->{"ETag"} = "\"$nonce\"";
+	$r->headers_out->{"Cache-Control"} = "public";
+	$r->sendfile($file);
+	log_info("$tag TIME elapsed " . int((time() - $time)*1000) . "ms " . $timeurl);
+	return Apache2::Const::OK();
 }
 
 sub get_georef {
@@ -2456,30 +2425,15 @@ sub decimal_to_degminsec {
 }
 
 sub log_error {
-	if ($::MP2) {
-		Apache2::RequestUtil->request->log->error(shift());
-	}
-	else {
-		Apache->request->log_error(shift());
-	}
+	Apache2::RequestUtil->request->log->error(shift());
 }
 
 sub log_info {
-	if ($::MP2) {
-		Apache2::RequestUtil->request->log->info(shift());
-	}
-	else {
-		Apache->request->log_info(shift());
-	}
+	Apache2::RequestUtil->request->log->info(shift());
 }
 
 sub log_debug {
-	if ($::MP2) {
-		Apache2::RequestUtil->request->log->debug(shift());
-	}
-	else {
-		Apache->request->log_debug(shift());
-	}
+	Apache2::RequestUtil->request->log->debug(shift());
 }
 
 1;
