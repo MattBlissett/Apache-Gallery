@@ -678,7 +678,7 @@ sub is_picture_or_video_page {
 	log_debug("is_picture_or_video_page: Looking for file for $filename");
 
 	my @extensions = split (/ /, $r->dir_config('GalleryImgFileThing') ? $r->dir_config('GalleryImgFileThing') : 'jpg jpeg png tiff ppm ogv mpg mp4 tif');
-	push @extensions, split (/ /, $r->dir_config('GalleryImgFileThing') ? uc($r->dir_config('GalleryImgFileThing')) : 'JPG JPEG PNG TIFF PPM OGV MPG MP4 TIF');
+	push @extensions, map(uc($_), @extensions);
 
 	foreach my $ext (@extensions) {
 		if (-f $filename . "." . $ext && ! -e "$filename.$ext.ignore" ) { # Files marked .noindex can still be accessed
@@ -801,7 +801,7 @@ sub picture_page {
 			$tpl_vars{POSTER} = uri_escape($thmfilename, $escape_rule);
 		}
 		else {
-			$tpl_vars{POSTER} = "/ApacheGallery/video-mpg.png";
+			$tpl_vars{POSTER} = "/ApacheGallery/video.png";
 		}
 		$og_image = $tpl_vars{POSTER};
 	}
@@ -887,7 +887,7 @@ sub picture_page {
 						$nav_vars{PICTURE} = uri_escape($prevpicture, $escape_rule) . "?w=$thumbnailwidth&amp;h=$thumbnailheight";
 					}
 					else {
-						$nav_vars{PICTURE} = "/ApacheGallery/video-mpg.png";
+						$nav_vars{PICTURE} = "/ApacheGallery/video.png";
 					}
 					$nav_vars{VIDEO} = "video";
 				}
@@ -936,7 +936,7 @@ sub picture_page {
 						$nav_vars{PICTURE} = uri_escape($nextpicture, $escape_rule) . "?w=$thumbnailwidth&amp;h=$thumbnailheight";
 					}
 					else {
-						$nav_vars{PICTURE} = "/ApacheGallery/video-mpg.png";
+						$nav_vars{PICTURE} = "/ApacheGallery/video.png";
 					}
 					$nav_vars{VIDEO} = "video";
 				}
