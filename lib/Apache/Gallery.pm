@@ -162,6 +162,11 @@ sub handler {
 
 ######################## END HANDLER ########################
 
+sub shown_files {
+	my $prefix = shift;
+	return !/^\./ && -r "$prefix/$_" && ! -e "$prefix/$_.ignore" && ! -e "$prefix/$_.noindex";
+}
+
 sub get_image_pattern {
 	my $r = shift;
 	my $img_pattern = $r->dir_config('GalleryImgFile');
@@ -300,47 +305,19 @@ sub directory_listing {
 
 	# Read, sort, and filter files
 	# Changed implementation of "Debian bug #619625 <http://bugs.debian.org/619625>"
-	my @files = grep { !/^\./ && -f "$dirname/$_" && -r "$dirname/$_" && ! -e "$dirname/$_.ignore" && ! -e "$dirname/$_.noindex" } readdir (DIR);
+	my @dir_contents = grep { shown_files($dirname) } readdir (DIR);
+	log_debug('All' . join ';', @dir_contents);
 
-	@files=gallerysort($r, @files);
+	@dir_contents = gallerysort($r, @dir_contents);
 
-	my @downloadable_files;
-
-	if (@files) {
-		# Remove unwanted files from list
-		my @new_files = ();
-		foreach my $picture (@files) {
-			my $file = $dirname."/".$picture;
-
-			if ($file =~ /$img_pattern/i || $file =~ /$vid_pattern/i) {
-				push (@new_files, $picture);
-			}
-
-			if ($file =~ /$doc_pattern/i) {
-				push (@downloadable_files, $picture);
-			}
-		}
-		@files = @new_files;
-	}
-
-	# Read and sort directories
-	rewinddir (DIR);
-	# Changed implementation of "Debian bug #619625 <http://bugs.debian.org/619625>"
-	my @directories = grep { !/^\./ && -d "$dirname/$_" && -r "$dirname/$_" && ! -e "$dirname/$_.ignore" && ! -e "$dirname/$_.noindex" } readdir (DIR);
-	my $dirsortby;
-	if (defined($r->dir_config('GalleryDirSortBy'))) {
-		$dirsortby=$r->dir_config('GalleryDirSortBy');
-	} else {
-		$dirsortby=$r->dir_config('GallerySortBy');
-	}
-	if ($dirsortby && $dirsortby =~ m/^(size|atime|mtime|ctime)$/) {
-		@directories = map(/^\d+ (.*)/, sort map(stat("$dirname/$_")->$dirsortby()." $_", @directories));
-	} else {
-		@directories = sort @directories;
-	}
-
-	closedir(DIR);
-
+	# Split into image/video and other
+	my @directories = grep { -d "$dirname/$_" } @dir_contents;
+	my @downloadable_files = grep { -f "$dirname/$_" && /$doc_pattern/i } @dir_contents;
+	my @files = grep { -f "$dirname/$_" && (/$img_pattern/i || /$vid_pattern/i) } @dir_contents;
+	
+	log_debug('Directories  ' . join ';', @directories);
+	log_debug('Images/video ' . join ';', @files);
+	log_debug('Downloadable ' . join ';', @downloadable_files);
 
 	# Combine directories and files to one listing
 	my @listing;
@@ -373,7 +350,7 @@ sub directory_listing {
 				}
 
 				if ($start_at < $from || $start_at > $to) {
-					$browse_links .= "<a href=\"?start=$from\">$from - ".$to."</a> ";
+					$browse_links .= "<a href='?start=$from'>$from - ".$to."</a> ";
 				}
 				else {
 					$browse_links .= "$from - $to ";
@@ -386,6 +363,7 @@ sub directory_listing {
 		$tpl_vars{BROWSELINKS} = $browse_links;
 
 	  DIRLOOP:
+		# Process only files from this page of the listing
 		foreach my $file (@listing) {
 
 			$file_counter++;
@@ -411,12 +389,14 @@ sub directory_listing {
 				$dirtitle = $dirtitle ? $dirtitle : $file;
 				$dirtitle =~ s/_/ /g if $r->dir_config('GalleryUnderscoresToSpaces');
 
+				my $gallerythumbnailsize = $r->dir_config('GalleryThumbnailSize');
+				(undef, my $directory_thumbnail_size) = get_configured_thumbnail_size($r);
+
 				$tpl_vars{FILES} .=
 					$templates{directory}->fill_in(
 						HASH=> {
 							FILEURL => uri_escape($fileurl, $escape_rule),
-							# TODO: configure size of directory icon.
-							DIRICON => uri_escape($fileurl, $escape_rule) . "/.bg-100.jpg",
+							DIRICON => uri_escape($fileurl, $escape_rule) . "/.bg-".$directory_thumbnail_size.".jpg",
 							FILE    => $dirtitle,
 						});
 			}
@@ -569,19 +549,8 @@ sub directory_listing {
 	my $root_path = $1;
 	if ($dirname ne $root_path && opendir (PARENT_DIR, $parent_filename)) {
 		# Debian bug #619625 <http://bugs.debian.org/619625>
-		my @neighbour_directories = grep { !/^\./ && -d "$parent_filename/$_" && -r "$parent_filename/$_" && ! -e "$parent_filename/$_.ignore" && ! -e "$dirname/$_.noindex" } readdir (PARENT_DIR);
-		my $dirsortby;
-		if (defined($r->dir_config('GalleryDirSortBy'))) {
-			$dirsortby=$r->dir_config('GalleryDirSortBy');
-		} else {
-			$dirsortby=$r->dir_config('GallerySortBy');
-		}
-		if ($dirsortby && $dirsortby =~ m/^(size|atime|mtime|ctime)$/) {
-			@neighbour_directories = map(/^\d+ (.*)/, sort map(stat("$parent_filename/$_")->$dirsortby()." $_", @neighbour_directories));
-		} else {
-			@neighbour_directories = sort @neighbour_directories;
-		}
-
+		my @neighbour_directories = grep { -d "$parent_filename/$_" && shown_files($parent_filename) } readdir (PARENT_DIR);
+		@neighbour_directories = gallerysort($r, @neighbour_directories);
 		closedir(PARENT_DIR);
 
 		my $neighbour_counter = 0;
@@ -683,7 +652,7 @@ sub directory_icon {
 	else {
 		my $img_pattern = get_image_pattern($r);
 
-		my @files = sort grep { !/^\./ && /$img_pattern/i && -f "$dirname/$_" && -r "$dirname/$_" && ! -e "$dirname/$_.ignore" && ! -e "$dirname/$_.noindex" } readdir (DIR);
+		my @files = sort grep { /$img_pattern/i && -f "$dirname/$_" && shown_files($dirname) } readdir (DIR);
 
 		if ($#files+1 <= 0) {
 			log_debug("No files, returning 204");
@@ -868,7 +837,7 @@ sub picture_page {
 
 	my $doc_pattern = get_document_pattern($r);
 
-	my @pictures = grep { (/$img_pattern/i || /$vid_pattern/i) && -r "$path/$_" && ! -e "$path/$_.ignore" && ! -e "$path/$_.noindex" } readdir (DATADIR);
+	my @pictures = grep { (/$img_pattern/i || /$vid_pattern/i) && shown_files($path) } readdir (DATADIR);
 	closedir(DATADIR);
 	@pictures = gallerysort($r, @pictures);
 
@@ -1268,7 +1237,7 @@ sub points_file {
 	else {
 		my $img_pattern = get_image_pattern($r);
 
-		my @files = sort grep { !/^\./ && /$img_pattern/i && -f "$dirname/$_" && -r "$dirname/$_" && ! -e "$dirname/$_.ignore" && ! -e "$dirname/$_.noindex" } readdir (DIR);
+		my @files = sort grep { /$img_pattern/i && -f "$dirname/$_" && shown_files($dirname) } readdir (DIR);
 
 		log_debug("points_file: $#files files");
 
@@ -1571,20 +1540,25 @@ sub album_cover_picture {
 }
 # END album_cover_picture
 
-sub get_thumbnailsize {
-	my ($r, $orig_width, $orig_height) = @_;
+sub get_configured_thumbnail_size {
+	my $r = shift;
+				log_debug("r is ". $r);
 
-	my $gallerythumbnailsize=$r->dir_config('GalleryThumbnailSize');
+	my $gallerythumbnailsize = $r->dir_config('GalleryThumbnailSize');
 
 	if (defined($gallerythumbnailsize)) {
 		warn("Invalid setting for GalleryThumbnailSize") unless
 			$gallerythumbnailsize =~ /^\s*\d+\s*x\s*\d+\s*$/i;
 	}
 
-	my ($thumbnailwidth, $thumbnailheight) = split(/x/i, ($gallerythumbnailsize) ?  $gallerythumbnailsize : "200x150");
+	my ($thumbnailwidth, $thumbnailheight) = split(/x/i, ($gallerythumbnailsize) ? $gallerythumbnailsize : "200x150");
+}
 
-	my $width = $thumbnailwidth;
-	my $height = $thumbnailheight;
+sub get_thumbnailsize {
+	my ($r, $orig_width, $orig_height) = @_;
+
+	my ($width, $height) = get_configured_thumbnail_size($r);
+	my ($thumbnailwidth, $thumbnailheight) = ($width, $height);
 
 	# If the image is rotated, flip everything around.
 	if (defined $r->dir_config('GalleryThumbnailSizeLS') and $r->dir_config('GalleryThumbnailSizeLS') eq '1' and $orig_width < $orig_height) {
@@ -2497,12 +2471,6 @@ a slideshow. The default is '3 5 10 15 30'
 
 Instead of the default filename ordering you can sort by any
 stat attribute. For example size, atime, mtime, ctime.
-
-=item B<GalleryDirSortBy>
-
-Set this variable to sort directories differently than other items,
-can be set to size, atime, mtime and ctime; setting any other value
-will revert to sorting by name.
 
 =item B<GalleryMemoize>
 
