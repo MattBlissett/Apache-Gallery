@@ -3,7 +3,8 @@
 
 	<div id="directory">
 		<div id="picture">
-			<video rel="foaf:primaryTopicOf" controls src="{ $SRC }">
+			<video rel="foaf:primaryTopicOf" poster="{ $POSTER }" controls>
+				{ $SRCS }
 				<p>Your browser doesn't support playing this video file directly. You could try <a href="{ $SRC }">downloading it</a>.</p>
 				<a href="{ $SRC }"><img src="{ $POSTER }" alt="Video thumbnail"></a>
 			</video>

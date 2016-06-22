@@ -76,6 +76,11 @@ body:hover #info {
 	max-height: 100%;
 }
 
+#picture video {
+    height: 100%;
+    width: auto;
+}
+
 #menu,
 #size-slideshow,
 #info {

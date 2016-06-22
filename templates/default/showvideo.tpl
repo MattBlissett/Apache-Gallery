@@ -8,7 +8,8 @@
         <td colspan="3" id="picture">
           <center class="nav">
             Viewing picture (video) { $NUMBER } of { $TOTAL }<br>
-            <video controls src="{ $SRC }">
+            <video controls poster="{ $POSTER }">
+              { $SRCS }
               <p>Your browser doesn't support playing this video file directly. You could try <a href="{ $SRC }">downloading it</a>.</p>
               <a href="{ $SRC }"><img src="{ $POSTER }" alt="Video thumbnail"></a>
             </video><br>

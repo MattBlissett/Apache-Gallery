@@ -180,7 +180,7 @@ sub get_video_pattern {
 	my $r = shift;
 	my $vid_pattern = $r->dir_config('GalleryVidFile');
 	unless ($vid_pattern) {
-		$vid_pattern = '\.(ogv|webm|mp4|mpe?g|avi|mov|asf|wmv)$';
+		$vid_pattern = '\.(ogv|ogx|m4v|mp4|webm|mp4)$';
 	}
 	return $vid_pattern;
 }
@@ -198,7 +198,7 @@ sub get_document_pattern {
 	my $r = shift;
 	my $doc_pattern = $r->dir_config('GalleryDocFile');
 	unless ($doc_pattern) {
-		$doc_pattern = '\.(od.|xlsx?|pptx?|docx?|pdf|rtf|txt|html?|csv|eps)$';
+		$doc_pattern = '\.(mp3|m4a|ogg|wav|flac|od.|xlsx?|pptx?|docx?|pdf|rtf|txt|html?|csv|eps)$';
 	}
 	return $doc_pattern;
 }
@@ -362,6 +362,8 @@ sub directory_listing {
 
 		$tpl_vars{BROWSELINKS} = $browse_links;
 
+		my @video_filenames;
+
 	  DIRLOOP:
 		# Process only files from this page of the listing
 		foreach my $file (@listing) {
@@ -435,6 +437,18 @@ sub directory_listing {
 					);
 			}
 			elsif (-f $thumbfilename && $thumbfilename =~ /$vid_pattern/i) {
+				# Chop extension off.
+				my $fileurlnoext = $fileurl;
+				$fileurlnoext =~ s|\.....?$||;
+
+				# Ignore if there's already a video with a different extension shown
+				if (grep /^$fileurlnoext$/, @video_filenames) {
+					next;
+				}
+				else {
+					push (@video_filenames, $fileurlnoext);
+				}
+
 				my $stat = stat($thumbfilename);
 				my $size = $stat->size;
 				my $magnitude = 0;
@@ -445,18 +459,12 @@ sub directory_listing {
 				my @mag = ("B", "kiB", "MiB", "GiB", "TiB");
 				$size = int($size) . $mag[$magnitude];
 
-				# Chop extension off.
-				my $fileurlnoext = $fileurl;
-				$fileurlnoext =~ s|\....?$||;
-
 				# Should generate the thumb file from the video
 				my $posterthumbfilename = $thumbfilename;
-				$posterthumbfilename =~ s/\....$/.thm/;
+				$posterthumbfilename =~ s/\.....?$/.thm/;
 
 				my $posterthumburl = "/ApacheGallery/video.png";
 				if (-f $posterthumbfilename) {
-					$posterthumbfilename = $thumbfilename;
-					$posterthumbfilename =~ s/\....$/.thm/;
 					my ($width, $height, $type) = imgsize($posterthumbfilename);
 					my @filetypes = qw(JPG TIF PNG PPM GIF);
 					unless ($type eq 'Data stream is not a known image file format') {
@@ -677,7 +685,7 @@ sub is_picture_or_video_page {
 	my $filename = $r->filename().$r->path_info();
 	log_debug("is_picture_or_video_page: Looking for file for $filename");
 
-	my @extensions = split (/ /, $r->dir_config('GalleryImgFileThing') ? $r->dir_config('GalleryImgFileThing') : 'jpg jpeg png tiff ppm ogv mpg mp4 tif');
+	my @extensions = split (/ /, $r->dir_config('GalleryImgFileThing') ? $r->dir_config('GalleryImgFileThing') : 'jpg jpeg png tif tiff ppm ogv ogx m4v mp4 webm');
 	push @extensions, map(uc($_), @extensions);
 
 	foreach my $ext (@extensions) {
@@ -691,7 +699,7 @@ sub is_picture_or_video_page {
 	return;
 }
 
-# HTML page for an image
+# HTML page for an image or video
 sub picture_page {
 	my $r = shift;
 	my $filename = shift;
@@ -786,16 +794,51 @@ sub picture_page {
 	}
 
 	my $og_image;
+	my $vidfilename = '';
+	my $vidfilenamenoext = '';
 	$tpl_vars{TITLE} = "Viewing ".$r->uri();
 	$tpl_vars{TITLE} =~ s!^Viewing /!Viewing !;
 	$tpl_vars{TITLE} =~ s!/!&#8594;!g;
 	if ($isVideo) {
 		my @tmp = split (m|/|, $filename);
-		my $vidfilename = pop @tmp;
+		$vidfilename = pop @tmp;
+
+		# Chop extension off.
+		$vidfilenamenoext = $vidfilename;
+		$vidfilenamenoext =~ s|\.....?$||;
+
+		# Would be better not to repeat opening the directory later in this function
+		unless (opendir(DATADIR, $path)) {
+			show_error($r, 404, "404!", "No such file or directory: ".uri_escape($r->uri, $escape_rule));
+			return Apache2::Const::OK();
+		}
+
+		my @all_vid_versions = grep { /^$vidfilenamenoext\./ && /$vid_pattern/i && shown_files($path) } readdir (DATADIR);
+		closedir(DATADIR);
+
+		my @sources;
+		push @sources, map(uri_escape($_, $escape_rule), @all_vid_versions);
+
+		my %video_mime = (
+			ogg => "video/ogg", # More commonly audio/ogg (and .oga, .spx)
+			ogv => "video/ogg",
+			ogx => "application/ogg",
+			m4v => "video/mp4",
+			mp4 => "video/mp4",
+			webm => "video/webm",
+			);
+		
+		foreach my $v (@sources) {
+			$v =~ m/\.(....?)$/;
+			my $t = $video_mime{$1} ? $video_mime{$1} : "video/$1";
+			$tpl_vars{SRCS} .= "<source src='$v' type='$t'>\n";
+		}
+
+		# Fallback source
 		$tpl_vars{SRC} = uri_escape($vidfilename, $escape_rule);
 
 		my $thmfilename = $vidfilename;
-		$thmfilename =~ s/\....?$/.thm/;
+		$thmfilename =~ s/\.....?$/.thm/;
 		if (-f $path.$thmfilename) {
 			# TODO: Scale
 			$tpl_vars{POSTER} = uri_escape($thmfilename, $escape_rule);
@@ -837,7 +880,7 @@ sub picture_page {
 
 	my $doc_pattern = get_document_pattern($r);
 
-	my @pictures = grep { (/$img_pattern/i || /$vid_pattern/i) && shown_files($path) } readdir (DATADIR);
+	my @pictures = grep { (/^$vidfilenamenoext\./ == /^$vidfilename$/) && (/$img_pattern/i || /$vid_pattern/i) && shown_files($path) } readdir (DATADIR);
 	closedir(DATADIR);
 	@pictures = gallerysort($r, @pictures);
 
