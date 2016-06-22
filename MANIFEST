@@ -113,7 +113,7 @@ templates/default/navdirectory.tpl
 templates/default/navpicture.tpl
 templates/default/nodircomment.tpl
 templates/default/nopictureinfo.tpl
-templates/default/orig.tpl
+templates/default/original.tpl
 templates/default/picture.tpl
 templates/default/pictureinfo.tpl
 templates/default/refresh.tpl
@@ -140,7 +140,7 @@ templates/modern/navdirectory.tpl
 templates/modern/navpicture.tpl
 templates/modern/nodircomment.tpl
 templates/modern/nopictureinfo.tpl
-templates/modern/orig.tpl
+templates/modern/original.tpl
 templates/modern/picture.tpl
 templates/modern/pictureinfo.tpl
 templates/modern/point.tpl

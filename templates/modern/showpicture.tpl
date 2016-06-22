@@ -5,6 +5,7 @@
 		<div id="picture">
 			<img rel="foaf:primaryTopicOf" src="{ $SRC }" alt="{ $TITLE }"/>
 			<div id="size-slideshow">
+				{ $ORIGINAL }
 				<span id="size">◱ <span>{ $SIZES }</span></span>
 				<span id="slideshow">⌚ <span>{ $SLIDESHOW }</span></span>
 			</div>

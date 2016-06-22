@@ -6,11 +6,12 @@
     <table>
       <tr>
         <td colspan="3" id="picture">
-						<center class="nav">
-						Viewing picture { $NUMBER } of { $TOTAL } at { $RESOLUTION } pixels<br>
+          <center class="nav">
+            Viewing picture { $NUMBER } of { $TOTAL } at { $RESOLUTION } pixels<br>
             <img src="{ $SRC }"><br>
             Size [ { $SIZES } ]<br>
-						Slideshow [ { $SLIDESHOW } ]
+            Slideshow [ { $SLIDESHOW } ]<br>
+            { $ORIGINAL }
           </center>
         </td>
       </tr>

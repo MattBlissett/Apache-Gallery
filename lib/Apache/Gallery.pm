@@ -763,7 +763,7 @@ sub picture_page {
 		 map            => "$tpl_dir/map.tpl",
 		 scale          => "$tpl_dir/scale.tpl",
 		 scaleactive    => "$tpl_dir/scaleactive.tpl",
-		 orig           => "$tpl_dir/orig.tpl",
+		 original       => "$tpl_dir/original.tpl",
 		 refresh        => "$tpl_dir/refresh.tpl",
 		 interval       => "$tpl_dir/interval.tpl",
 		 intervalactive => "$tpl_dir/intervalactive.tpl",
@@ -1113,7 +1113,7 @@ sub picture_page {
 	$tpl_vars{IMAGEURI} = uri_escape($r->uri() . ".$ext", $escape_rule);
 
 	if ($r->dir_config('GalleryAllowOriginal')) {
-		$tpl_vars{SIZES} .= $templates{orig}->fill_in(HASH => \%tpl_vars);
+		$tpl_vars{ORIGINAL} = $templates{original}->fill_in(HASH => \%tpl_vars);
 	}
 
 	foreach my $interval (@slideshow_intervals) {
