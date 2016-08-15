@@ -729,6 +729,12 @@ sub picture_page {
 	else {
 		($orig_width, $orig_height, $type) = imgsize($filename);
 		$imageinfo = get_imageinfo($r, $filename, $type, $orig_width, $orig_height);
+		my $rotate = get_exif_orientation($r, $imageinfo);
+
+		if (grep($rotate==$_, (1, 3))) {
+			($orig_width, $orig_height) = ($orig_height, $orig_width);
+		}
+
 		($image_width, $width, $height, $original_size) = get_image_display_size($cgi, $r, $orig_width, $orig_height);
 		$cached = get_scaled_picture_name($filename, $image_width, $height);
 	}
@@ -1479,6 +1485,13 @@ sub scale_picture {
 	my ($orig_width, $orig_height, $type) = imgsize($image_fullpath);
 
 	my $imageinfo = get_imageinfo($r, $image_fullpath, $type, $orig_width, $orig_height);
+
+	# Take into account the EXIF orientation.
+	my $rotate = get_exif_orientation($r, $imageinfo);
+	if (grep($rotate==$_, (1, 3))) {
+		($request_width, $request_height) = ($request_height, $request_width);
+		($orig_width, $orig_height) = ($orig_height, $orig_width);
+	}
 
 	if (($request_width > $orig_width) && ($request_height > $orig_height)) {
 		# Run it through the resize code anyway to get watermarks
