@@ -8,8 +8,8 @@
 { $FILES }
 		</div>
 
-		<div id="mapcontainer">
-			<div id="map" class="map bigmap"></div>
+		<div id="mapcontainer" class="gallerymap">
+			<div id="map" class="map"></div>
 		</div>
 
 		<div id="dircomment">

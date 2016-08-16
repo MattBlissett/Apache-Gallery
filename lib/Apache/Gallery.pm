@@ -118,7 +118,7 @@ sub handler {
 		log_info("Directory listing: $uri");
 		return directory_listing($r);
 	}
-	# /dir/dir/.points.xml      Points -- or put it in the XHTML?
+	# /dir/dir/.points.xml       Points -- or put it in the XHTML?
 	elsif ($uri =~ m|/\.points\.xml$|) {
 		log_info("Points file: $uri");
 		return points_file($r);

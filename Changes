@@ -31,6 +31,8 @@ Not yet released
 	- Remove mod_perl 1 support
 	- Remove old 'bright' and 'new' templates
 	- Remove selection mode
+	- Default 'modern' stylesheet is now responsive and shows
+	  larger map on top or right of screen
 
 1.1 Sun Aug  5 23:48:30 BST 2012
 

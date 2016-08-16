@@ -140,40 +140,57 @@ function initMapElements() {
 	//});
 
 	$('#map').css("width",$('#mapcontainer').innerWidth());
-	$('#map').css("height",$(window).height()/3.0);
 	map.updateSize();
 }
 
 // Creates a button to allow the user to show the large map.
+// (First function called)
 function createToggleMapButton() {
-	// Don't show the map if the window is small
-	if ($(window).width() < 800) {
-		return;
-	}
 
 	$('#map').css("display","none");
 	$('#mapcontainer').css("display","block");
 	$('#mapcontainer').css("visibility","visible");
 
-	// Set up the 'hide map' button
-	var hide = $('#map').before('<div id="hidemap">Toggle map</div>');
-	$('#hidemap').bind('click', function() {
-		if (!mapInitialised) {
-			mapHidden = false;
-			initialiseBigMap();
+	// Set up the 'toggle map' button
+	var hide = $('#menu').append('<div id="menuButtons"><a id="toggleMap">&#x1f30d;</a></div>');
+	$('#toggleMap').bind('click', toggleMap);
+}
+
+// Toggle the display of the map
+function toggleMap() {
+	// Map is shown on top or right depending on screen size
+	var mapClass;
+	if ($(window).width() < $(window).height()) {
+		mapClass = 'mapOnTop';
+		$('#map').css("height",$(window).height()/3.0);
+	}
+	else {
+		mapClass = 'mapOnRight';
+		$('#map').css("height",$(window).height());
+	}
+
+	if (!mapInitialised) {
+		mapHidden = false;
+		initialiseBigMap();
+		$('#directory').addClass(mapClass);
+	}
+
+	if (mapInitialised) {
+		mapHidden = !mapHidden;
+		if (!mapHidden) {
+			$('#map').css("display","block");
+			$('#directory').addClass(mapClass);
 		}
-		if (mapInitialised) {
-			mapHidden = !mapHidden;
-			if (!mapHidden) {
-				$('#map').css("display","block");
-			}
-			else {
-				$('#map').css("display","none");
-			}
-			undimAll();
+		else {
+			$('#map').css("display","none");
+			$('#directory').removeClass(mapClass);
 		}
-		mapInitialised = true;
-	});
+		undimAll();
+	}
+
+	tileNicely();
+
+	mapInitialised = true;
 }
 
 // Highlights all photos in the cluster.
@@ -196,7 +213,7 @@ function highlight(event) {
 	var idstring = String(event.feature.cluster[0].attributes.file);
 	if (!visible) {
 		$('html, body').animate({
-			scrollTop: $(jq(idstring)).offset().top
+			scrollTop: $(jq(idstring)).offset().top - $('#menu').height() - 20
 		}, 1000);
 	}
 
@@ -478,6 +495,8 @@ function tileNicely() {
 $(window).resize(function() {
 	adjustPhotoWidths();
 	tileNicely();
+	$('#map').css("width",$('#mapcontainer').innerWidth());
+	map.updateSize();
 });
 
 $(document).ready(function() {
