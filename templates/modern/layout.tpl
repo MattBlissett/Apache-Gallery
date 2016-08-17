@@ -17,6 +17,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=0.1" />
 	<link rel="stylesheet" href="/ApacheGallery/modern/{ $CSS }" type="text/css"/>
 	<link rel="stylesheet" href="/ApacheGallery/modern/map.css" type="text/css"/>
+	<meta name="theme-color" content="#555">
 
 	<script type="text/javascript" src="/ApacheGallery/modern/jquery-1.6.2.min.js"></script>
 	<script type="text/javascript" src="/ApacheGallery/modern/OpenLayers.js"></script>

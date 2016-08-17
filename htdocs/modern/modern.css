@@ -27,13 +27,21 @@ html, body {
 
 	color: #fff;
 	font-size: 80%;
-	padding: 0.5rem 1rem;
+	padding: 0.5rem 1em;
 	background: #555;
 	border-top: 2px solid #777;
 }
 
 #footer br {
 	display: none;
+}
+
+@media only screen and (max-width: 600px) {
+	#footer {
+		font-size: 50%;
+		padding: 0.2em 1em;
+		border-width: 1px;
+	}
 }
 
 /* License */
@@ -51,8 +59,8 @@ html, body {
 /* Main container */
 #directory {
 	position: absolute;
-	top: 3.49em;
-	bottom: 2em;
+	top: 3.49rem;
+	bottom: 2rem;
 	left: 0;
 	right: 0;
 
@@ -61,6 +69,13 @@ html, body {
 
 .infoOnRight #directory {
 	right: 25%;
+}
+
+@media only screen and (max-width: 600px) {
+	#directory {
+		top: 1.49rem;
+		bottom: 0.99em;
+	}
 }
 
 /* Directory view */
@@ -133,6 +148,27 @@ html, body {
 #menuButtons > ul:hover ul {
 	display: block;
 	position: absolute;
+}
+
+@media only screen and (max-width: 600px) {
+	#menu {
+		height: 1.5rem;
+		font-size: 0.8em;
+		padding: 0.2em 0.4em;
+		border-width: 1px;
+	}
+
+	#menuButtons {
+		top: 0;
+	}
+
+	#menuButtons > a {
+		font-size: 1em;
+	}
+
+	#menuButtons > ul {
+		font-size: 1em;
+	}
 }
 
 /* Picture display — main picture + next and previous picture links */
@@ -249,6 +285,15 @@ html, body {
 	border-radius: 1em 0 0 0;
 }
 
+@media only screen and (max-width: 600px) {
+	.nav.left {
+		top: 1.5rem;
+	}
+	.nav.right {
+		bottom: 1rem;
+	}
+}
+
 .nav img {
 	display: none;
 }
@@ -348,6 +393,16 @@ a img {
 	height: 33%;
 	top: 3.5rem;
 	width: 100%;
+}
+
+@media only screen and (max-width: 600px) {
+	.mapOnRight .gallerymap {
+		top: 1.49rem;
+	}
+
+	.mapOnTop .gallerymap {
+		top: 1.5rem;
+	}
 }
 
 #map {
