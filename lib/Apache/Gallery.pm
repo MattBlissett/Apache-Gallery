@@ -85,6 +85,7 @@ sub handler {
 
 	my $img_pattern = get_image_pattern($r);
 	my $vid_pattern = get_video_pattern($r);
+	my $track_pattern = get_track_pattern($r);
 	my $doc_pattern = get_document_pattern($r);
 
 	my $uri = $r->uri;
@@ -146,6 +147,11 @@ sub handler {
 		log_info("Document file: $uri");
 		return Apache2::Const::DECLINED();
 	}
+	# /dir/dir/file.gpx          Track
+	elsif ($uri =~ m|$track_pattern|i) {
+		log_info("Track file: $uri");
+		return Apache2::Const::DECLINED();
+	}
 	# /dir/dir/file              Photo/video page
 	# (Check for existence of file.$img_pattern)
 	elsif (my ($f, $e) = is_picture_or_video_page($r)) {
@@ -192,6 +198,15 @@ sub get_audio_pattern {
 		$audio_pattern = '\.(mp3|m4a|ogg|wav|flac)$';
 	}
 	return $audio_pattern;
+}
+
+sub get_track_pattern {
+	my $r = shift;
+	my $track_pattern = $r->dir_config('GalleryTrackFile');
+	unless ($track_pattern) {
+		$track_pattern = '\.(gpx)$';
+	}
+	return $track_pattern;
 }
 
 sub get_document_pattern {
@@ -250,6 +265,7 @@ sub directory_listing {
 	my $img_pattern = get_image_pattern($r);
 	my $vid_pattern = get_video_pattern($r);
 	my $audio_pattern = get_audio_pattern($r);
+	my $track_pattern = get_track_pattern($r);
 	my $doc_pattern = get_document_pattern($r);
 
 	my $tpl_dir = $r->dir_config('GalleryTemplateDir');
@@ -313,11 +329,13 @@ sub directory_listing {
 	# Split into image/video and other
 	my @directories = grep { -d "$dirname/$_" } @dir_contents;
 	my @downloadable_files = grep { -f "$dirname/$_" && /$doc_pattern/i } @dir_contents;
+	my @track_files = grep { -f "$dirname/$_" && /$track_pattern/i } @dir_contents;
 	my @files = grep { -f "$dirname/$_" && (/$img_pattern/i || /$vid_pattern/i) } @dir_contents;
-	
+
 	log_debug('Directories  ' . join ';', @directories);
-	log_debug('Images/video ' . join ';', @files);
 	log_debug('Downloadable ' . join ';', @downloadable_files);
+	log_debug('Tracks ' . join ';', @track_files);
+	log_debug('Images/video ' . join ';', @files);
 
 	# Combine directories and files to one listing
 	my @listing;
@@ -606,6 +624,9 @@ sub directory_listing {
 	} else {
 		$tpl_vars{DIRCOMMENT} = $templates{nocomment}->fill_in(HASH=>\%tpl_vars);
 	}
+
+	my $track_files_js = join(',', map { "'" . $_ . "'" } @track_files);
+	$tpl_vars{AVAILABLETRACKS} = $track_files_js;
 
 	if ($cgi->param('rss')) {
 		$tpl_vars{MAIN} = $templates{rss}->fill_in(HASH => \%tpl_vars);
@@ -2588,6 +2609,13 @@ Pattern matching the video files you want Apache::Gallery to view in the
 index as thumbnails, and in the gallery as HTML5 videos.
 
 The default is '\.(ogv|webm|mp4|mpe?g|avi|mov|asf|wmv)$'
+
+=item B<GalleryTrackFile>
+
+Pattern matching the track (map trail) files you want Apache::Gallery to view
+on maps.
+
+The default is '\.(gpx)$'
 
 =item B<GalleryDocFile>
 

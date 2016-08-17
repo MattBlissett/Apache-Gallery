@@ -8,6 +8,10 @@
 { $FILES }
 		</div>
 
+		<script type="text/javascript">
+			var availableTracks = [{ $AVAILABLETRACKS }];
+		</script>
+
 		<div id="mapcontainer" class="gallerymap">
 			<div id="map" class="map"></div>
 		</div>

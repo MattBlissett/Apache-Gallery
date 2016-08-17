@@ -33,6 +33,7 @@ Not yet released
 	- Remove selection mode
 	- Default 'modern' stylesheet is now responsive and shows
 	  larger map on top or right of screen
+	- Show GPS tracks on the map
 
 1.1 Sun Aug  5 23:48:30 BST 2012
 
@@ -90,7 +91,7 @@ Not yet released
 	- Bugfix: If only one GallerySize was specified, the image's
 	  max width was autmatically added to GallerySizes
 	  (Andreas Plesner)
-	- Bugfix: Locate thm files if they are called .thm or .THM 
+	- Bugfix: Locate thm files if they are called .thm or .THM
 		(Michael Legart)
 
 1.0RC2 Wed Jun  1 09:11:50 CEST 2005
@@ -155,7 +156,7 @@ Not yet released
 
 0.7 Mon Sep  8 22:30:35 CEST 2003
 
-	- Support mod_perl version 1 and 2 (1.99) (Michael Legart)	
+	- Support mod_perl version 1 and 2 (1.99) (Michael Legart)
 	- Send status code 500 on errors, 404 on file not found and
 	  make IE show our own errorpage. (Thomas L. Kjeldsen)
 	- Bugfix for directories named "0" (Andreas Plesner Jacobsen)
@@ -193,10 +194,10 @@ Not yet released
 	- Show nice icons and allow downloads for doc,mp3,ogg,rtf,wav
 	  and wmv in addition to the current movie types (Me)
 	- Now displays nice values for Aperture,FocalLength,ShutterSpeed
-	  exif values (Thomas Eibner) 
+	  exif values (Thomas Eibner)
 	- Directory comments added (Hans Joergensen)
 	- New GallerySortBy option to allow sort by time, size etc (Iain Wade)
-	- Set width/height on thumbnail images for better performance (Iain Wade) 
+	- Set width/height on thumbnail images for better performance (Iain Wade)
 
 0.5.1 Sat Nov  9 11:49:29 CET 2002
 
@@ -209,7 +210,7 @@ Not yet released
 
 0.5 Sun Sep 15 11:55:56 CEST 2002
 
-	- Added slideshow feature (Me)	
+	- Added slideshow feature (Me)
 	- Code cleanup (Me)
 	- Moved the cache to one single directory outside the webscope (Rene Joergensen)
 	- Allow user to customize the "No info found" message (Me)
@@ -243,7 +244,7 @@ Not yet released
 	- Fixed a bug where $FILES was printed instead of "Empty directory"
 	  if directory contained unsupported files (.txt, .htaccess etc) (Me)
 	- New templates where folders doesn't get displayed one on each line (Thomas Kjaer)
-	- Works without a VirtualHost now (Does not use DocumentRoot) (Peter Breton) 
+	- Works without a VirtualHost now (Does not use DocumentRoot) (Peter Breton)
 	- New option GalleryWrapNavigation to enable a new feature in the
 	  pictureview where "Next" at the end displays the first picture etc
 		(Peter Breton/Me)
@@ -265,10 +266,10 @@ Not yet released
 	  resolutions the user can scale between. The Gallery
 	  will not allow scaling to 641x480 if you only configured
 	  640x480. (To prevent evil people filling up your disk) (Me)
-	- Handle spaces in files and directories correct. 
+	- Handle spaces in files and directories correct.
 	- Now possible to rotate pictures on the fly. (Thomas Eibner)
 	- Copyright picture can be included on each picture (Thomas Eibner)
-	- Comments for each picture changed to be in 
+	- Comments for each picture changed to be in
 	  picture.jpg.comments (Thomas Eibner)
   - Scale thumbnails correct when images are rotated 90-degrees. (Me)
 
@@ -285,10 +286,9 @@ Not yet released
 	- Added src/addcomments.pl script for editing picture
 	  comments.
 
-	- Templates have been updated by Erwin Lansing and 
+	- Templates have been updated by Erwin Lansing and
 	  Thomas Kjaer and are now much nicer by default!
 
 0.1  Mon Aug 20 19:38:31 2001
 	- original version; created by h2xs 1.21 with options
 		-XA -n Apache::Gallery
-

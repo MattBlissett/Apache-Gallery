@@ -1,4 +1,4 @@
-var map, template, photos, select;
+var map, template, photos, select, tracks;
 
 var mapInitialised = false;
 var mapHidden = true;
@@ -66,8 +66,30 @@ function initialiseBigMap() {
 	});
 	photos.events.register('loadend', photos, photosLoaded);
 
+	// Loads tracks
+	trackColours = ['purple', 'cyan', 'magenta'];
+	tracks = [];
+	for (i = 0; i < availableTracks.length; i++) {
+		tracks[i] = new OpenLayers.Layer.Vector(availableTracks[i], {
+			strategies: [new OpenLayers.Strategy.Fixed()],
+			protocol: new OpenLayers.Protocol.HTTP({
+				url: availableTracks[i],
+				format: new OpenLayers.Format.GPX()
+			}),
+			style: {
+				strokeColor: trackColours[i%trackColours.length],
+				strokeWidth: 5,
+				strokeOpacity: 0.75
+			},
+			projection: new OpenLayers.Projection("EPSG:4326")
+		});
+		console.log(i+"th track: "+availableTracks[i]);
+		console.log(tracks[i]);
+	}
+
 	// Add layers to map
 	map.addLayers([base, photos, ghyb, gsat]);
+	map.addLayers(tracks);
 
 	// Define select (hover) on markers behaviour
 	select = new OpenLayers.Control.SelectFeature(
