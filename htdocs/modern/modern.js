@@ -2,6 +2,7 @@ var map, template, photos, select;
 
 var mapInitialised = false;
 var mapHidden = true;
+var infoHidden = true;
 
 OpenLayers.ImgPath = "/ApacheGallery/";
 
@@ -233,14 +234,14 @@ function isScrolledIntoView(elem) {
 	return ((elemTop <= scrBottom) && (elemBottom >= scrTop));
 }
 
-// Called from the HTML to produce a map for a photo page.
-// Initialise map, and display it.
+// Display a small map on the photo page's info area.
+// Initialise the map, and display it.
 function smallmap(llat, llong, status) {
 	map = new OpenLayers.Map('map', { controls: [] });
 	map.addControl(new OpenLayers.Control.MouseToolbar());
 
 	$('#map').width($('#info').width());
-	$('#map').height(200);
+	$('#map').height(300);
 
 	var base = new OpenLayers.Layer.OSM();
 	map.addLayer(base);
@@ -279,38 +280,8 @@ function smallmap(llat, llong, status) {
 }
 
 // Escapes an id containing special characters (e.g. 001.jpg -> #001\\.jpg)
-function jq(myid) { 
+function jq(myid) {
 	return '#' + myid.replace(/(:|\.)/g,'\\$1');
-}
-
-// Dump object (not written by me, found on the web)
-var MAX_DUMP_DEPTH = 10;
-
-function dumpObj(obj, name, indent, depth) {
-    if (depth > MAX_DUMP_DEPTH) {
-	return indent + name + ": <Maximum Depth Reached>\n";
-    }
-    if (typeof obj == "object") {
-	var child = null;
-	var output = indent + name + "\n";
-	indent += "\t";
-	for (var item in obj)
-	{
-	    try {
-		child = obj[item];
-	    } catch (e) {
-		child = "<Unable to Evaluate>";
-	    }
-	    if (typeof child == "object") {
-		output += dumpObj(child, item, indent, depth + 1);
-	    } else {
-		output += indent + item + ": " + child + "\n";
-	    }
-	}
-	return output;
-    } else {
-	return obj;
-    }
 }
 
 // Adjust the width parameter of the 'next' and 'previous' links according to the screen size.
@@ -492,14 +463,65 @@ function tileNicely() {
 	}
 }
 
+// Creates a button to allow the user to toggle the photo information.
+// (First function called)
+function createToggleInfoButton() {
+	// Set up the 'toggle info' button
+	var hide = $('#menuButtons').append('<ul id="toggleInfo"><li>&#x1f4f7;</li></ul>');
+	$('#toggleInfo').bind('click', toggleInfo);
+}
+
+// Toggle the display of the photo information
+function toggleInfo() {
+	if (document.getElementById('info') == null) {
+		return;
+	}
+
+	// Info is shown on the right
+	var infoClass;
+	infoClass = 'infoOnRight';
+
+	infoHidden = !infoHidden;
+	if (!infoHidden) {
+		$('body').addClass(infoClass);
+		smallmap(llat, llong, status);
+	}
+	else {
+		$('body').removeClass(infoClass);
+	}
+
+	infoInitialised = true;
+	put('infoShown', !infoHidden);
+}
+
+var get = function (key) {
+	return window.localStorage ? window.localStorage[key] : null;
+}
+
+var put = function (key, value) {
+	if (window.localStorage) {
+		window.localStorage[key] = value;
+	}
+}
+
 $(window).resize(function() {
 	adjustPhotoWidths();
 	tileNicely();
-	$('#map').css("width",$('#mapcontainer').innerWidth());
-	map.updateSize();
+	if (!mapHidden) {
+		$('#map').css("width",$('#mapcontainer').innerWidth());
+		map.updateSize();
+	}
 });
 
 $(document).ready(function() {
 	adjustPhotoWidths();
 	tileNicely();
+
+	if (get('infoShown') == 'true') {
+		toggleInfo();
+	}
+
+	if (get('mapShown') == 'true') {
+		toggleInfo();
+	}
 });

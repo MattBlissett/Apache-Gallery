@@ -1,1 +1,1 @@
-{ $SIZE }
+<li>{ $SIZE }</li>

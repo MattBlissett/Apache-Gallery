@@ -8,13 +8,6 @@
 		var status = '{ $STATUS }';
 
 		var mapLoaded = 0;
-
-		$('#info').bind('mouseenter', function(event) \{
-			if (!mapLoaded) \{
-				smallmap(llat, llong, status);
-				mapLoaded = 1;
-			\}
-		\});
 	</script>
 	<noscript>
 		<div id="noscript-map">

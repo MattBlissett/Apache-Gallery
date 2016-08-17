@@ -1,1 +1,1 @@
-<a href="{ $IMAGEURI }">Off</a>
+<li><a href="{ $IMAGEURI }">Off</a></li>

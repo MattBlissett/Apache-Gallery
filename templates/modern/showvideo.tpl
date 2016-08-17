@@ -1,5 +1,11 @@
 <div id="page">
-	<div id="menu">{ $MENU }</div>
+	<div id="menu">
+		{ $MENU }
+		<div id="menuButtons">
+			<ul id="download"><li>&#10515;{ $ORIGINAL }</li></ul>
+			<ul id="slideshow"><li>⌚ <ul>{ $SLIDESHOW }</ul></li></ul>
+		</div>
+	</div>
 
 	<div id="directory">
 		<div id="picture">
@@ -17,14 +23,12 @@
 			<span class="nav left">{ $BACK }</span>
 			<span class="nav right">{ $NEXT }</span>
 		</div>
+	</div>
 
-		<div class="clear"></div>
-
-		<div class="info" about="{ $IMAGEURI }">
-			<div id="pictureinfo-map">
-				{ $PICTUREINFO }
-				<div>{ $MAP }</div>
-			</div>
+	<div class="info" about="{ $IMAGEURI }">
+		<div id="pictureinfo-map">
+			{ $PICTUREINFO }
+			<div>{ $MAP }</div>
 		</div>
 	</div>
 </div>
