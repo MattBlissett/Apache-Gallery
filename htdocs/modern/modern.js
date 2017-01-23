@@ -312,8 +312,8 @@ function adjustPhotoWidths() {
 		return;
 	}
 
-	var h = $(window).height();
-	var w = $(window).width();
+	var h = $(window).height() * window.devicePixelRatio;
+	var w = $(window).width() * window.devicePixelRatio;
 
 	// Choose the largest width that's not larger than the screen.
 	var picw = availablePhotoWidths[availablePhotoWidths.length-1];
