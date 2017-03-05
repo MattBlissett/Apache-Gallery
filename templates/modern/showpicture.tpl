@@ -44,5 +44,5 @@
 { $LICENSE }
 
 <script type="text/javascript">
-	createToggleInfoButton();
+	var hasInfo = true;
 </script>

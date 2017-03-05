@@ -1,182 +1,184 @@
-var map, template, photos, select, tracks;
+var map, photoLayer, tracksLayer;
+var photoIndex, highlightInteraction;
 
-var mapInitialised = false;
-var mapHidden = true;
+var mapShown = false;
+var infoShown = false;
 var infoHidden = true;
 
-OpenLayers.ImgPath = "/ApacheGallery/";
+// Common base layers
+function baseLayers() {
+	var layers = [];
 
-// Initialise index page map.
-function initialiseBigMap() {
-	map = new OpenLayers.Map();
-	map.addControl(new OpenLayers.Control.LayerSwitcher());
+	layers.push(new ol.layer.Group({
+		title: 'Base map',
 
-	// Load base maps
-	var base = new OpenLayers.Layer.OSM(
-		"OpenStreetMap",
-		// Official OSM tileset as protocol-independent URLs
-		[
-			'//a.tile.openstreetmap.org/${z}/${x}/${y}.png',
-			'//b.tile.openstreetmap.org/${z}/${x}/${y}.png',
-			'//c.tile.openstreetmap.org/${z}/${x}/${y}.png'
-		],
-		null);
-	var ghyb = new OpenLayers.Layer.Google(
-		"Google Hybrid",
-		{type: google.maps.MapTypeId.HYBRID, numZoomLevels: 20}
-	);
-	var gsat = new OpenLayers.Layer.Google(
-		"Google Satellite",
-		{type: google.maps.MapTypeId.SATELLITE, numZoomLevels: 22}
-	);
+		layers: [
+			new ol.layer.Tile({
+				title: 'Carto Dark',
+				type: 'base',
+				source: new ol.source.XYZ({
+					url: 'https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png'
+				}),
+				visible: true
+			}),
 
-	// Define marker style
-	var style = new OpenLayers.Style({
-		pointRadius: "${radius}",
-		fillColor: "#ff00ff",
-		fillOpacity: 0.8,
-		strokeColor: "#000000",
-		strokeWidth: 2,
-		strokeOpacity: 0.8
-	}, {
-		context: {
-			radius: function(feature) {
-				return Math.min(feature.attributes.count, 7) + 3;
-			}
+			new ol.layer.Tile({
+				title: 'Carto Dark 2×',
+				type: 'base',
+				source: new ol.source.XYZ({
+					url: 'https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}@2x.png'
+				}),
+				visible: false
+			}),
+
+			new ol.layer.Tile({
+				title: 'OpenStreetMap',
+				type: 'base',
+				source: new ol.source.OSM(),
+				visible: false
+			})
+		]
+	}));
+
+	return layers;
+}
+
+// Load index page map.
+function loadBigMap() {
+	map = new ol.Map({
+		layers: baseLayers(),
+		target: 'map',
+		view: new ol.View()
+	});
+	$('#map').css("width",$('#mapcontainer').innerWidth());
+	map.updateSize();
+
+	var styleCache = {};
+	var clusterStyle = function(feature) {
+		var size = feature.get('features').length;
+		var style = styleCache[size];
+		if (!style) {
+			style = new ol.style.Style({
+				image: new ol.style.Circle({
+					radius: 8,
+					stroke: new ol.style.Stroke({
+						color: '#000',
+						width: 1
+					}),
+					fill: new ol.style.Fill({
+						color: '#f0f'
+					}),
+					opacity: 0.5
+				}),
+				text: new ol.style.Text({
+					text: size.toString(),
+					fill: new ol.style.Fill({
+						color: '#600'
+					})
+				})
+			});
+			styleCache[size] = style;
 		}
+		return style;
+        }
+
+	// Load and cluster photos
+	var features = new ol.Collection();
+
+	var source = new ol.source.Vector({
+		features: features,
+		useSpatialIndex: true
 	});
 
-	// Load photos
-	photos = new OpenLayers.Layer.Vector("Photos", {
-		strategies: [
-			new OpenLayers.Strategy.Fixed(),
-			new OpenLayers.Strategy.Cluster()
-		],
-		protocol: new OpenLayers.Protocol.HTTP({
-			url: ".points.xml",
-			format: new OpenLayers.Format.GML()
-		}),
-		styleMap: new OpenLayers.StyleMap({
-			"default": style,
-			"select": {
-				fillColor: "#00ffff",
-				strokeColor: "#0000ff"
-			}
-		})
+	var clusterSource = new ol.source.Cluster({
+		source: source
 	});
-	photos.events.register('loadend', photos, photosLoaded);
+
+	$.getJSON(".photos.json", function(data) {
+		photoData = data.photos;
+		photoIndex = {};
+		$.each(data.photos, function(idx, p) {
+			photoIndex[p.file] = p;
+			if (p.point) {
+				var feature = (new ol.Feature({
+					geometry: new ol.geom.Point(ol.proj.fromLonLat(p.point)),
+					labelPoint: new ol.geom.Point(p.title),
+					file: p.file
+				}));
+				features.push(feature);
+			}
+		});
+		if (features.getLength() == 0) {
+			map.getView().setCenter([0,0]);
+			map.getView().setZoom(2);
+			return;
+		}
+		source.addFeatures(features);
+		clusterSource.refresh();
+		map.getView().fit(source.getExtent(), map.getSize());
+		bindHighlightEvents(clusterSource);
+	});
+
+	photoLayer = new ol.layer.Vector({
+		source: clusterSource,
+		style: clusterStyle
+	});
 
 	// Loads tracks
-	trackColours = ['purple', 'cyan', 'magenta'];
-	tracks = [];
-	for (i = 0; i < availableTracks.length; i++) {
-		tracks[i] = new OpenLayers.Layer.Vector(availableTracks[i], {
-			strategies: [new OpenLayers.Strategy.Fixed()],
-			protocol: new OpenLayers.Protocol.HTTP({
-				url: availableTracks[i],
-				format: new OpenLayers.Format.GPX()
-			}),
-			style: {
-				strokeColor: trackColours[i%trackColours.length],
-				strokeWidth: 5,
-				strokeOpacity: 0.75
-			},
-			projection: new OpenLayers.Projection("EPSG:4326")
+	if (availableTracks.length > 0) {
+		var trackColours = [[128,0,128,0.75], [0,255,255,0.75], [255,0,255,0.75]]; // Purple, cyan, magenta
+		var tracks = [];
+		for (i = 0; i < availableTracks.length; i++) {
+			tracks[i] = new ol.layer.Vector({
+				title: availableTracks[i],
+				source: new ol.source.Vector({
+					url: availableTracks[i],
+					format: new ol.format.GPX()
+				}),
+				style: new ol.style.Style({
+					stroke: new ol.style.Stroke({
+						color: trackColours[i%trackColours.length],
+						width: 5,
+					})
+				}),
+			});
+		}
+
+		tracksLayer = new ol.layer.Group({
+			title: 'Tracks',
+			layers: tracks
 		});
-		console.log(i+"th track: "+availableTracks[i]);
-		console.log(tracks[i]);
+		map.addLayer(tracksLayer);
 	}
 
-	// Add layers to map
-	map.addLayers([base, photos, ghyb, gsat]);
-	map.addLayers(tracks);
+	map.addLayer(photoLayer);
 
-	// Define select (hover) on markers behaviour
-	select = new OpenLayers.Control.SelectFeature(
-		photos, {hover: true}
-	);
-	map.addControl(select);
-	select.activate();
-	photos.events.on({"featureselected": highlight});
-}
+	highlightInteraction = new ol.interaction.Select({
+		condition: ol.events.condition.click
+	});
 
-// Undims all photos
-function undimAll() {
-	$('#files a').removeClass("dimmed");
-	for (i = 0; i < photos.features.length; i++) {
-		var feature = photos.features[i];
-		select.unselect(feature);
-	}
-}
+        map.addInteraction(highlightInteraction);
+        highlightInteraction.on('select', highlight);
 
-// Called when photos have loaded (seems to be called after a single photo is loaded)
-function photosLoaded(event) {
-	if (photos.features.length > 0) {
-		console.log("At least "+photos.features.length+" photos");
-		initMapElements();
-
-		// No idea why it's necessary to call this twice.  Calling once centres on the first cluster,
-		// called a second time all the other clusters are shown too.
-		map.zoomToExtent(event.object.getDataExtent());
-		map.zoomToExtent(event.object.getDataExtent());
-	}
-	else {
-		console.log("No photos");
-	}
+	var layerSwitcher = new ol.control.LayerSwitcher();
+	map.addControl(layerSwitcher);
 }
 
 // Called by the map if there are geotagged photos
-function initMapElements() {
-	// Put the map in its div
-	$('#map').css("display","block");
-	map.render("map");
-
-	// Set up events to highlight cluster contaning photos
+function bindHighlightEvents(clusterSource) {
+	// Set up events to highlight cluster containing photos
 	$('#files a').bind('mouseover', function() {
-		var find = $(this).attr("id");
-		//console.log("finding "+find);
-
 		// Select the cluster containing the photograph
-		for (i = 0; i < photos.features.length; i++) {
-			var feature = photos.features[i];
-			select.unselect(feature);
-			for (j = 0; j < feature.cluster.length; j++) {
-				var cluster = feature.cluster[j];
-				//console.log("fid: "+cluster.fid);
-				if (cluster.fid == find) {
-					select.select(feature);
-				}
-			}
-		}
+		var find = $(this).attr("id");
+		var point = photoIndex[find].point;
+		var f = clusterSource.getClosestFeatureToCoordinate(ol.proj.fromLonLat(point));
+		highlightInteraction.getFeatures().clear();
+		highlightInteraction.getFeatures().push(f);
 	});
 	// And to un-unhighlight
-	$('#map').bind('mouseleave', function(event) {
-		undimAll();
+	$('#files a').bind('mouseleave', function(event) {
+		highlightInteraction.getFeatures().clear();
 	});
-	$('#files').bind('mouseleave', function(event) {
-		undimAll();
-	});
-
-	// Set up events to zoom in to hovered thumbnails
-	//$('#files a').bind('mouseover', function() {
-	//	var find = $(this).attr("id");
-	//});
-
-	$('#map').css("width",$('#mapcontainer').innerWidth());
-	map.updateSize();
-}
-
-// Creates a button to allow the user to show the large map.
-// (First function called)
-function createToggleMapButton() {
-
-	$('#map').css("display","none");
-	$('#mapcontainer').css("display","block");
-	$('#mapcontainer').css("visibility","visible");
-
-	// Set up the 'toggle map' button
-	var hide = $('#menu').append('<div id="menuButtons"><a id="toggleMap">&#x1f30d;</a></div>');
-	$('#toggleMap').bind('click', toggleMap);
 }
 
 // Toggle the display of the map
@@ -192,57 +194,51 @@ function toggleMap() {
 		$('#map').css("height",$(window).height());
 	}
 
-	if (!mapInitialised) {
-		mapHidden = false;
-		initialiseBigMap();
+	if (mapShown) {
+		$('#mapcontainer').css("display","none");
+		$('#directory').removeClass(mapClass);
+	}
+	else {
+		$('#mapcontainer').css("display","block");
+		$('#map').css("width",$('#mapcontainer').innerWidth());
 		$('#directory').addClass(mapClass);
 	}
 
-	if (mapInitialised) {
-		mapHidden = !mapHidden;
-		if (!mapHidden) {
-			$('#map').css("display","block");
-			$('#directory').addClass(mapClass);
-		}
-		else {
-			$('#map').css("display","none");
-			$('#directory').removeClass(mapClass);
-		}
-		undimAll();
+	if (!map) {
+		loadBigMap();
 	}
 
-	tileNicely();
+	mapShown = !mapShown;
+	put('mapShown', mapShown);
 
-	mapInitialised = true;
+	tileNicely();
 }
 
 // Highlights all photos in the cluster.
-function highlight(event) {
-	// Dim all photos
-	$('#files a').addClass("2bdimmed");
-	// Un-highlight all photos
-	//$('#files a').fadeTo('fast', 0.333);
-
-	// Undim ones in the cluster
-	visible = false;
-	for (var i = 0; i < event.feature.cluster.length; i++) {
-		var fileId = event.feature.cluster[i].attributes.file;
-		$(jq(fileId)).removeClass("2bdimmed");
-		//$(jq(fileId)).fadeTo('fast', 1);
-		visible = visible | isScrolledIntoView($(jq(fileId)));
+function highlight(e) {
+	var ids = [];
+	if (e.selected.length > 0) {
+		var cluster = e.target.getFeatures().item(0);
+		ids = cluster.get('features').map((f) => f.get('file'));
 	}
 
-	// If none of the photos in the cluster are visible scroll to the first.
-	var idstring = String(event.feature.cluster[0].attributes.file);
-	if (!visible) {
+	var visible = false;
+	$('#files a').each(function(idx) {
+		var id = $(this).attr('id');
+		if (ids.indexOf(id) !== -1) {
+			$(this).removeClass('dimmed');
+			visible = visible | isScrolledIntoView($(this));
+		}
+		else {
+			$(this).addClass('dimmed');
+		}
+	});
+
+	if (visible && e.selected.length > 0) {
 		$('html, body').animate({
-			scrollTop: $(jq(idstring)).offset().top - $('#menu').height() - 20
+			scrollTop: $(jq(ids[0])).offset().top - $('#menu').height() - 20
 		}, 1000);
 	}
-
-	$('#files a.2bdimmed').addClass("dimmed");
-	$('#files a:not(a.2bdimmed)').removeClass("dimmed");
-	$('#files a').removeClass("2bdimmed");
 }
 
 // True if elem is visible in the browser window
@@ -258,47 +254,45 @@ function isScrolledIntoView(elem) {
 
 // Display a small map on the photo page's info area.
 // Initialise the map, and display it.
-function smallmap(llat, llong, status) {
-	map = new OpenLayers.Map('map', { controls: [] });
-	map.addControl(new OpenLayers.Control.MouseToolbar());
+function smallMap() {
+	if (!('llat' in window && 'llong' in window)) {
+		return;
+	}
 
-	$('#map').width($('#info').width());
-	$('#map').height(300);
+	// Define mark
+	var point = new ol.geom.Point(ol.proj.fromLonLat([parseFloat(llong), parseFloat(llat)]));
 
-	var base = new OpenLayers.Layer.OSM();
-	map.addLayer(base);
-
-	var lonlat = new OpenLayers.LonLat(llong, llat).transform(
-		new OpenLayers.Projection("EPSG:4326"),
-		map.getProjectionObject()
-	)
-
-	map.setCenter(lonlat, 15);
+	map = new ol.Map({
+		layers: baseLayers(),
+		target: 'map',
+		view: new ol.View({
+			center: point.getCoordinates(),
+			zoom: 15
+		})
+	});
 
 	// Define mark style
-	var style = new OpenLayers.Style({
-		pointRadius: "4",
-		fillColor: "#ff00ff",
-		fillOpacity: 0.8,
-		strokeColor: "#000000",
-		strokeWidth: 2,
-		strokeOpacity: 0.8
+	var pointStyle = new ol.style.Style({
+		image: new ol.style.Circle({
+			fill: new ol.style.Fill({color: '#f0f'}),
+			stroke: new ol.style.Stroke({color: '#000', width: 1.5}),
+			radius: 6,
+			opacity: 0.8
+		}),
 	});
 
-	// Add mark to map
-	mark = new OpenLayers.Layer.Vector("Photo", {
-		styleMap: new OpenLayers.StyleMap({ "default": style })
+	photoLayer = new ol.layer.Vector({
+		source: new ol.source.Vector({
+			features: [new ol.Feature(point)]
+		}),
+		style: pointStyle
 	});
+	map.addLayer(photoLayer);
 
-	var point = new OpenLayers.Geometry.Point(llong, llat);
-	var pointFeature = new OpenLayers.Feature.Vector(point.transform(
-		new OpenLayers.Projection("EPSG:4326"),
-		map.getProjectionObject()
-	));
+	var layerSwitcher = new ol.control.LayerSwitcher();
+	map.addControl(layerSwitcher);
 
-	mark.addFeatures(pointFeature);
-
-	map.addLayer(mark);
+	map.updateSize();
 }
 
 // Escapes an id containing special characters (e.g. 001.jpg -> #001\\.jpg)
@@ -495,6 +489,17 @@ function tileNicely() {
 	}
 }
 
+// Creates a button to allow the user to show the large map.
+// (First function called)
+function createToggleMapButton() {
+	$('#mapcontainer').css("display","none");
+	$('#mapcontainer').css("visibility","visible");
+
+	// Set up the 'toggle map' button
+	var hide = $('#menu').append('<div id="menuButtons"><a id="toggleMap">&#x1f30d;</a></div>');
+	$('#toggleMap').bind('click', toggleMap);
+}
+
 // Creates a button to allow the user to toggle the photo information.
 // (First function called)
 function createToggleInfoButton() {
@@ -513,17 +518,25 @@ function toggleInfo() {
 	var infoClass;
 	infoClass = 'infoOnRight';
 
-	infoHidden = !infoHidden;
-	if (!infoHidden) {
-		$('body').addClass(infoClass);
-		smallmap(llat, llong, status);
-	}
-	else {
+	if (infoShown) {
 		$('body').removeClass(infoClass);
 	}
+	else {
+		$('body').addClass(infoClass);
+		$('#map').width($('#info').width());
+		$('#map').height(300);
+	}
 
-	infoInitialised = true;
-	put('infoShown', !infoHidden);
+	if (!map) {
+		smallMap();
+	}
+
+	infoShown = !infoShown;
+	put('infoShown', infoShown);
+
+	if (map) {
+		map.updateSize();
+	}
 }
 
 var get = function (key) {
@@ -539,8 +552,8 @@ var put = function (key, value) {
 $(window).resize(function() {
 	adjustPhotoWidths();
 	tileNicely();
-	if (!mapHidden) {
-		$('#map').css("width",$('#mapcontainer').innerWidth());
+	if (mapShown) {
+		$('#map').css("width",$('#map').parent().innerWidth());
 		map.updateSize();
 	}
 });
@@ -549,11 +562,17 @@ $(document).ready(function() {
 	adjustPhotoWidths();
 	tileNicely();
 
-	if (get('infoShown') == 'true') {
-		toggleInfo();
+	if ('hasInfo' in window) {
+		createToggleInfoButton();
+		if (get('infoShown') == 'true') {
+			toggleInfo();
+		}
 	}
 
-	if (get('mapShown') == 'true') {
-		toggleInfo();
+	if ('hasMap' in window) {
+		createToggleMapButton();
+		if (get('mapShown') == 'true') {
+			toggleMap();
+		}
 	}
 });

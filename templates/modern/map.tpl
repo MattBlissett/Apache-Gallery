@@ -1,5 +1,5 @@
 <div id="picturemap">
-	<div><div id="map"></div></div>
+	<div><div id="map" class="map"></div></div>
 
 	<script type="text/javascript">
 		var llat = '{ $LAT }';

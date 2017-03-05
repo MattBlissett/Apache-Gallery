@@ -23,5 +23,5 @@
 </div>
 
 <script type="text/javascript">
-	createToggleMapButton();
+	var hasMap = true;
 </script>

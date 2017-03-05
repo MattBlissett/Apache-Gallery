@@ -35,6 +35,7 @@ use CGI::Cookie;
 use Encode;
 use HTTP::Date;
 use Digest::MD5 qw(md5_base64);
+use JSON;
 
 use Data::Dumper;
 
@@ -91,14 +92,7 @@ sub handler {
 	my $uri = $r->uri;
 	if ($uri =~ m|/\.cache/|) {
 		log_debug("Old URL: ".$r->uri);
-		if ($uri =~ m|/\.cache/\.points\.xml$|) {
-			# Redirect to /.points.xml
-			$uri =~ s|\.cache/||;
-			log_info("Redirecting to $uri");
-			$r->headers_out->set('Location' => $uri);
-			return Apache2::Const::REDIRECT();
-		}
-		elsif ($uri =~ m|/\.cache/.bg-\d+.jpg|) {
+		if ($uri =~ m|/\.cache/.bg-\d+.jpg|) {
 			# Redirect to /.bg-{}.jpg
 			$uri =~ s|\.cache/||;
 			log_info("Redirecting to $uri");
@@ -119,10 +113,10 @@ sub handler {
 		log_info("Directory listing: $uri");
 		return directory_listing($r);
 	}
-	# /dir/dir/.points.xml       Points -- or put it in the XHTML?
-	elsif ($uri =~ m|/\.points\.xml$|) {
-		log_info("Points file: $uri");
-		return points_file($r);
+	# /dir/dir/.photos.json      Photo information in JSON
+	elsif ($uri =~ m|/\.photos\.json$|) {
+		log_info("JSON file: $uri");
+		return photos_json($r);
 	}
 	# /dir/dir/.bg-123.jpg       Background (embedding).
 	elsif ($uri =~ m|/\.bg-(\d+)\.jpg$|) {
@@ -854,7 +848,7 @@ sub picture_page {
 			mp4 => "video/mp4",
 			webm => "video/webm",
 			);
-		
+
 		foreach my $v (@sources) {
 			$v =~ m/\.(....?)$/;
 			my $t = $video_mime{$1} ? $video_mime{$1} : "video/$1";
@@ -1274,53 +1268,47 @@ sub image_file {
 	return send_file_response($r, $cached_fullpath, "IMAGE");
 }
 
-# Generate XML file containing georeferences of photographs
+# Show photo information (just georeferences) in JSON format.
 # Addition by Matt Blissett, May 2011.
-sub points_file {
+# Changed from XML to JSON March 2017.
+sub photos_json {
 	my $r = shift;
 
 	my $dirname = $r->filename().$r->path_info();
-	$dirname =~ s!/.points.xml!!;
+	$dirname =~ s!/.photos.json!!;
 
 	unless (opendir (DIR, $dirname)) {
 		show_error($r, 404, "404!", "No such file or directory: ".uri_escape($r->uri, $escape_rule));
 		return Apache2::Const::OK();
 	}
 
-	$r->content_type('application/xml');
+	$r->content_type('application/json');
 
-	my $cache_fullpath = cache_dir($r) . ".points.xml";
-	log_debug("points_file: cache file is/will be " . $cache_fullpath);
+	my $cache_fullpath = cache_dir($r) . ".photos.json";
+	log_debug("photos_json: cache file is/will be " . $cache_fullpath);
 
 	my $usecache = 0;
 	if (-f $cache_fullpath) {
 		my $dirstat = stat($dirname);
 		my $cachestat = stat($cache_fullpath);
 		$usecache = ($dirstat->mtime < $cachestat->mtime);
-		log_debug("points_file: $dirname newer than $cache_fullpath, ignoring cache") unless $usecache;
+		log_debug("photos_json: $dirname newer than $cache_fullpath, ignoring cache") unless $usecache;
 	}
 
 	if ($usecache) {
-		log_debug("points_file: file already in cache: $cache_fullpath");
-		return send_file_response($r, $cache_fullpath, "C-POINTS");
+		log_debug("photos_json: file already in cache: $cache_fullpath");
+		return send_file_response($r, $cache_fullpath, "C-JSON");
 	}
 	else {
+		my $result;
 		my $img_pattern = get_image_pattern($r);
 
 		my @files = sort grep { /$img_pattern/i && -f "$dirname/$_" && shown_files($dirname) } readdir (DIR);
 
-		log_debug("points_file: $#files files");
+		log_debug("photos_json: $#files files");
 
-		my %tpl_vars;
-
-		my $tpl_dir = $r->dir_config('GalleryTemplateDir');
-
-		# Could check for these being in the template.
-		my %templates = create_templates(
-			{
-				point     => "$tpl_dir/point.tpl",
-				points    => "$tpl_dir/points.tpl"
-			});
+		my %json, my @photos;
+		$json{'photos'} = \@photos;
 
 		if (@files) {
 			my $filelist;
@@ -1328,10 +1316,10 @@ sub points_file {
 			my $file_counter = 0;
 
 			my $dirurl = $r->uri;
-			$dirurl =~ s!.points.xml!!;
+			$dirurl =~ s!.photos.json!!;
 
 			foreach my $file (@files) {
-				log_debug("points_file: scanning file $file_counter " . $file);
+				log_debug("photos_json: scanning file $file_counter " . $file);
 				$file_counter++;
 				my $filename = $dirname."/".$file;
 
@@ -1340,65 +1328,71 @@ sub points_file {
 					my ($width, $height, $type) = imgsize($filename);
 					next if $type eq 'Data stream is not a known image file format';
 
-					my @filetypes = qw(JPG TIF PNG PPM GIF);
+					my @filetypes = qw(JPG TIF PNG PPM GIF); # Videos?
 
 					next unless (grep $type eq $_, @filetypes);
 
 					# Thumbnail dimensions needed for URL to thumbnail
 					my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $width, $height);
 					my $cached = get_scaled_picture_name($filename, $thumbnailwidth, $thumbnailheight);
-					log_debug("points_file: thumbnail name $cached");
+					log_debug("photos_json: thumbnail name $cached");
 
 					# Read EXIF info
 					my $imageinfo = get_imageinfo($r, $filename, $type, $width, $height);
 
-					my %point_vars = (
-						FILE => $file,
-						STATUS => $imageinfo->{GPSStatus} ? $imageinfo->{GPSStatus} : '',
-						LATR => $imageinfo->{GPSLatitudeRef} ? $imageinfo->{GPSLatitudeRef} : '',
-						LONGR => $imageinfo->{GPSLongitudeRef} ? $imageinfo->{GPSLongitudeRef} : '',
-						LAT => $imageinfo->{GPSLatitude} ? $imageinfo->{GPSLatitude} : '',
-						LONG => $imageinfo->{GPSLongitude} ? $imageinfo->{GPSLongitude} : '',
-						THUMB => uri_escape($dirurl."/$cached", $escape_rule) . "?w=$thumbnailwidth&amp;h=$thumbnailheight",
-					);
-
+					my $title, my $comment;
 					if (-f $filename . '.comment') {
-						log_debug("points_file: Found .comment file " . $filename . '.comment');
+						log_debug("photos_json: Found .comment file " . $filename . '.comment');
 						my $comment_ref = get_comment($filename . '.comment');
-						$tpl_vars{COMMENT} = $comment_ref->{COMMENT} . "\n" if $comment_ref->{COMMENT};
-						$tpl_vars{TITLE} = $comment_ref->{TITLE} if $comment_ref->{TITLE};
+						$comment = $comment_ref->{COMMENT} . "\n" if $comment_ref->{COMMENT};
+						$title = $comment_ref->{TITLE} if $comment_ref->{TITLE};
 					}
 					elsif ($r->dir_config('GalleryCommentExifKey')) {
-						my $comment = decode("utf8", $imageinfo->{$r->dir_config('GalleryCommentExifKey')});
-						$tpl_vars{COMMENT} = encode("iso-8859-1", $comment);
+						$comment = decode("utf8", $imageinfo->{$r->dir_config('GalleryCommentExifKey')});
 					}
-					else {
-						$tpl_vars{COMMENT} = undef;
-						$tpl_vars{TITLE} = undef;
-					}
-					log_debug("points_file: Title: ".$tpl_vars{TITLE});
-					log_debug("points_file: Comment: ".$tpl_vars{COMMENT});
+					log_debug("photos_json: Title: ".$title);
+					log_debug("photos_json: Comment: ".$comment);
 
-					$tpl_vars{POINTS} .= $templates{point}->fill_in(
-						HASH => {%tpl_vars, %point_vars},
-					);
+					my @point = undef;
+					my ($longitude, $latitude);
+					if ($longitude = $imageinfo->{GPSLongitude}) {
+						$longitude *= -1 if ($imageinfo->{GPSLongitudeRef} eq 'W');
+
+						if ($latitude = $imageinfo->{GPSLatitude}) {
+							$latitude *= -1 if ($imageinfo->{GPSLatitudeRef} eq 'S');
+
+							@point = [$longitude, $latitude];
+						}
+					}
+
+					my $status = $imageinfo->{GPSStatus} ? $imageinfo->{GPSStatus} : undef;
+
+					my %photo_data = (
+						file => $file,
+						title => $title,
+						comment => $comment,
+						width => int($width),
+						height => int($height),
+						thumbnail => uri_escape($dirurl.$file, $escape_rule) . "?w=$thumbnailwidth&h=$thumbnailheight",
+						thumbnailTemplate => uri_escape($dirurl.$file, $escape_rule) . "?w={w}&h={h}",
+						point => @point,
+						gpsStatus => $status
+						);
+
+					push @photos, \%photo_data;
 				}
 			}
 		}
-		else {
-			$tpl_vars{POINTS} = "";
-		}
 
-		$tpl_vars{MAIN} = $templates{points}->fill_in(HASH => \%tpl_vars);
+		$result = encode_json \%json;
 
-		# put $tpl_vars{MAIN} into the file.
 		if (open(P, ">$cache_fullpath")) {
-			print P $tpl_vars{MAIN};
+			print P $result;
 			close(P);
 		}
 	}
 
-	return send_file_response($r, $cache_fullpath, "POINTS");
+	return send_file_response($r, $cache_fullpath, "JSON");
 }
 
 ################################################################
