@@ -55,7 +55,7 @@ body {
 
 /* Directory view */
 #files {
-	padding: 4px 0 3em;
+	padding: 4px 0 0;
 	overflow: auto;
 	height: calc(100vh - 4em);
 }

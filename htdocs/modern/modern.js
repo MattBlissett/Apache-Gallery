@@ -157,8 +157,8 @@ function loadBigMap() {
 		condition: ol.events.condition.click
 	});
 
-        map.addInteraction(highlightInteraction);
-        highlightInteraction.on('select', highlight);
+    map.addInteraction(highlightInteraction);
+    highlightInteraction.on('select', highlight);
 
 	var layerSwitcher = new ol.control.LayerSwitcher();
 	map.addControl(layerSwitcher);
@@ -234,22 +234,32 @@ function highlight(e) {
 		}
 	});
 
-	if (visible && e.selected.length > 0) {
-		$('html, body').animate({
-			scrollTop: $(jq(ids[0])).offset().top - $('#menu').height() - 20
+	$('#files a').each(function(idx) {
+		var id = $(this).attr('id');
+		//if (isScrolledIntoView($(this))) {
+		//	console.log("Picture "+$(this).attr('id')+" is fully visible");
+		//}
+	});
+
+	if (!visible && e.selected.length > 0) {
+		var to = $(jq(ids[0])).position().top;
+		$('#files').animate({
+			scrollTop: $('#files').scrollTop() + to
 		}, 1000);
 	}
 }
 
 // True if elem is visible in the browser window
 function isScrolledIntoView(elem) {
-	var scrTop = $(window).scrollTop();
-	var scrBottom = scrTop + $(window).height();
+	var scrTop = $('#files').scrollTop();
+	var scrBottom = scrTop + $('#files').height();
 
-	var elemTop = $(elem).offset().top;
+	var elemTop = $(elem).position().top;
 	var elemBottom = elemTop + $(elem).height();
 
-	return ((elemTop <= scrBottom) && (elemBottom >= scrTop));
+	console.log(elem.attr('id'), scrTop, scrBottom, elemTop, elemBottom, elemTop >= 0, scrTop+elemTop <= scrBottom + 5, scrTop+elemBottom, '<', scrBottom+5, scrTop+elemBottom <= scrBottom + 5);
+
+	return (elemTop >= 0) && (scrTop+elemTop <= scrBottom + 5) && (scrTop+elemBottom <= scrBottom + 5);
 }
 
 // Display a small map on the photo page's info area.
