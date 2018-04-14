@@ -1,6 +1,11 @@
-html {
-	height: 100%;
+html, body {
+	margin: 0;
+	padding: 0;
 	box-sizing: border-box;
+
+	color: #fff;
+	background-color: #222;
+	font-family: sans-serif;
 }
 
 * {
@@ -8,98 +13,62 @@ html {
 }
 
 body {
-	position: relative;
-	min-height: 100%;
-	margin: 0;
-}
+	display: grid;
+	grid-template-columns: 1fr auto;
+	grid-template-rows: 3em calc(100vh - 4em) 1em;
 
-html, body {
-	color: #fff;
-	background-color: #222;
-	font-family: sans-serif;
+	align-items: stretch;
+	justify-items: stretch;
+
+	height: 100vh;
+}
+@media only screen and (max-width: 800px) {
+	body {
+		grid-template-rows: 1.5em calc(100vh - 1.5em);
+	}
 }
 
 /* Footer */
 #footer {
-	position: fixed;
-	bottom: 0;
-	width: 100%;
+	grid-column: span 2;
 
 	color: #fff;
-	font-size: 80%;
-	padding: 0.5rem 1em;
+	font-size: 0.5em;
+	padding: 0.25rem 0.5em;
 	background: #555;
 	border-top: 2px solid #777;
 }
 
-#footer br {
-	display: none;
-}
+#footer br { display: none; }
 
-@media only screen and (max-width: 600px) {
-	#footer {
-		font-size: 50%;
-		padding: 0.2em 1em;
-		border-width: 1px;
-	}
+@media only screen and (max-width: 800px) {
+	#footer { display: none; }
 }
 
 /* License */
-#license {
-	display: none;
-	margin-top: 2em;
-	font-size: 75%;
-	color: #663;
-}
-
-#license a {
-	color: #663;
-}
+#license { display: none; }
 
 /* Main container */
 #directory {
-	position: absolute;
-	top: 3.49rem;
-	bottom: 2rem;
-	left: 0;
-	right: 0;
-
 	text-align: center;
-}
-
-.infoOnRight #directory {
-	right: 25%;
-}
-
-@media only screen and (max-width: 600px) {
-	#directory {
-		top: 1.49rem;
-		bottom: 0.99em;
-	}
 }
 
 /* Directory view */
 #files {
-	padding: 1em 0 3em;
+	padding: 4px 0 3em;
+	overflow: auto;
+	height: calc(100vh - 4em);
 }
-
-.mapOnRight #files {
-	position: absolute;
-	right: 33%;
-}
-
-.mapOnTop #files {
-	position: absolute;
-	top: 33%;
+@media only screen and (max-width: 800px) {
+	#files {
+		height: calc(100vh - 1.5em);
+	}
 }
 
 /* Top bar */
 #menu {
-	position: fixed;
-	z-index: 5;
-	top: 0;
-	height: 3.5rem;
-	width: 100%;
+	grid-column: span 2;
+
 	font-size: 1em;
 	padding: 1rem;
 	border-bottom: 2px solid #777;
@@ -150,9 +119,8 @@ html, body {
 	position: absolute;
 }
 
-@media only screen and (max-width: 600px) {
+@media only screen and (max-width: 800px) {
 	#menu {
-		height: 1.5rem;
 		font-size: 0.8em;
 		padding: 0.2em 0.4em;
 		border-width: 1px;
@@ -172,42 +140,41 @@ html, body {
 }
 
 /* Picture display — main picture + next and previous picture links */
-#picture {
-	position: static;
-	width: 100%;
-	height: 100%;
-
-	overflow: hidden;
-}
-
-.infoOnRight #picture {
-	width: 75%;
+#directory {
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 #picture img,
 #picture video {
-	position: absolute;
-	top: 50%;
-	left: 50%;
+	display: block;
+	max-height: calc(100vh - 4em);
+	max-width: 100vw;
 
-	transform: translateX(-50%) translateY(-50%);
-
-	max-width: 100%;
-	max-height: 100%;
+	overflow: hidden;
+	margin: auto;
 }
 
-#picture video {
-	height: 100%;
-	width: auto;
+.infoOnRight #picture img,
+.infoOnRight #picture video {
+	max-width: calc(100vw - 19em);
+}
+
+@media only screen and (max-width: 800px) {
+	#picture img,
+	#picture video {
+		max-height: calc(100vh - 1.5em);
+	}
+
+	.infoOnRight #picture img,
+	.infoOnRight #picture video {
+		max-width: calc(100vw - 9em);
+	}
 }
 
 #info {
 	display: none;
-	position: absolute;
-	top: 3.49rem;
-	right: 0;
-	left: 75%;
-	bottom: 0;
 
 	padding: 0.5em 0;
 
@@ -218,6 +185,12 @@ html, body {
 
 .infoOnRight #info {
 	display: block;
+	width: 19em;
+}
+@media only screen and (max-width: 800px) {
+	.infoOnRight #info {
+		width: 9em;
+	}
 }
 
 #info > * {
@@ -235,10 +208,6 @@ html, body {
 	margin-right: 0;
 	padding: 0;
 	list-style: none;
-	-webkit-column-count: 2;
-	-moz-column-count: 2;
-	-ms-column-count: 2;
-	-o-column-count: 2;
 	column-count: 2;
 }
 
@@ -246,13 +215,17 @@ html, body {
 	display: none;
 }
 
-#page:hover .nav {
+#directory {
+	position: relative;
+}
+
+#directory:hover .nav {
 	display: block;
 }
 
 .nav.left,
 .nav.right {
-	position: fixed;
+	position: absolute;
 	z-index: 10;
 	font-size: 500%;
 	line-height: 1.0;
@@ -273,25 +246,16 @@ html, body {
 }
 
 .nav.left {
-	top: 3.5rem;
+	top: 0;
 	left: 0;
 
 	border-radius: 0 0 1em 0;
 }
 .nav.right {
 	right: 0;
-	bottom: 2rem;
+	bottom: 0;
 
 	border-radius: 1em 0 0 0;
-}
-
-@media only screen and (max-width: 600px) {
-	.nav.left {
-		top: 1.5rem;
-	}
-	.nav.right {
-		bottom: 1rem;
-	}
 }
 
 .nav img {
@@ -308,7 +272,7 @@ html, body {
 	position: relative;
 	display: inline-block;
 	overflow: hidden;
-	margin: 2px;
+	margin: 0px;
 
 	color: #030;
 	background-color: #888;
@@ -373,35 +337,19 @@ a img {
 
 /* Map stuff */
 #mapcontainer {
-	position: fixed;
 	display: none;
 	background: #555;
 }
 
 .mapOnRight #mapcontainer {
+	display: block;
+	width: 25em;
+	overflow: hidden;
 }
 
-.mapOnRight .gallerymap {
-	width: 33%;
-	right: 0;
-	top: 3.5rem;
-	bottom: 0;
-	min-height: 50%;
-}
-
-.mapOnTop .gallerymap {
-	height: 33%;
-	top: 3.5rem;
-	width: 100%;
-}
-
-@media only screen and (max-width: 600px) {
-	.mapOnRight .gallerymap {
-		top: 1.49rem;
-	}
-
-	.mapOnTop .gallerymap {
-		top: 1.5rem;
+@media only screen and (max-width: 800px) {
+	.mapOnRight #mapcontainer {
+		width: 12em;
 	}
 }
 
