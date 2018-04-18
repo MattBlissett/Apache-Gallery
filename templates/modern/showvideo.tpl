@@ -25,8 +25,6 @@
 	<div id="pictureinfo-map">{ $PICTUREINFO }</div>
 
 	{ $MAP }
-
-	</div>
 </div>
 
 { $LICENSE }
