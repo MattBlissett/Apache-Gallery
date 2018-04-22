@@ -839,6 +839,7 @@ sub picture_page {
 
 		my @sources;
 		push @sources, map(uri_escape($_, $escape_rule), @all_vid_versions);
+		@sources = sort @sources;
 
 		my %video_mime = (
 			ogg => "video/ogg", # More commonly audio/ogg (and .oga, .spx)
