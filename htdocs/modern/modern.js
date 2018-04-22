@@ -382,12 +382,12 @@ function tileNicely() {
 
 	// Target width and height
 	var h_s = $(window).height() - 4;
-	var w_s = $("#files").width() - 4;
+	var w_s = $("#directory").width() - 4;
 
 	// Target number of rows shown
 	var rows = 2.8;
 
-	// Aim for rows rows of photos of width w_aim and height h_aim
+	// Aim for 2.8 rows of photos of width w_aim and height h_aim
 	// h_aim = w_aim/1.5 (assumed ratio of landscape photo)
 	// h_s = rows * h_aim = rows * w_aim/1.5
 	var h_aim = h_s / rows;
