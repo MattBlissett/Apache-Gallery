@@ -57,6 +57,7 @@ body {
 #files {
 	padding: 4px 0 0;
 	overflow: auto;
+	overflow-y: overlay;
 	height: calc(100vh - 4em);
 }
 @media only screen and (max-width: 800px) {
