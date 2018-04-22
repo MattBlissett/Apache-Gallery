@@ -9,7 +9,7 @@ var infoHidden = true;
 var useImageSet = CSS.supports("( background-image: image-set(url('x') 1x) ) or ( background-image: -webkit-image-set(url('x') 1x) ) or ( background-image: -moz-image-set(url('x') 1x) ) or ( background-image: -ms-image-set(url('x') 1x) )");
 
 // Common base layers
-function baseLayers() {
+function baseLayers(default_layer) {
 	var layers = [];
 
 	layers.push(new ol.layer.Group({
@@ -22,24 +22,36 @@ function baseLayers() {
 				source: new ol.source.XYZ({
 					url: 'https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png'
 				}),
-				visible: true
+				visible: ('Carto Dark' == default_layer) && ! window.devicePixelRatio > 1
 			}),
 
 			new ol.layer.Tile({
 				title: 'Carto Dark 2×',
 				type: 'base',
 				source: new ol.source.XYZ({
-					url: 'https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}@2x.png'
+					url: 'https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}@2x.png',
+					tilePixelRatio: 2,
 				}),
-				visible: false
+				visible: ('Carto Dark' == default_layer) && window.devicePixelRatio > 1
 			}),
 
 			new ol.layer.Tile({
 				title: 'OpenStreetMap',
 				type: 'base',
 				source: new ol.source.OSM(),
-				visible: false
+				visible: ('OpenStreetMap' == default_layer) && ! window.devicePixelRatio > 1
+			}),
+
+			new ol.layer.Tile({
+				title: 'OpenStreetMap 2×',
+				type: 'base',
+				source: new ol.source.XYZ({
+					url: 'https://a.osm.rrze.fau.de/osmhd/{z}/{x}/{y}.png',
+					tilePixelRatio: 2,
+				}),
+				visible: ('OpenStreetMap' == default_layer) && window.devicePixelRatio > 1
 			})
+
 		]
 	}));
 
@@ -49,7 +61,7 @@ function baseLayers() {
 // Load index page map.
 function loadBigMap() {
 	map = new ol.Map({
-		layers: baseLayers(),
+		layers: baseLayers('Carto Dark'),
 		target: 'map',
 		view: new ol.View()
 	});
@@ -276,7 +288,7 @@ function smallMap() {
 	var point = new ol.geom.Point(ol.proj.fromLonLat([parseFloat(llong), parseFloat(llat)]));
 
 	map = new ol.Map({
-		layers: baseLayers(),
+		layers: baseLayers('OpenStreetMap'),
 		target: 'map',
 		view: new ol.View({
 			center: point.getCoordinates(),
