@@ -180,7 +180,7 @@ sub get_video_pattern {
 	my $r = shift;
 	my $vid_pattern = $r->dir_config('GalleryVidFile');
 	unless ($vid_pattern) {
-		$vid_pattern = '\.(ogv|ogx|m4v|mp4|webm|mp4)$';
+		$vid_pattern = '\.(ogv|ogx|m4v|mp4|webm|m4v)$';
 	}
 	return $vid_pattern;
 }
