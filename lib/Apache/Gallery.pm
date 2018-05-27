@@ -2353,20 +2353,21 @@ sub send_file_response {
 	log_debug("Sending file $file");
 	my $fileinfo = stat($file);
 
-	my $nonce = md5_base64($fileinfo->ino.$fileinfo->mtime);
-	if ($r->headers_in->{"If-None-Match"} eq $nonce) {
+	my $nonce = '"' . md5_base64($fileinfo->ino.$fileinfo->mtime) . '"';
+	my $header_nonce = $r->headers_in->{"If-None-Match"} =~ s/-gzip//r;
+	if ($header_nonce eq $nonce) {
 		log_info("$tag NM TIME elapsed " . int((time() - $time)*1000) . "ms " . $timeurl);
 		return Apache2::Const::HTTP_NOT_MODIFIED();
 	}
 
-	if ($r->headers_in->{"If-Modified-Since"} && str2time($r->headers_in->{"If-Modified-Since"}) < $fileinfo->mtime) {
+	if ($r->headers_in->{"If-Modified-Since"} && str2time($r->headers_in->{"If-Modified-Since"}) <= $fileinfo->mtime) {
 		log_info("$tag NM TIME elapsed " . int((time() - $time)*1000) . "ms " . $timeurl);
 		return Apache2::Const::HTTP_NOT_MODIFIED();
 	}
 
 	$r->headers_out->{"Content-Length"} = $fileinfo->size;
-	$r->headers_out->{"Last-Modified-Date"} = time2str($fileinfo->mtime);
-	$r->headers_out->{"ETag"} = "\"$nonce\"";
+	$r->headers_out->{"Last-Modified"} = time2str($fileinfo->mtime);
+	$r->headers_out->{"ETag"} = $nonce;
 	$r->headers_out->{"Cache-Control"} = "public";
 	$r->sendfile($file);
 	log_info("$tag TIME elapsed " . int((time() - $time)*1000) . "ms " . $timeurl);
