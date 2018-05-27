@@ -1261,12 +1261,44 @@ sub image_file {
 	my $request_width = $cgi->param('w');
 	my $request_height = $cgi->param('h');
 
-	my $cached_fullpath = scale_picture($r, $image_fullpath, $request_width, $request_height);
+	# See if this is in the cache (avoid reading image)
+	my $cache_dir = cache_dir($r);
+	my $cache_filename = get_scaled_picture_name($image_fullpath, $request_width, $request_height);
+	my $cache_fullpath = $cache_dir . $cache_filename;
 
-	my $subr = $r->lookup_file($cached_fullpath);
+	# Do we want to generate a new file in the cache?
+	my $scale = 1;
+
+	if (-f $cache_fullpath) {
+		$scale = 0;
+
+		# Check to see if the image has changed
+		my $filestat = stat($image_fullpath);
+		my $cache_dirstat = stat($cache_dir."/".$cache_filename);
+		if ($filestat->mtime >= $cache_dirstat->mtime) {
+			$scale = 1;
+		}
+
+		# Check to see if the copyrightimage has been added or changed
+		if ($r->dir_config('GalleryCopyrightImage') && -f $r->dir_config('GalleryCopyrightImage')) {
+			my $copyrightstat = stat($r->dir_config('GalleryCopyrightImage'));
+			if ($copyrightstat->mtime > $cache_dirstat->mtime) {
+				$scale = 1;
+			}
+		}
+	}
+
+	if ($scale) {
+		scale_picture($r, $image_fullpath, $request_width, $request_height, $cache_fullpath);
+	}
+	else {
+		log_debug("image_file: using existing scaled picture at " . $cache_fullpath);
+	}
+
+	my $subr = $r->lookup_file($cache_fullpath);
 	$r->content_type($subr->content_type());
 
-	return send_file_response($r, $cached_fullpath, "IMAGE");
+	return send_file_response($r, $cache_fullpath, "IMAGE");
 }
 
 # Show photo information (just georeferences) in JSON format.
@@ -1496,7 +1528,7 @@ sub get_scaled_picture_name {
 }
 
 sub scale_picture {
-	my ($r, $image_fullpath, $request_width, $request_height) = @_;
+	my ($r, $image_fullpath, $request_width, $request_height, $cache_fullpath) = @_;
 
 	my ($orig_width, $orig_height, $type) = imgsize($image_fullpath);
 
@@ -1516,62 +1548,27 @@ sub scale_picture {
 		$request_height = $orig_height;
 	}
 
-	my $cache_dir = cache_dir($r);
-	my $cache_filename = get_scaled_picture_name($image_fullpath, $request_width, $request_height);
-	my $cache_fullpath = $cache_dir . $cache_filename;
-
 	my ($thumbnailwidth, $thumbnailheight) = get_thumbnailsize($r, $orig_width, $orig_height);
 
-	# Do we want to generate a new file in the cache?
-	my $scale = 1;
+	my $rotate = get_exif_orientation($r, $imageinfo);
+	my $quality = $r->dir_config('GalleryQuality');
 
-	if (-f $cache_fullpath) {
-		$scale = 0;
+	log_debug("scale_picture: writing resized picture to " . $cache_fullpath);
 
-		# Check to see if the image has changed
-		my $filestat = stat($image_fullpath);
-		my $cache_dirstat = stat($cache_dir."/".$cache_filename);
-		if ($filestat->mtime >= $cache_dirstat->mtime) {
-			$scale = 1;
-		}
-
-		# Check to see if the copyrightimage has been added or changed
-		if ($r->dir_config('GalleryCopyrightImage') && -f $r->dir_config('GalleryCopyrightImage')) {
-			unless ($request_width == $thumbnailwidth or $request_width == $thumbnailheight) {
-				my $copyrightstat = stat($r->dir_config('GalleryCopyrightImage'));
-				if ($copyrightstat->mtime > $cache_dirstat->mtime) {
-					$scale = 1;
-				}
-			}
-		}
-	}
-
-	if ($scale) {
-		my $rotate = get_exif_orientation($r, $imageinfo);
-		my $quality = $r->dir_config('GalleryQuality');
-
-		log_debug("scale_picture: writing resized picture to " . $cache_fullpath);
-
-		if ($request_width == $thumbnailwidth or $request_width == $thumbnailheight) {
-			resizepicture($r, $image_fullpath, $cache_fullpath, $request_width, $request_height, $rotate, '', '', '', '', '', '');
-		}
-		else {
-			resizepicture($r, $image_fullpath, $cache_fullpath, $request_width, $request_height, $rotate,
-				($r->dir_config('GalleryCopyrightImage') ? $r->dir_config('GalleryCopyrightImage') : ''),
-				($r->dir_config('GalleryTTFDir') ? $r->dir_config('GalleryTTFDir') : ''),
-				($r->dir_config('GalleryCopyrightText') ? $r->dir_config('GalleryCopyrightText') : ''),
-				($r->dir_config('GalleryCopyrightColor') ? $r->dir_config('GalleryCopyrightColor') : ''),
-				($r->dir_config('GalleryTTFFile') ? $r->dir_config('GalleryTTFFile') : ''),
-				($r->dir_config('GalleryTTFSize') ?  $r->dir_config('GalleryTTFSize') : ''),
-				($r->dir_config('GalleryCopyrightBackgroundColor') ?  $r->dir_config('GalleryCopyrightBackgroundColor') : ''),
-				$quality);
-		}
+	if ($request_width == $thumbnailwidth or $request_width == $thumbnailheight) {
+		resizepicture($r, $image_fullpath, $cache_fullpath, $request_width, $request_height, $rotate, '', '', '', '', '', '', '', $quality);
 	}
 	else {
-		log_debug("scale_picture: using existing scaled picture at " . $cache_fullpath);
+		resizepicture($r, $image_fullpath, $cache_fullpath, $request_width, $request_height, $rotate,
+					  ($r->dir_config('GalleryCopyrightImage') ? $r->dir_config('GalleryCopyrightImage') : ''),
+					  ($r->dir_config('GalleryTTFDir') ? $r->dir_config('GalleryTTFDir') : ''),
+					  ($r->dir_config('GalleryCopyrightText') ? $r->dir_config('GalleryCopyrightText') : ''),
+					  ($r->dir_config('GalleryCopyrightColor') ? $r->dir_config('GalleryCopyrightColor') : ''),
+					  ($r->dir_config('GalleryTTFFile') ? $r->dir_config('GalleryTTFFile') : ''),
+					  ($r->dir_config('GalleryTTFSize') ?  $r->dir_config('GalleryTTFSize') : ''),
+					  ($r->dir_config('GalleryCopyrightBackgroundColor') ?  $r->dir_config('GalleryCopyrightBackgroundColor') : ''),
+					  $quality);
 	}
-
-	return $cache_fullpath;
 }
 
 # Addition by Matt Blissett, June 2011
@@ -2094,6 +2091,7 @@ sub resizepicture {
 	my ($r, $infile, $outfile, $x, $y, $rotate, $copyrightfile, $GalleryTTFDir, $GalleryCopyrightText, $text_color, $GalleryTTFFile, $GalleryTTFSize, $GalleryCopyrightBackgroundColor, $quality) = @_;
 
 	# Load image
+	log_debug("Loading image $infile");
 	my $image = Image::Imlib2->load($infile) or warn("Unable to open file $infile, $!");
 
 	# Scale image
