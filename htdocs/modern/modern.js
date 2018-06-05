@@ -22,7 +22,7 @@ function baseLayers(default_layer) {
 				source: new ol.source.XYZ({
 					url: 'https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}.png'
 				}),
-				visible: ('Carto Dark' == default_layer) && ! window.devicePixelRatio > 1
+				visible: ('Carto Dark' == default_layer) && ! (window.devicePixelRatio > 1)
 			}),
 
 			new ol.layer.Tile({
@@ -32,14 +32,14 @@ function baseLayers(default_layer) {
 					url: 'https://cartodb-basemaps-a.global.ssl.fastly.net/dark_all/{z}/{x}/{y}@2x.png',
 					tilePixelRatio: 2,
 				}),
-				visible: ('Carto Dark' == default_layer) && window.devicePixelRatio > 1
+				visible: ('Carto Dark' == default_layer) && (window.devicePixelRatio > 1)
 			}),
 
 			new ol.layer.Tile({
 				title: 'OpenStreetMap',
 				type: 'base',
 				source: new ol.source.OSM(),
-				visible: ('OpenStreetMap' == default_layer) && ! window.devicePixelRatio > 1
+				visible: ('OpenStreetMap' == default_layer) && ! (window.devicePixelRatio > 1)
 			}),
 
 			new ol.layer.Tile({
@@ -49,7 +49,7 @@ function baseLayers(default_layer) {
 					url: 'https://a.osm.rrze.fau.de/osmhd/{z}/{x}/{y}.png',
 					tilePixelRatio: 2,
 				}),
-				visible: ('OpenStreetMap' == default_layer) && window.devicePixelRatio > 1
+				visible: ('OpenStreetMap' == default_layer) && (window.devicePixelRatio > 1)
 			})
 
 		]
