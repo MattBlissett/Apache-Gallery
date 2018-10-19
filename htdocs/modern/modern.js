@@ -382,7 +382,7 @@ function tileNicely() {
 
 	// Target width and height
 	var h_s = $(window).height() - 4;
-	var w_s = $("#directory").width() - 4;
+	var w_s = $("#directory").width() - 4 - 12;
 
 	// Target number of rows shown
 	var rows = 2.8;
