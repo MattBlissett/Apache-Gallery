@@ -25,7 +25,7 @@
 <script type="text/javascript">
 	var hasMap = true;
 
-	window.onload = function focus() {
+	window.onload = function focus() \{
 		document.getElementById("files").focus();
-	}
+	\}
 </script>
