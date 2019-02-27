@@ -1,7 +1,7 @@
 <header id="menu">{ $MENU }</header>
 
 <div id="directory">
-	<div id="files">
+	<div id="files" tabindex="1">
 { $FILES }
 	</div>
 
@@ -25,7 +25,5 @@
 <script type="text/javascript">
 	var hasMap = true;
 
-	window.onload = function focus() \{
-		document.getElementById("files").focus();
-	\}
+	document.getElementById("files").focus();
 </script>
