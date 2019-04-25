@@ -32,7 +32,7 @@
 	<script type="text/javascript">var theme = "{ $CSS }";</script>
 	{ $MAIN }
 	<div id="footer">
-		Indexed by <a href="https://github.com/MattBlissett/Apache-Gallery">Apache::Gallery</a> — Copyright © 2001–2011 Michael Legart with changes © 2012–2018 Matthew Blissett; source code available on <a href="https://github.com/MattBlissett/Apache-Gallery">GitHub</a>.
+		Indexed by <a href="https://github.com/MattBlissett/Apache-Gallery">Apache::Gallery</a> — Copyright © 2001–2011 Michael Legart with changes © 2012–2019 Matthew Blissett; source code available on <a href="https://github.com/MattBlissett/Apache-Gallery">GitHub</a>.
 	</div>
 </body>
 </html>
