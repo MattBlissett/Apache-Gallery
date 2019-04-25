@@ -61,7 +61,7 @@ function baseLayers(default_layer) {
 // Load index page map.
 function loadBigMap() {
 	map = new ol.Map({
-		layers: baseLayers('Carto Dark'),
+		layers: baseLayers('OpenStreetMap'),
 		target: 'map',
 		view: new ol.View()
 	});
