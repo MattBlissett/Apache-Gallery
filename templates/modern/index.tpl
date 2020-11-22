@@ -26,4 +26,8 @@
 	var hasMap = true;
 
 	document.getElementById("files").focus();
+
+	document.getElementById("menu").onclick = function () \{
+		document.getElementById("files").focus();
+	\};
 </script>

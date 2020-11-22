@@ -143,6 +143,7 @@ body {
 /* Picture display — main picture + next and previous picture links */
 #directory {
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
 }
